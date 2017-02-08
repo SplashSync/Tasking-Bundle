@@ -1,0 +1,81 @@
+services:
+
+########################################################################
+#   TASKING BUNDLE OPERATIONNAL SERVICES
+########################################################################
+
+########################################################################
+# Tasks Management Service
+    TaskingService:
+        class: Splash\Tasking\Services\TaskingService
+        arguments: ["@doctrine.orm.entity_manager", "@service_container"]   
+#        lazy: true
+        tags:
+            - { name: kernel.event_listener, event: tasking.add, method: onAddAction }
+
+        
+########################################################################
+# Tasks Supervision Service
+    Tasking.Supervisor.Service:
+        class: Splash\Tasking\Services\SupervisorService
+        arguments: ["@doctrine.orm.entity_manager", "@service_container"]          
+        
+########################################################################
+# Tasks Execution Service
+    Tasking.Worker.Service:
+        class: Splash\Tasking\Services\WorkerService
+        arguments: ["@doctrine.orm.entity_manager", "@service_container"]  
+#        lazy: true
+
+########################################################################
+# Tasks Management Event Listener
+# This Event is Triggered when User Log In to Start Workers if Needed
+#    Tasking.StartEventListener:
+#        class:      Splash\Tasking\EventListener\TaskingEventListener
+#        arguments:  [@TaskingService, @logger]
+#        tags:
+#            - { name: kernel.event_listener, event: 'security.interactive_login', method: onSecurityInteractiveLogin }
+            
+
+########################################################################
+#   TASKING BUNDLE SONATA ADMIN SERVICES
+########################################################################
+
+########################################################################
+# Tasks Sonata Admin Service
+    sonata.admin.tasks:
+        class: Splash\Tasking\Admin\TaskAdmin
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: "System", label: "Tasks" }
+        arguments:
+            - ~
+            - Splash\Tasking\Entity\Task
+            - ~
+        calls:
+            - [ setTranslationDomain, [TaskingBundle]]
+            
+########################################################################
+# Workers Sonata Admin Service
+    sonata.admin.workers:
+        class: Splash\Tasking\Admin\WorkerAdmin
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: "System", label: "Workers" }
+        arguments:
+            - ~
+            - Splash\Tasking\Entity\Worker
+            - ~
+        calls:
+            - [ setTranslationDomain, [TaskingBundle]]            
+            
+########################################################################
+# Tokens Sonata Admin Service
+    sonata.admin.tokens:
+        class: Splash\Tasking\Admin\TokenAdmin
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: "System", label: "Token" }
+        arguments:
+            - ~
+            - Splash\Tasking\Entity\Token
+            - ~
+        calls:
+            - [ setTranslationDomain, [TaskingBundle]]  
