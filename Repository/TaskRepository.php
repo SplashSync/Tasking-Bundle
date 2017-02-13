@@ -27,7 +27,7 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
      *      @param  string      $Token          Focus on a Specific Token (When Already Acquired)
      *      @param  bool        $Static         Search fro Static Tasks
      */        
-    function getNextTask($ErrorDelay, $TryDelay, $Token = Null, $Static = False)
+    function getNextTask($Options, $Token = Null, $Static = False)
     {
         //====================================================================//
         // Init Query Builder
@@ -64,8 +64,9 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
         }
         
         $this->qb
-            ->setParameter('ErrorDate'         , ($NowTimeStamp - $ErrorDelay))
-            ->setParameter('MaxDate'           , ($NowTimeStamp - $TryDelay))
+            ->setParameter('MaxTry'             , $Options["try_count"])                        // Max. Failled Executions
+            ->setParameter('ErrorDate'          , ($NowTimeStamp - $Options["error_delay"]))    // Delay to consider Task is In Error & Retry
+            ->setParameter('MaxDate'            , ($NowTimeStamp - $Options["try_delay"]))      // Delay Before retry an unfinished Task
             ->setMaxResults(1);
         
         
@@ -404,9 +405,9 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
                 // Task Is Not Running
                 'task.try = 0 AND task.running = 0',
                 // If Task has Already been tried, but failled
-                "task.try > 0 AND task.running = 0 AND task.startedAtTimeStamp <=  :MaxDate",
+                "task.try > 0 AND task.try < :MaxTry AND task.running = 0 AND task.startedAtTimeStamp <=  :MaxDate",
                 // If Task Timeout Exeeded
-                "task.running = 1 AND task.startedAtTimeStamp <= :ErrorDate"
+                "task.try < :MaxTry AND task.running = 1 AND task.startedAtTimeStamp <= :ErrorDate"
              ))   
             //====================================================================//
             // Select Tasks That Are Not Static
@@ -431,11 +432,11 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
                 // Task Is Not Running
                 'task.try = 0 AND task.running = 0 AND task.finished = 0',
                 // If Task has Already been tried, but failled
-                "task.try > 0 AND task.running = 0 AND task.finished = 0 AND task.startedAtTimeStamp <  :MaxDate",
+                "task.try > 0 AND task.try < :MaxTry AND task.running = 0 AND task.finished = 0 AND task.startedAtTimeStamp <  :MaxDate",
                 // If Task Timeout Exeeded
-                "task.running = 1 AND task.startedAtTimeStamp < :ErrorDate",
+                "task.try < :MaxTry AND task.running = 1 AND task.startedAtTimeStamp < :ErrorDate",
                 // If Task Need Restart
-                "task.running = 0 AND task.finished = 1 AND task.plannedAt <  :Now"                    
+                "task.running = 0 AND task.finished = 1 AND task.plannedAtTimeStamp <  :Now"                    
              ))    
             //====================================================================//
             // Select Tasks That Are Not Static

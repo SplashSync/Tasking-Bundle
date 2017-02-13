@@ -43,7 +43,7 @@ class TokenAdmin extends Admin
     {
         $listMapper
             ->addIdentifier('name')
-            ->add('locked')
+            ->add('locked', null, ['editable' => true])
             ->add('lockedAt')
             ->add('lockedBy')
         ;

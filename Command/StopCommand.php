@@ -11,92 +11,134 @@ use Symfony\Component\Console\Output\OutputInterface;
 class StopCommand extends ContainerAwareCommand
 {
     
-    private $tasks;
+    private $Tasking;
+    private $Timeout;
     
     protected function configure()
     {
         $this
             ->setName('tasking:stop')
-            ->setDescription('Tasking Service : Stop All Tasks Process ')
+            ->setDescription('Tasking Service : Stop All Supervisors & Workers Process on All Machines')
         ;
         
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $Input, OutputInterface $Output)
     {
         //====================================================================//
         // Init Tasking Service        
-        $this->tasks = $this->getContainer()->get("TaskingService");
+        $this->Tasking = $this->getContainer()->get("TaskingService");
+        
         //====================================================================//
         // Init Outputs        
-        $this->output = $output;
+        $this->output = $Output;
 
         //====================================================================//
         // User Information        
-        if ($output->isVerbose()) {
-            $output->writeln('<info> Stop Worker Supervision Process & All its Workers. </info>');
+        if ($Output->isVerbose()) {
+            $Output->writeln('<info> Stop Supervisor & Workers Process on all found Machines. </info>');
         }
 
         //====================================================================//
-        // Load Current Server Infos
-        $System    =   posix_uname();
+        // Request All Active Workers to Stop
+        $this->SetupAllWorkers(False);
+
         //====================================================================//
-        // Load Current Service Worker by Machine Name
-        $Workers = $this->getContainer()
-                ->get('doctrine')
-                ->getRepository('TaskingBundle:Worker')
-                ->findByNodeName( $System["nodename"] );
+        // Setup TimeOut for this operation
+        $this->SetupTimeout();
         
-        foreach ($Workers as $Worker) {
+        //====================================================================//
+        // Track Workers are Stopped       
+        while ( ($Count = $this->CountActiveWorkers()) && !$this->isInTimeout() ) {
             
             //====================================================================//
-            // Worker doesn't exists        
+            // User Information        
+            $Output->writeln('<info> Still ' . $Count . ' Actives Workers Process... </info>');
+        
+            //====================================================================//
+            // Pause        
+            sleep(1);
+            
+        } 
+        
+        //====================================================================//
+        // Request All Active Workers to Stop
+        $this->SetupAllWorkers(True);
+
+    }
+
+    private function SetupAllWorkers($Enabled = True) : void 
+    {
+        //====================================================================//
+        // Clear EntityManager
+        $this->getContainer()->get('doctrine')->getManager()->clear();
+        
+        //====================================================================//
+        // Load List of All Currently Setuped Workers
+        $Workers = $this->getContainer()->get('doctrine')
+                ->getRepository('SplashTaskingBundle:Worker')
+                ->findAll();
+        
+        //====================================================================//
+        // Set All Actives Workers as Disabled
+        foreach ($Workers as $Worker) {
+            //====================================================================//
+            // Safety Check - Worker doesn't exists        
             if ($Worker == False)  {
                 continue;
             }
-            
             //====================================================================//
-            // Worker Is Inactive 
+            // Worker Is Active => Set as Disabled
+            $Worker->setEnabled($Enabled);
+        }
+        
+        //====================================================================//
+        // Save Changes to Db
+        $this->getContainer()->get('doctrine')->getManager()->flush();
+    }
+    
+    private function CountActiveWorkers() : int 
+    {
+
+        //====================================================================//
+        // Clear EntityManager
+        $this->getContainer()->get('doctrine')->getManager()->clear();
+        
+        //====================================================================//
+        // Load List of All Currently Setuped Workers
+        $Workers = $this->getContainer()->get('doctrine')
+                ->getRepository('SplashTaskingBundle:Worker')
+                ->findAll();
+        
+        //====================================================================//
+        // Count Actives Workers
+        $ActivesWorkers = 0;
+        foreach ($Workers as $Worker) {
+            //====================================================================//
+            // Safety Check - Worker doesn't exists        
+            if ($Worker == False)  {
+                continue;
+            }
+            //====================================================================//
+            // Worker Is Inactive => Nothing to Do
             if ($Worker->getRunning() == False)  {
                 continue;
             }
-            
-            //====================================================================//
-            // Worker Process Is Inactive 
-            if ($Worker->Ping() == False)  {
-                continue;
-            }
-            
-            if ($Worker->getPID())  {
-                exec("kill " . $Worker->getPID());
-            }
-
-        }
-
-        //====================================================================//
-        // Get List of All Tasking Process on this Server        
-        exec("pgrep " . \Splash\Tasking\Entity\Task::WORKER . " -f",$ProcessList);
-        foreach ($ProcessList as $Process) {
-            if ( $Process != getmypid()) {
-                //====================================================================//
-                // Kill Process on this Server        
-                exec("kill " . $Process);
-            }
+            $ActivesWorkers++;
         }
         
-        //====================================================================//
-        // Get List of All Supervisor Process on this Server        
-        exec("pgrep " . \Splash\Tasking\Entity\Task::SUPERVISOR . " -f",$ProcessList);
-        foreach ($ProcessList as $Process) {
-            if ( $Process != getmypid()) {
-                //====================================================================//
-                // Kill Process on this Server        
-                exec("kill " . $Process);
-            }
-        }
-        
-        
+        return $ActivesWorkers;
     }
-
+    
+    private function SetupTimeout() : void 
+    {
+        $TimeOutDelay = $this->getContainer()->getParameter('splash_tasking')["watchdog_delay"];
+        $this->Timeout  = new \DateTime("- " . $TimeOutDelay . " Seconds");
+    }
+    
+    private function isInTimeout() : bool 
+    {
+        return ( $this->Timeout->getTimestamp() > (new \DateTime)->getTimestamp() );
+    }
 }
     

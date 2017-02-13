@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
  * System Task Worker Tracker
  * 
  * @ORM\Entity
- * @ORM\Table(name="system__worker")
+ * @ORM\Table(name="system__workers")
  * @ORM\HasLifecycleCallbacks
  * 
  */
@@ -41,6 +41,12 @@ class Worker
 
     /**
      * @var string
+     * @ORM\Column(name="Ip", type="string", length=250)
+     */
+    private $nodeIp;
+    
+    /**
+     * @var string
      * @ORM\Column(name="Infos", type="string", length=512)
      */
     private $nodeInfos;
@@ -57,6 +63,13 @@ class Worker
      */
     private $pID;
 
+
+    /**
+     * @var boolean
+     * @ORM\Column(name="Enabled", type="boolean", nullable=TRUE)
+     */
+    private $enabled = True;
+    
     /**
      * @var boolean
      * @ORM\Column(name="Running", type="boolean", nullable=TRUE)
@@ -81,33 +94,12 @@ class Worker
 //==============================================================================
 
     /**
-     *      @abstract    Update Worker Status
-     */    
-    public function Refresh() {
-        //==============================================================================
-        // Set As Running
-        $this->setRunning( True );
-        //==============================================================================
-        // Set As Running
-        $this->setPID( getmypid() );
-        //==============================================================================
-        // Set Last Seen DateTime to NOW
-        $this->setLastSeen( new DateTime() );
-        //==============================================================================
-        // Set Script Execution Time
-        set_time_limit(40);
-    }    
-    
-    
-    /**
      *      @abstract    Verify if a Worker Process is Action
      */    
     public function Ping() {
-
         //==============================================================================
         // Check if Process is active
-        return posix_getpgid($this->getPID())?True:False;
-        
+        return posix_getpgid($this->getPID())?True:False;        
     }
         
     /**
@@ -139,6 +131,16 @@ class Worker
 //      Getters & Setters
 //==============================================================================
   
+    /**
+     * Get Worker Name
+     * 
+     * @return string
+     */
+    public function _toString()
+    {
+        return $this->nodeName . " [" . $this->process . "]";
+    }
+    
     /**
      * Get id
      *
@@ -173,6 +175,30 @@ class Worker
         return $this->nodeName;
     }
 
+    /**
+     * Set nodeIp
+     *
+     * @param string $nodeIp
+     *
+     * @return Worker
+     */
+    public function setNodeIp($nodeIp)
+    {
+        $this->nodeIp = $nodeIp?$nodeIp:"127.0.0.1";
+
+        return $this;
+    }
+
+    /**
+     * Get nodeIp
+     *
+     * @return string
+     */
+    public function getNodeIp()
+    {
+        return $this->nodeIp;
+    }
+    
     /**
      * Set nodeInfos
      *
@@ -305,6 +331,29 @@ class Worker
     public function getTask()
     {
         return $this->task;
+    }    
+    
+    /**
+     * Set Worker as Enabled
+     *
+     * @param bool $enabled
+     *
+     * @return Worker
+     */
+    public function setEnabled($enabled)
+    {
+        $this->enabled = $enabled;
+        return $this;
+    }
+
+    /**
+     * Get Worker is Enabled
+     *
+     * @return bool
+     */
+    public function getEnabled()
+    {
+        return $this->enabled;
     }    
 }
 

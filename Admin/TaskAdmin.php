@@ -29,28 +29,32 @@ class TaskAdmin extends Admin
     protected function configureShowFields(ShowMapper $showMapper)
     {
         $showMapper
-            ->with('General', array('class' => 'col-md-6'))
-                ->add('name')
-//                ->add('user', 'sonata_type_model_list')
+            ->with('Status', array('class' => 'col-md-12'))
                 ->add('running')
                 ->add('finished')
+                ->add('try')
+                ->add('fault_str')
             ->end()
-            ->with('Action', array('class' => 'col-md-6'))
-                ->add('serviceName')
+            ->with('Inputs', array('class' => 'col-md-6'))
+                ->add('jobInputsStr', null, array('safe' => true) )
+            ->end()   
+            ->with('Outputs', array('class' => 'col-md-6'))
+                ->add('outputs', null, array('safe' => true) )
+            ->end() 
+            ->with('General', array('class' => 'col-md-6'))
+                ->add('name')
+                ->add('jobClass')
                 ->add('jobName')
                 ->add('jobToken')
-            ->end()                
-            ->with('Parameters', array('class' => 'col-md-6'))
-                ->add('jobParameters')
-            ->end()                
-            ->with('Static Tasks', array('class' => 'col-md-6'))
                 ->add('jobIsStatic')
                 ->add('jobFrequency')
                 ->add('plannedAt')
             ->end()                
             ->with('Timing', array('class' => 'col-md-6'))
                 ->add('createdAt')
+                ->add('createdBy')
                 ->add('startedAt')
+                ->add('startedBy')
                 ->add('finishedAt')
             ->end()
         ;
@@ -62,11 +66,9 @@ class TaskAdmin extends Admin
     protected function configureListFields(ListMapper $listMapper)
     {
         $listMapper
-            ->addIdentifier('name')
-//            ->add('user')
-            ->add('serviceName')                
-            ->add('running')
-            ->add('finished')
+            ->addIdentifier('name', null, array('route' => array('name' => 'show')))
+            ->add('running', null, ['editable' => true])
+            ->add('finished', null, ['editable' => true])
             ->add('jobIsStatic')
             ->add('try')
             ->add('finishedAt')
@@ -83,7 +85,7 @@ class TaskAdmin extends Admin
 //            ->add('user')
             ->add('running')
             ->add('finished')
-            ->add('serviceName')
+            ->add('jobClass')
             ->add('jobToken')
             ->add('jobIsStatic')
         ;
@@ -102,12 +104,12 @@ class TaskAdmin extends Admin
                 ->add('finished')
             ->end()
             ->with('Action', array('class' => 'col-md-6'))
-                ->add('serviceName')
+                ->add('jobClass')
                 ->add('jobName')
                 ->add('jobToken')
             ->end()                
             ->with('Parameters', array('class' => 'col-md-6'))
-                ->add('jobParameters')
+                ->add('jobInputs')
             ->end()                
             ->with('Static Tasks', array('class' => 'col-md-6'))
                 ->add('jobIsStatic')
@@ -120,21 +122,5 @@ class TaskAdmin extends Admin
 //                ->add('finishedAt')
             ->end()
         ;
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function getNewInstance()
-    {
-        $object = parent::getNewInstance();
-
-//        $inspection = new Inspection();
-//        $inspection->setDate(new \DateTime());
-//        $inspection->setComment("Initial inspection");
-
-//        $object->addInspection($inspection);
-
-        return $object;
     }
 }

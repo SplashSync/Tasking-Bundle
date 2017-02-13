@@ -5,15 +5,35 @@ namespace Splash\Tasking\Services;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
 use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Entity\Token;
+use Splash\Tasking\Entity\Worker;
 
-use UserBundle\Entity\User;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Console\Output\OutputInterface;
+
+use ArrayObject, DateTime;
 
 /**
  * Tasks Management Service
  */
 class TaskingService 
 {
+//==============================================================================
+//  Constants Definition           
+//==============================================================================
+
+
+    /*
+     *  Processing Parameters
+     */    
+    const CMD_PHP           = "php ";                           // Console Command Prefix
+    const CMD_PREFIX        = "bin/console ";                   // Console Command Prefix
+    const CMD_SUFIX         = " > /dev/null &";                 // Console Command Suffix
+    const WORKER            = "tasking:worker ";                 // Worker Start Console Command
+    const SUPERVISOR        = "tasking:supervisor ";             // Supervisor Start Console Command    
+    
+//==============================================================================
+//  Variables Definition           
+//==============================================================================
 
     /*
      *  Doctrine Entity Manager
@@ -27,15 +47,37 @@ class TaskingService
     private $container;
     
     /*
+     *   Task Repository
+     * @var \Splash\Tasking\Repository\TaskRepository
+     */
+    private $TaskRepository;
+    
+    /**
+     * @var \Splash\Tasking\Repository\WorkerRepository
+     */
+    private $WorkerRepository; 
+    
+    /*
      *  Tasking Service Configuration Array
      */
     private $Config;
+    
+    /*
+     *  Symfony Console Output Interface
+     */
+    private $Output = Null;
     
     /*
      *  Fault String
      */
     public $fault_str;    
 
+    /*
+     * @abstract    Current Acquired Token
+     * @var         string
+     */
+    private $CurrentToken = Null;
+    
 //====================================================================//
 //  CONSTRUCTOR
 //====================================================================//
@@ -54,182 +96,69 @@ class TaskingService
         $this->container            =   $container;           
         
         //====================================================================//
-        // Init Parameters        
-        $this->Config               =   $container->getParameter('splash_tasking_bundle.tasks');
-        return True;
-    }    
-
-//====================================================================//
-// *******************************************************************//
-//  Tokens Short Access
-// *******************************************************************//
-//====================================================================//
-    
-    /**
-     *      @abstract    Build Token Key Name from an Array of Parameters
-     * 
-     *      @param       array    $TokenArray     Token Parameters Given As Array 
-     */    
-    public function BuildToken($TokenArray = Null) {
+        // Link to Tasks Repository
+        $this->TaskRepository       =   $entityManager->getRepository('SplashTaskingBundle:Task');
         //====================================================================//
-        // Build Token Key Name
-        return Token::Build($TokenArray);
-    }     
+        // Link to Workers Repository
+        $this->WorkerRepository     =   $entityManager->getRepository('SplashTaskingBundle:Worker');   
+        
+        //====================================================================//
+        // Init Parameters        
+        $this->Config               =   new ArrayObject($container->getParameter('splash_tasking'), ArrayObject::ARRAY_AS_PROPS) ;
 
+        return True;
+    }   
     
 //====================================================================//
 // *******************************************************************//
 //  Normal Tasks Management
 // *******************************************************************//
 //====================================================================//
-    
+      
     /**
-     *      @abstract    Add a New Task on Gearman Scheduler 
-     * 
-     *      @param Task             $Task       Task Object
-     * 
-     *      @return bool 
-     */    
-    public function add(Task $Task) { 
-        
-        //====================================================================//
-        // Safety Check
-        if ( empty($Task->getServiceName()) || empty($Task->getJobName()) ) {
-            return False;
-        } 
-
-        //====================================================================//
-        // Setup Default Task Parameters if Empty
-        //====================================================================//
-        
-        //====================================================================//
-        // Task Name
-        if (empty($Task->getName())) {
-            $Task->setName( $Task->getJobName() . "@" . $Task->getServiceName() );
-        }
-        //====================================================================//
-        // Verify Task Token
-        $Token = $Task->getJobToken();
-        if ( is_array($Token) ) {
-            //====================================================================//
-            // Array Given => Build Token
-            $Task->setJobToken( Token::Build($Token) );
-        } elseif (empty($Task->getJobToken())) {
-            //====================================================================//
-            // Array Given => Build Token
-            $Task->setJobToken( Token::Build( [ $Task->getServiceName(), $Task->getJobName() ] ) );
-        }
-        //====================================================================//
-        // Task Priority
-        if (empty($Task->getJobPriority())) {
-            $Task->setJobPriority( Task::DO_NORMAL );
-        }        
-        
-        //==============================================================================
-        // Validate Token Before Task Insert
-        //==============================================================================
-        $ValidToken =   $this->em->getRepository('TaskingBundle:Token')
-                ->Validate( $Task->getJobToken() );
-        if ( !$ValidToken ) {
-            return False;
-        } 
-        
-        //====================================================================//
-        // Save New Task
-        //====================================================================//
-
+     * Insert Tasks in DataBase
+     */
+    public function TaskInsert($Task) : void
+    {
         //====================================================================//
         // Persist New Task to Db
         $this->em->persist($Task);
         $this->em->flush();
-        
-        //====================================================================//
-        // Ensure Workers are Alive
-        $this->RunTasks();
-        
-        return True;
-    }        
-    
-    /**
-     *      @abstract    Add a New Task on Gearman Scheduler  
-     */    
-    public function addTask($serviceName, $jobName, $jobParameters, User $User = Null, $TokenName = "None",  $jobPriority = Task::DO_NORMAL, $Settings = Null ) { 
-        
-        //====================================================================//
-        // Safety Check
-        if ( empty($serviceName) || empty($jobName) || empty($jobParameters) ) {
-            return False;
-        } 
-        //====================================================================//
-        // Create a New Task
-        $Task    =   new Task();
-        //====================================================================//
-        // Setup Task Parameters
-        $Task
-                ->setServiceName($serviceName)
-                ->setJobName($jobName)
-                ->setJobParameters( $jobParameters )
-                ->setJobPriority($jobPriority)
-                ->setJobToken($TokenName)
-                ->setSettings($Settings);
-        
-        //====================================================================//
-        // Setup Task User if Given
-        if ( !is_null($User) ) {
-            $Task->setUser($User);
-        }
-        
-        return $this->add($Task);
-    }        
-    
-    /**
-     *      @abstract    Add a New Task on Gearman Scheduler 
-     * 
-     *      @param GenericEvent     $Event
-     * 
-     *      @return bool 
-     */    
-    public function onAddAction(GenericEvent $Event) { 
-        
-        //====================================================================//
-        // Extract Task From Event
-        $Task =     $Event->getSubject();
-        //====================================================================//
-        // Check is Task Object
-        if (is_a($Task, Task::class )) {
-            
-            //====================================================================//
-            // Add Task To Queue
-            $this->add($Task);            
-            return True;
-            
-        }
-        return False;
-    }   
-    
-    /**
-     *      @abstract    Ensure Supervisor Service is Running on Local Machine (Server Node)
-     */    
-    public function RunTasks() 
-    {
-        //====================================================================//
-        // Load Current Server Infos
-        $System    = posix_uname();
-        //====================================================================//
-        // Retrieve Server Local Supervisor
-        $Supervisor    = $this->em->getRepository('TaskingBundle:Worker')
-                ->findOneBy( array("nodeName" => $System["nodename"], "process" => 0)); 
-        //====================================================================//
-        // Supervisor Exists & Is Running        
-        if ( $Supervisor && $Supervisor->getRunning() )  {
-            return True;
-        }
-
-        //====================================================================//
-        // Execute Shell Command to Supervisor
-        //====================================================================//
-        return Task::Process(Task::SUPERVISOR,$this->Config["environement"]);
     }
+    
+    /**
+     * Retrieve Next Available Task from database
+     */
+    public function TasksFindNext($CurrentToken, $StaticMode = False){
+        return  $this->TaskRepository
+                ->getNextTask( 
+                        $this->Config->tasks,
+                        $CurrentToken, 
+                        $StaticMode
+                        );
+    } 
+    
+    /**
+     * Clean Task Buffer to remove old Finished Tasks
+     */
+    public function TasksCleanUp() 
+    {    
+        //====================================================================//
+        // Delete Old Tasks from Database        
+        $CleanCounter = $this->TaskRepository->Clean($this->Config->tasks['max_age']); 
+        
+        //====================================================================//
+        // User Information        
+        if ($CleanCounter) {
+            $this->OutputVerbose('Cleaned ' . $CleanCounter . ' Tasks' , 'info');
+        }         
+        
+        //====================================================================//
+        // Reload Reprository Data
+        $this->em->clear();
+        
+        return $CleanCounter;
+    }    
     
 //====================================================================//
 // *******************************************************************//
@@ -238,22 +167,31 @@ class TaskingService
 //====================================================================//    
     
     /**
-     *      @abstract   Initialize Static Task Buffer in Database vs Parameters
+     *  @abstract   Initialize Static Task Buffer in Database 
+     *                  => Tasks are Loaded from Parameters
+     *                  => Or by registering Event dispatcher
      */    
-    public function InitStaticTasks() {
+    public function StaticTasksInit() {
         
         //====================================================================//
-        // Get List of Static Tasks from Parameters
-        $Parameters     =   $this->container->getParameter('splash_tasking_bundle.static');
-        
+        // Load Event Dispatcher
+        $Dispatcher     =   $this->container->get('event_dispatcher');
         //====================================================================//
-        // Get List of Static Tasks via Event Listner
-        $Dispatcher =   $this->container->get('event_dispatcher');
-        $Event      =   $Dispatcher->dispatch("tasking.static", new GenericEvent($Parameters));
-        
+        // Create A Generic Event 
+        $GenericEvent =   new GenericEvent();
+        //====================================================================//
+        // Fetch List of Static Tasks from Parameters
+        $GenericEvent->setArguments($this->Config->static);
+        //====================================================================//
+        // Complete List of Static Tasks via Event Listner
+        $StaticTaskList =   $Dispatcher
+                ->dispatch("tasking.static", $GenericEvent)
+                ->getArguments();
+
         //====================================================================//
         // Get List of Static Tasks in Database
-        $Database       =   $this->em->getRepository('TaskingBundle:Task')
+        $Database       =   $this->em
+                ->getRepository('SplashTaskingBundle:Task')
                 ->getStaticTasks();
         
         //====================================================================//
@@ -262,28 +200,24 @@ class TaskingService
         foreach($Database as $Task) {
             
             //====================================================================//
-            // If Task Not to Run (Doesn't Exists) => To delete
-            if ( !$Event->hasArgument( $Task->getName() ) ) {
-                $Delete[]  =   $Task;
-                continue;
-            } 
-            
-            $StaticTask = $Event->getArgument( $Task->getName() );
-            //====================================================================//
-            // If Tasks Are Not Similar => To delete & Add
-            if ( !$this->CompareStaticTasks($Task,$StaticTask) ) {
-                $Delete[]   =   $Task;
-                continue;
+            // Try to Identify Task in Static Task List
+            foreach ($StaticTaskList as $Index => $StaticTask) {
+                //====================================================================//
+                // If Tasks Are Similar => Delete From List
+                if ( $this->StaticTasksCompare($StaticTask, $Task) ) {
+                    unset ($StaticTaskList[$Index]);
+                    continue;
+                }
             }
             
             //====================================================================//
-            // Static Task is Ok => Do Nothing
-            $Event->setArgument( $Task->getName(), Null );
-            
+            // Task Not to Run (Doesn't Exists) => Delete from Database
+            $this->em->remove($Task);
+            $this->em->flush();
         }
         
         //====================================================================//
-        // Loop on Tasks to Delete From Database
+        // Loop on Tasks to Add on Database
         foreach($Delete as $Task) {
             $this->em->remove($Task);
             $this->em->flush();
@@ -291,110 +225,597 @@ class TaskingService
         
         //====================================================================//
         // Loop on Tasks to Add it On Database
-        foreach($Event->getArguments() as $Task) {
-            if ($Task) {
-                $this->add($Task);
+        foreach($StaticTaskList as $StaticTask) {
+            if (class_exists($StaticTask["class"])) {
+                $ClassName  =   "\\" . $StaticTask["class"];
+                $Job = new $ClassName();
+                $Job
+                        ->setFrequency  ($StaticTask["frequency"])
+                        ->setToken      ($StaticTask["token"])
+                        ->setInputs     ($StaticTask["inputs"]);
+                
+                $Dispatcher->dispatch("tasking.add", $Job);
             }
         }
         
         return $this;
     } 
     
-//    /**
-//     *      @abstract   Clean Static Task Buffer to remove deleted tasks form Database
-//     */    
-//    public function CleanStaticTasks() {
-//        
-//        //====================================================================//
-//        // Get List of Static Tasks from Parameters
-//        $Parameters     =   $this->container->getParameter('splash_tasking_bundle.static');
-//        //====================================================================//
-//        // Get List of Static Tasks in Database
-//        $Database       =   $this->em
-//                ->getRepository('TaskingBundle:Task')
-//                ->getStaticTasks();
-//        //====================================================================//
-//        // Loop on All Database Tasks to Identify Static Tasks
-//        foreach($Database as $Task) {
-//            //====================================================================//
-//            // Identify in Defined Tasks
-//            if (!$this->IdentifyStaticTasksKey($Parameters,$Task)) {
-//                //====================================================================//
-//                // If Doesn't Exists, remove form database
-//                $this->em->remove($Task);
-//                $this->em->flush();
-//            } 
-//        }
-//        
-//        return $this;
-//    }
-    
     /**
      *      @abstract   Identify Static Task in Parameters
      */    
-    public function CompareStaticTasks($Task1,$Task2) {
+    public function StaticTasksCompare(array $StaticTask, Task $Task) {
 
         //====================================================================//
-        // Filter by Service Name
-        if ( $Task1->getServiceName()   != $Task2->getServiceName() ) {
-            return False;
-        }
-        //====================================================================//
-        // Filter by Function Name
-        if ( $Task1->getJobName()       != $Task2->getJobName() ) {
+        // Filter by Class Name
+        if ( $StaticTask["class"]       != $Task->getJobClass() ) {
             return False;
         }
         //====================================================================//
         // Filter by Token
-        if ( $Task1->getJobToken()      != $Task2->getJobToken() ) {
+        if ( $StaticTask["token"]       != $Task->getJobToken() ) {
             return False;
         }
         //====================================================================//
-        // Filter by Token
-        if ( $Task1->getJobFrequency()  != $Task2->getJobFrequency() ) {
+        // Filter by Frequency
+        if ( $StaticTask["frequency"]   != $Task->getJobFrequency() ) {
+            return False;
+        }
+        //====================================================================//
+        // Filter by Inputs
+        if ( serialize($StaticTask["inputs"])   !== serialize($Task->getJobInputs()) ) {
             return False;
         }
         
         return True;
     }    
-//    
-//    /**
-//     *      @abstract    Add a New Static Task on Scheduler  
-//     */    
-//    public function addStaticTask($serviceName, $jobName, $jobParameters, $jobFrequency, $TokenName = "None",  $Name = "Unknown Task Name" ) 
-//    { 
-//        //====================================================================//
-//        // Safety Check
-//        if ( empty($serviceName) || empty($jobName) || empty($jobParameters) ) {
-//            return False;
-//        } 
-//        //====================================================================//
-//        // Create a New Task
-//        $newTask    =   new Task();
-//        //====================================================================//
-//        // Setup Task Parameters
-//        $newTask->setName($Name)
-//                ->setServiceName($serviceName)
-//                ->setJobName($jobName)
-//                ->setJobParameters( $jobParameters )
-//                ->setJobPriority(Task::DO_NORMAL)
-//                ->setJobIsStatic(True)
-//                ->setJobFrequency($jobFrequency)
-//                ->setPlannedAt( new \DateTime())
-//                ->setJobToken($TokenName);
-//        //==============================================================================
-//        // Create token if necessary
-////        if ( !$this->tokens->findOneByName( $TokenName ) ) {
-////            $Token = new Token($TokenName);
-////            $this->em->persist($Token);
-////        }        
-//        //====================================================================//
-//        // Persist new Task to Db
-//        $this->em->persist($newTask);
-//        $this->em->flush();
-//        return True;
-//    }        
-        
 
+//====================================================================//
+// *******************************************************************//
+//  Tasks Tokens Management
+// *******************************************************************//
+//====================================================================//
     
+    /**
+     *      @abstract    Take Lock on a Specific Token 
+     * 
+     *      @param       Task       $Task           Task Object
+     * 
+     */    
+    public function TokenAcquire(Task $Task) {
+
+        //==============================================================================
+        // Safety Check - If Task Counter is Over => Close Directly This Task
+        // This means task was aborded due to a uncatched fatal error
+        if ( $Task->getTry() > $this->Config->tasks["try_count"] )    {
+            $Task->setFaultStr( "Fatal Error : Task Counter is Over!" , $this->Output);
+            return False;
+        }    
+        
+        //==============================================================================
+        // Ckeck Token is not Emppty => Skip
+        if ( empty($Token = $Task->getJobToken()) ) {
+            return True;
+        }        
+        //==============================================================================
+        // Ckeck If we have an Active Token
+        if ( !is_null($this->CurrentToken) ) {
+            
+            //==============================================================================
+            // Ckeck If Token is Already Took
+            if ( $this->CurrentToken == $Token ) {
+                $this->OutputVeryVerbose('Token Already Took! (' . $this->CurrentToken . ')', "comment");
+                return True;
+            }
+            
+            //==============================================================================
+            // CRITICAL - Release Current Token before Asking for a new one
+            $this->TokenRelease();
+            $this->Output('Token Not Released before Acquiring a Ne One! (' . $this->CurrentToken . ')', "error");
+            return True;
+        }
+        
+        //==============================================================================
+        // Try Acquire this Token
+        $Token  =   $this->em
+                ->getRepository('SplashTaskingBundle:Token')
+                ->Acquire( $Task->getJobToken() );
+        
+        //==============================================================================
+        // Ckeck If token is Available
+        if ( $Token != False ){
+            $this->CurrentToken = $Token->getName();
+            $this->OutputVeryVerbose('Token Acquired! (' . $this->CurrentToken . ')', "comment");
+            return True;
+        }
+        
+        //==============================================================================
+        // Token Rejected
+        $this->CurrentToken = Null;
+        $this->OutputVeryVerbose('Token Rejected! (' . $Token . ')', "comment");            
+        return False;
+    }        
+    
+    /**
+     * @abstract    Release Lock on a Specific Token 
+     * 
+     * @return      bool    Return True only if Current Token was Released
+     */    
+    public function TokenRelease() {
+        //==============================================================================
+        // Ckeck If we currently have a token
+        if ( is_null($this->CurrentToken) ) {
+            return False;
+        }
+        //==============================================================================
+        // Release Token
+        $Release = $this->em
+                ->getRepository('SplashTaskingBundle:Token')
+                ->Release( $this->CurrentToken );
+        //==============================================================================
+        // Token Released => Clear Current Token
+        if ( $Release ){
+            $this->CurrentToken         = Null;
+            $this->CurrentTokenCount    = 0;
+            $this->OutputTokenReleased();
+        }        
+        return $Release;
+    }          
+    
+    /**
+     * @abstract    Validate/Create a Token before insertion of a new Task 
+     */    
+    public function TokenValidate($Task) {
+        
+        if ( empty($Task->getJobToken()) ) {
+            return True;
+        } 
+        
+        return $this->em
+                ->getRepository('SplashTaskingBundle:Token')
+                ->Validate( $Task->getJobToken() );
+    }          
+        
+    
+//==============================================================================
+//      Supervisor Operations
+//==============================================================================
+
+    /**
+     *  @abstract   Identify Supervisor on this machine 
+     *  @return     Worker
+     */    
+    public function SupervisorIdentify()
+    {
+        //====================================================================//
+        // Load Current Server Infos
+        $System    = posix_uname();
+        //====================================================================//
+        // Retrieve Server Local Supervisor
+        return  $this->WorkerRepository
+                    ->findOneBy( array(
+                        "nodeName"  => $System["nodename"], 
+                        "process"   => 0
+                        ));
+    }   
+    
+    /**
+     *  @abstract   Check Supervisor is Running on this machine 
+     *              ==> Start a Supervisor Process if needed
+     * 
+     *  @return     bool
+     */    
+    public function SupervisorCheckIsRunning() 
+    {
+        //====================================================================//
+        // Load Local Machine Supervisor        
+        $Supervisor     = $this->SupervisorIdentify();
+        //====================================================================//
+        // Supervisor Exists & Is Running        
+        if ( $Supervisor && $Supervisor->getRunning() )  {
+            //====================================================================//
+            // YES =>    Exit
+            return True;
+        }
+        //====================================================================//
+        // NO =>    Start Supervisor Process
+        return $this->ProcessStart(self::SUPERVISOR);
+    }    
+
+    /**
+     *  @abstract   Get Max Age for Supervisor (since now) 
+     *  @return     datetime
+     */    
+    public function SupervisorMaxDate()
+    {
+        $this->OutputVerbose("Tasking :: This Supervisor will die in " . $this->Config->supervisor['max_age'] . " Seconds", "info");
+        return new DateTime( "+" . $this->Config->supervisor['max_age'] . "Seconds" );
+    }    
+    
+    /**
+     *  @abstract   Get Max Number of Workers for Supervisor (since now) 
+     *  @return     int
+     */    
+    public function SupervisorMaxWorkers() : int
+    {
+        $this->OutputVerbose("Tasking :: This Supervisor will manage " . $this->Config->supervisor['max_workers'] . " Workers", "info");
+        return $this->Config->supervisor['max_workers'];
+    }    
+    
+    /**
+     *  @abstract   Do Pause for Supervisor between two Refresh loop 
+     *  @return     int
+     */    
+    public function SupervisorDoPause() : void
+    {
+        //====================================================================//
+        // Wait        
+        usleep(1E3 * $this->Config->supervisor["refresh_delay"]);
+    }      
+    
+    /**
+     * @abstract    Check if Supervisor Needs To Be Restarted
+     * 
+     * @param       Worker      $Worker     Tasking Worker Object
+     * @param       int         $TaskCount  Number of Tasks Executed
+     * @param       datetime    $EndDate    Expected End Date
+     * 
+     */    
+    public function SupervisorIsToKill(Worker $Worker, $EndDate) { 
+        
+        //====================================================================//
+        // Check Worker Age        
+        if ($EndDate < new DateTime()) {
+            $this->Output('Exit on Supervisor TimeOut', "question");
+            return True;
+        }
+        
+        //====================================================================//
+        // Check Worker Memory Usage        
+        if ( (memory_get_usage(True) / 1048576 ) > $this->Config->supervisor["max_memory"]) {
+            $this->Output('Exit on Supervisor Memory Usage', "question");
+            return True;
+        }        
+
+        //====================================================================//
+        // Check User requested Worker to Stop        
+        if ( !$Worker->getEnabled() ) {
+            $this->Output('Exit on User Request, Supervisor Now Disabled', "question");
+            return True;
+        }        
+        
+        return False;
+        
+    }
+    
+//==============================================================================
+//      Worker Operations
+//==============================================================================
+
+    /**
+     *  @abstract   Create a new Worker Object for this Process
+     * 
+     *  @param      int     $ProcessId      Worker Process Id
+     * 
+     *  @return     Worker
+     */    
+    public function WorkerCreate($ProcessId = 0) {
+        
+        //====================================================================//
+        // Load Current Server Infos
+        $System    = posix_uname();
+        //====================================================================//
+        // Create Worker Object
+        $Worker     =   new Worker();
+        //====================================================================//
+        // Populate Worker Object
+        $Worker->setPID         ( getmypid() );
+        $Worker->setProcess     ( $ProcessId );
+        $Worker->setNodeName    ( $System["nodename"] );
+        $Worker->setNodeIp      ( filter_input(INPUT_SERVER, "SERVER_ADDR") );
+        $Worker->setNodeInfos   ( $System["version"] );
+        $Worker->setLastSeen    ( new DateTime() );
+        //====================================================================//
+        // Persist Worker Object to Database
+        $this->em->persist( $Worker );
+        $this->em->flush();
+        return $Worker;
+    }
+    
+    /**
+     * @abstract    Refresh Status of a Supervisor Process 
+     * 
+     * @param       Worker      $Worker     Tasking Worker Object
+     */    
+    public function WorkerRefresh(Worker &$Worker) { 
+        
+        //====================================================================//
+        // Compute Refresh Limit
+        $RefreshLimit = new \DateTime("-" . $this->Config->refresh_delay. " Seconds");
+        //====================================================================//
+        // Update Status if Needed
+        if ($Worker->getLastSeen()->getTimestamp() < $RefreshLimit->getTimestamp()) {
+            //====================================================================//
+            // Reload Worker From DB
+            $Worker = $this->WorkerIdentify($Worker->getProcess());
+            //==============================================================================
+            // Refresh Worker Status
+            //==============================================================================
+            //==============================================================================
+            // Set As Running
+            $Worker->setRunning( True );
+            //==============================================================================
+            // Set As Running
+            $Worker->setPID( getmypid() );
+            //==============================================================================
+            // Set Last Seen DateTime to NOW
+            $Worker->setLastSeen( new DateTime() );
+            //==============================================================================
+            // Set Script Execution Time
+            set_time_limit($this->Config->watchdog_delay + 2);
+            //==============================================================================
+            // Set Status as Waiting
+            $Worker->setTask("Waiting...");
+            //==============================================================================
+            // Flush Database
+            $this->em->flush();        
+        }        
+            
+        return $Worker;
+    }       
+    
+    /**
+     *  @abstract   Idnetify Supervisor on this machine 
+     *  @param      int $ProcessId Worker Process Id
+     *  @return     Worker
+     */    
+    public function WorkerIdentify($ProcessId)
+    {
+        //====================================================================//
+        // Load Current Server Infos
+        $System    = posix_uname();
+        //====================================================================//
+        // Clear Cache of EntityManager
+        $this->em->clear();
+        //====================================================================//
+        // Retrieve Server Local Supervisor
+        return  $this->WorkerRepository
+                    ->findOneBy( array(
+                        "nodeName"  => $System["nodename"], 
+                        "process"   => $ProcessId
+                        ));
+    }   
+    
+    /**
+     *      @abstract    Verify a Worker Process is running
+     * 
+     *      @param       int        $Process         Worker Local Id
+     */    
+    public function WorkerCheckIsRunning($Process) {
+        //====================================================================//
+        // Load Local Machine Worker        
+        $Worker     = $this->WorkerIdentify($Process);
+        //====================================================================//
+        // Worker Found & Running
+        if ( $Worker && $Worker->getRunning() )  {
+            return True;
+        //====================================================================//
+        // Worker Found & Running
+        } elseif ( !$Worker )  {
+            $this->OutputVeryVerbose("Workers Process " . $Process . " Doesn't Exists", "question");
+        //====================================================================//
+        // Worker Is Disabled        
+        } elseif ( !$Worker->getEnabled() ) {
+            $this->OutputVeryVerbose("Workers Process " . $Process . " is Disabled", "info");
+            return True;
+        //====================================================================//
+        // Worker Is Inactive        
+        } else {
+            $this->OutputVeryVerbose("Workers Process " . $Process . " is Inactive", "info");
+        }             
+        //====================================================================//
+        // Worker Not Alive
+        return False; 
+    }          
+    
+    /**
+     *  @abstract   Start a Worker Process on Local Machine (Server Node)
+     *  @param      int $ProcessId Worker Process Id
+     *  @return     bool
+     */    
+    public function WorkerStartProcess($ProcessId) 
+    {
+        $this->ProcessStart(self::WORKER . " " . $ProcessId);
+    }    
+    
+    /**
+     *  @abstract   Get Max Age for Worker (since now) 
+     *  @return     datetime
+     */    
+    public function WorkerMaxDate()
+    {
+        $this->OutputVerbose("Tasking :: This Worker will die in " . $this->Config->workers['max_age'] . " Seconds", "info");
+        return new DateTime( "+" . $this->Config->workers['max_age'] . "Seconds" );
+    }    
+        
+    /**
+     *  @abstract   Get Max Try Count for Tasks 
+     *  @return     int
+     */    
+    public function WorkerMaxTry()
+    {
+        return $this->Config->tasks['try_count'];
+    }  
+    
+    /**
+     * @abstract    Check if Worker Needs To Be Restarted
+     * 
+     * @param       Worker      $Worker     Tasking Worker Object
+     * @param       int         $TaskCount  Number of Tasks Executed
+     * @param       datetime    $EndDate    Expected End Date
+     * 
+     */    
+    public function WorkerIsToKill(Worker $Worker, $TaskCount, $EndDate) { 
+        
+        //====================================================================//
+        // Check Tasks Counter        
+        if ($TaskCount > $this->Config->workers["max_tasks"]) {
+            $this->Output('Exit on Worker Tasks Counter', "question");
+            return True;
+        }
+        
+        //====================================================================//
+        // Check Worker Age        
+        if ($EndDate < new DateTime()) {
+            $this->Output('Exit on Worker TimeOut', "question");
+            return True;
+        }
+        
+        //====================================================================//
+        // Check Worker Memory Usage        
+        if ( (memory_get_usage(True) / 1048576 ) > $this->Config->workers["max_memory"]) {
+            $this->Output('Exit on Worker Memory Usage', "question");
+            return True;
+        }        
+
+        //====================================================================//
+        // Check User requested Worker to Stop        
+        if ( !$Worker->getEnabled() ) {
+            $this->Output('Exit on User Request, Worker Now Disabled', "question");
+            return True;
+        }        
+        
+        return False;
+        
+    }
+    
+//==============================================================================
+//      Process Operations
+//==============================================================================
+    
+    /**
+     *      @abstract    Start a Process on Local Machine (Server Node)
+     */    
+    private function ProcessStart($Command,$Environement = Null) 
+    {
+        //====================================================================//
+        // Finalize Command
+        $RawCmd     =   self::CMD_PREFIX . " " . $Command . " --env=";
+        $RawCmd.=   $Environement ? $Environement : $this->Config->environement;
+        //====================================================================//
+        // Create Sub-Porcess
+        $process = new Process($RawCmd . self::CMD_SUFIX);
+        //====================================================================//
+        // Clean Working Dir
+        $WorkingDirectory   =   $process->getWorkingDirectory();
+        if (strrpos($WorkingDirectory, "/web") == (strlen($WorkingDirectory) - 4) ){
+            $process->setWorkingDirectory(substr($WorkingDirectory, 0, strlen($WorkingDirectory) - 4));
+        } 
+        else if (strrpos($WorkingDirectory, "/app") == (strlen($WorkingDirectory) - 4) ){
+            $process->setWorkingDirectory(substr($WorkingDirectory, 0, strlen($WorkingDirectory) - 4));
+        }         
+        //====================================================================//
+        // Verify This Command Not Already Running
+        $List = array();
+        exec("pgrep '" . self::CMD_PHP .  $RawCmd . "' -f",$List);
+        if ( count($List) > 1 ) {
+            $this->OutputVerbose("Tasking :: Process already active (" . $RawCmd . ")", "info");
+            return True;
+        }        
+        //====================================================================//
+        // Run Shell Command
+        $process->start();
+        //====================================================================//
+        // Wait for Script Startup
+        usleep(1E4);             
+        $this->OutputVeryVerbose("Tasking :: Process Started (" . $RawCmd . ")", "info");
+        return True;
+    }
+    
+    /**
+     *  @abstract   Indentify Current Worker on this machine using it's PID 
+     *  @param      int $ProcessId Worker Process Id
+     *  @return     Worker
+     */    
+    public function ProcessIdentify()
+    {
+        //====================================================================//
+        // Load Current Server Infos
+        $System    = posix_uname();
+        //====================================================================//
+        // Clear Cache of EntityManager
+        $this->em->clear();
+        //====================================================================//
+        // Retrieve Server Local Supervisor
+        return  $this->WorkerRepository
+                    ->findOneBy( array(
+                        "nodeName"  => $System["nodename"], 
+                        "process"   => getmypid()
+                        ));
+    }     
+    
+    
+//====================================================================//
+// *******************************************************************//
+//  Outputs Management
+// *******************************************************************//
+//====================================================================//
+        
+    public function setOutputInterface(OutputInterface $Output)
+    {
+        $this->Output = $Output;
+    }   
+    
+    public function Output($Text, $Type = Null) : void
+    {
+        //====================================================================//
+        // No Outputs Interface defined => Exit
+        if ( !$this->Output ) {
+            return;
+        }
+        //====================================================================//
+        // No Output Type Given
+        if ( $Type ) {
+            $Text = '<' . $Type . '>' . $Text . '</' . $Type . '>';
+        }         
+        $this->Output->writeln($Text);
+    }       
+    
+    public function OutputVerbose($Text, $Type = Null)
+    {
+        if ($this->Output && $this->Output->isVerbose()) {
+            $this->Output($Text, $Type);
+        }         
+    }       
+    
+    public function OutputVeryVerbose($Text, $Type = Null)
+    {
+        if ($this->Output && $this->Output->isVeryVerbose()) {
+            $this->Output($Text, $Type);
+        }         
+    }       
+    
+    public function OutputIsWaiting() : void
+    {
+        //====================================================================//
+        // No Outputs Interface defined => Exit
+        if ( !$this->Output ) {
+            return;
+        }
+        //====================================================================//
+        // Write waiting Sign
+        $this->Output->write(".");
+    }       
+    
+    public function OutputTokenReleased() : void
+    {
+        //====================================================================//
+        // No Outputs Interface defined => Exit
+        if ( !$this->Output ) {
+            return;
+        }
+        //====================================================================//
+        // Write waiting Sign
+        $this->Output->write("X","question");
+    }     
 }

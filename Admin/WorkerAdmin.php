@@ -29,11 +29,17 @@ class WorkerAdmin extends Admin
     protected function configureShowFields(ShowMapper $showMapper)
     {
         $showMapper
-            ->add('nodeName')
-            ->add('process')
-            ->add('pID')
-            ->add('running')
-            ->add('task')
+            ->with('Worker', array('class' => 'col-lg-3 col-md-5 col-sm-12'))
+                ->add('nodeName')
+                ->add('nodeIp')
+                ->add('process')
+                ->add('pID')
+            ->end()
+            ->with('Status', array('class' => 'col-lg-9 col-md-7 col-sm-12'))
+                ->add('running')
+                ->add('lastSeen')
+                ->add('task')
+            ->end()
         ;
     }
 
@@ -43,10 +49,12 @@ class WorkerAdmin extends Admin
     protected function configureListFields(ListMapper $listMapper)
     {
         $listMapper
-            ->addIdentifier('pID')
-            ->add('nodeName')
-            ->add('process')                
+            ->addIdentifier('_toString', null, array('route' => array('name' => 'show')))
+            ->add('nodeIp')
+            ->add('enabled', null , ['editable' => True])
+            ->add('pID')                
             ->add('running')
+            ->add('lastSeen')
             ->add('task')
         ;
     }
@@ -61,45 +69,5 @@ class WorkerAdmin extends Admin
             ->add('running')
         ;
     }
-
-    /**
-     * {@inheritdoc}
-     */
-//    protected function configureFormFields(FormMapper $formMapper)
-//    {
-//        $formMapper
-//            ->with('General', array('class' => 'col-md-6'))
-//                ->add('name')
-//                ->add('user', 'sonata_type_model_list')
-//                ->add('running')
-//                ->add('finished')
-////                ->add('IsActive')
-////                ->add('deleted')
-//            ->end()
-//            ->with('Timing', array('class' => 'col-md-6'))
-//                ->add('createdAt')
-//                ->add('startedAt')
-//                ->add('finishedAt')
-//            ->end()
-//            ->with('Action', array('class' => 'col-md-6'))
-//                ->add('serviceName')
-//                ->add('jobName')
-////                ->add('jobParemeters')
-//            ->end()                
-////            ->with('Encoding', array('class' => 'col-md-6'))
-////                ->add('crypt_mode')
-////                ->add('crypt_key')
-////            ->end()                
-//////            ->with('inspections', array('class' => 'col-md-12'))
-//////                ->add('inspections', 'sonata_type_collection', array(
-//////                    'by_reference'       => false,
-//////                    'cascade_validation' => true,
-//////                ), array(
-//////                    'edit' => 'inline',
-//////                    'inline' => 'table'
-//////                ))
-//            ->end()
-//        ;
-//    }
 
 }
