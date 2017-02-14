@@ -5,7 +5,7 @@
     "license": "MIT",
 
     "autoload": {
-        "psr-4": { "Splash\\": "src/" }
+        "psr-4": { "Splash\\Tasking\\": "src/" }
     },
     "require": {
         "php":                                          "^7.0",
@@ -14,12 +14,6 @@
         "doctrine/doctrine-bundle":                     "^1.6",
         "doctrine/doctrine-cache-bundle":               "^1.2",
         "sonata-project/admin-bundle":                  ">3.0",
-        "sonata-project/doctrine-orm-admin-bundle":     "*",
-        
-        "splash/tasking-bundle":                        "dev-master"
-    },
-    "repositories": [{
-        "type": "vcs",
-        "url": "/home/nanard33/WebDesign/GitHub/SplashSync-Tasking-Bundle"
-    }]
+        "sonata-project/doctrine-orm-admin-bundle":     "*"
+    }
 }
