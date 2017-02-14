@@ -10,7 +10,7 @@ Key features
 
 ## Installation
 
-Check out Symfony documentatiosn [here](http://symfony.com/doc/current/bundles/DoctrineBundle/installation.html).
+Check out Symfony documentation [here](http://symfony.com/doc/current/bundles/DoctrineBundle/installation.html).
 
 ## Documentation
 
