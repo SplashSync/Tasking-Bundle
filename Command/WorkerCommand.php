@@ -242,10 +242,11 @@ class WorkerCommand extends ContainerAwareCommand
             // Update pID 
             $this->worker->setPID( getmypid() );
             $this->worker->setTask("Boot...");
+            $this->Tasking->em->flush();  
         }
         //====================================================================//
         // Refresh Worker
-        $this->Tasking->WorkerRefresh($this->worker);
+        $this->Tasking->WorkerRefresh($this->worker , True);
     }   
     
     /**

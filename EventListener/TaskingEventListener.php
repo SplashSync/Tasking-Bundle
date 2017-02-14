@@ -53,13 +53,39 @@ class TaskingEventListener {
         }
         //====================================================================//
         // Add Task To Queue
-        $this->tasking->TaskInsert($Task);            
+        $this->tasking->TaskInsert($Task);  
         //====================================================================//
         // Ensure Supervisor is Running
         $this->tasking->SupervisorCheckIsRunning();
-        
+
         return True;
     }      
+    
+    /**
+     *      @abstract    Add a New Task on Scheduler but DO NOT RUN SUPERVISOR
+     * 
+     *      @param AbstractJob     $Job
+     * 
+     *      @return bool 
+     */    
+    public function onInsertAction($Job) { 
+        
+        //====================================================================//
+        // Validate Job
+        if( !$this->Validate($Job) ) {
+            return False;
+        }
+        //====================================================================//
+        // Prepare Task From Job Class
+        if ( !($Task = $this->Prepare($Job)) ) {
+            return False;
+        }
+        //====================================================================//
+        // Add Task To Queue
+        $this->tasking->TaskInsert($Task);            
+        
+        return True;
+    }     
     
     /**
      *  @abstract    Verify given taask before being added to scheduler 
@@ -69,10 +95,9 @@ class TaskingEventListener {
      *  @return bool 
      */    
     public function Validate($Job) { 
-        echo "Validate=>";
         //====================================================================//
         // Job Class and Action are not empty
-        if ( empty(get_class($Job)) || empty($Job->getAction()) ) {
+        if ( empty(get_class($Job)) || !method_exists($Job, "getAction") || empty($Job->getAction()) ) {
             return False;
         } 
         //====================================================================//
@@ -87,11 +112,9 @@ class TaskingEventListener {
         }    
         //====================================================================//
         // Job Priority is Valid
-        var_dump($Job->getPriority());
         if ( empty($Job->getPriority()) || !is_integer($Job->getPriority()) ) {
             return False;
         }    
-        echo "OK";
         //====================================================================//
         // If defined, Job Inputs must be an Array
         if ( !empty($Job->getInputs()) && !is_array($Job->getInputs())) {
@@ -101,8 +124,7 @@ class TaskingEventListener {
         // If defined, Job Token is a string
         if ( !empty($Job->getToken()) && !is_string($Job->getToken())) {
             return False;
-        } 
-        
+        }         
         //====================================================================//
         // If is a Static Job 
         //====================================================================//
@@ -122,7 +144,6 @@ class TaskingEventListener {
                 return False;
             } 
         } 
-        
         return True;
     }        
 

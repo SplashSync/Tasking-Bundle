@@ -238,8 +238,8 @@ class TokenRepository extends EntityRepository
      *      @param       string     $TokenKey       Token Name
      * 
      */    
-    public function Validate($TokenKey) {
-        
+    public function Validate($TokenKey) : bool 
+    {
         //==============================================================================
         // Ckeck If Token Exists
         $Token = $this->findOneByName( $TokenKey );
@@ -261,9 +261,8 @@ class TokenRepository extends EntityRepository
      * 
      *      @return      bool
      */        
-    function Delete($TokenName)
+    function Delete($TokenName) : bool
     {
-
         //==============================================================================
         // Ckeck If this token Exists Token Key Name
         $Token = $this->findOneByName( $TokenName );
@@ -285,9 +284,9 @@ class TokenRepository extends EntityRepository
     /**
      *      @abstract    Delete all Token Unused for more than given delay 
      *  
-     *      @return      int        Count pof Deleted Tasks
+     *      @return      int        Count of Deleted Tasks
      */        
-    function Clean($Age = Token::DELETE_DELAY)
+    function Clean($Age = Token::DELETE_DELAY) : int
     {
         //==============================================================================
         // Prepare Max Age DateTime
@@ -298,7 +297,6 @@ class TokenRepository extends EntityRepository
             ->delete()
             ->where("t.locked != 1")
             ->andwhere("t.lockedAt < :maxage OR t.lockedAt IS NULL")
-//            ->where("t.lockedAt < :maxage OR t.lockedAt IS NULL")
             ->setParameter(":maxage" , $MaxDate )
             ->getQuery()
             ->execute();        

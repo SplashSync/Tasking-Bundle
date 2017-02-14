@@ -69,7 +69,7 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
             ->setParameter('MaxDate'            , ($NowTimeStamp - $Options["try_delay"]))      // Delay Before retry an unfinished Task
             ->setMaxResults(1);
         
-        
+//        var_dump($NowTimeStamp - $Options["error_delay"]);
 //dump(   $this->_em->createQueryBuilder()
 //            ->select('tokens.name')
 //            ->from('Splash\Tasking\Entity\Token', 'tokens')

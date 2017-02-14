@@ -96,7 +96,7 @@ class Worker
     /**
      *      @abstract    Verify if a Worker Process is Action
      */    
-    public function Ping() {
+    public function Ping() {        
         //==============================================================================
         // Check if Process is active
         return posix_getpgid($this->getPID())?True:False;        

@@ -118,7 +118,7 @@ class TaskingService
     /**
      * Insert Tasks in DataBase
      */
-    public function TaskInsert($Task) : void
+    public function TaskInsert($Task)
     {
         //====================================================================//
         // Persist New Task to Db
@@ -411,22 +411,72 @@ class TaskingService
         // Load Local Machine Supervisor        
         $Supervisor     = $this->SupervisorIdentify();
         //====================================================================//
-        // Supervisor Exists & Is Running        
-        if ( $Supervisor && $Supervisor->getRunning() )  {
+        // Supervisor Exists
+        if ( $Supervisor )  {
             //====================================================================//
-            // YES =>    Exit
-            return True;
+            // Refresh From DataBase
+            $this->em->refresh($Supervisor);
+            //====================================================================//
+            // Supervisor Is Running        
+            if ( $Supervisor && $Supervisor->getRunning() )  {
+                //====================================================================//
+                // YES =>    Exit
+                return True;
+            }
+            
         }
+       
         //====================================================================//
         // NO =>    Start Supervisor Process
         return $this->ProcessStart(self::SUPERVISOR);
     }    
 
     /**
+     *  @abstract   Check All Available Supervisor are Running on All machines 
+     * 
+     *  @return     bool
+     */    
+    public function SupervisorAllCheckAreRunning() 
+    {
+        //====================================================================//
+        // Check Local Machine Supervisor        
+        $LocalIsOK     = $this->SupervisorCheckIsRunning();
+        //====================================================================//
+        // Check if MultiServer Mode is Enabled
+        if ( !$this->Config["multiserver"]) {
+            return $LocalIsOK;
+        }
+        //====================================================================//
+        // Retrieve List of All Supervisors
+        $List = $this->WorkerRepository->findByProcess(0);        
+        foreach ($List as $Supervisor) {
+            //====================================================================//
+            // Refresh From DataBase
+            $this->em->refresh($Supervisor);
+            //====================================================================//
+            // If Supervisor Is NOT Running        
+            if ( !$Supervisor->getRunning() )  {
+                //====================================================================//
+                // Send REST Request to Start                        
+                $Url = "http://" . $Supervisor->getIp() . $this->Config["multiserver_path"] . $this->container->get("router")->generate("tasking_start");
+                //====================================================================//
+                // Send REST Request to Start
+                $ch = curl_init($Url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, True);
+                curl_setopt($ch, CURLOPT_HEADER, 0);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
+                curl_exec($ch);
+                curl_close($ch);
+            }
+        }
+        return True;
+    }       
+    
+    /**
      *  @abstract   Get Max Age for Supervisor (since now) 
      *  @return     datetime
      */    
-    public function SupervisorMaxDate()
+    public function SupervisorMaxDate() : \DateTime
     {
         $this->OutputVerbose("Tasking :: This Supervisor will die in " . $this->Config->supervisor['max_age'] . " Seconds", "info");
         return new DateTime( "+" . $this->Config->supervisor['max_age'] . "Seconds" );
@@ -446,7 +496,7 @@ class TaskingService
      *  @abstract   Do Pause for Supervisor between two Refresh loop 
      *  @return     int
      */    
-    public function SupervisorDoPause() : void
+    public function SupervisorDoPause()
     {
         //====================================================================//
         // Wait        
@@ -461,7 +511,7 @@ class TaskingService
      * @param       datetime    $EndDate    Expected End Date
      * 
      */    
-    public function SupervisorIsToKill(Worker $Worker, $EndDate) { 
+    public function SupervisorIsToKill(Worker $Worker, $EndDate) : bool { 
         
         //====================================================================//
         // Check Worker Age        
@@ -527,14 +577,14 @@ class TaskingService
      * 
      * @param       Worker      $Worker     Tasking Worker Object
      */    
-    public function WorkerRefresh(Worker &$Worker) { 
+    public function WorkerRefresh(Worker &$Worker, bool $Force = False) { 
         
         //====================================================================//
         // Compute Refresh Limit
         $RefreshLimit = new \DateTime("-" . $this->Config->refresh_delay. " Seconds");
         //====================================================================//
         // Update Status if Needed
-        if ($Worker->getLastSeen()->getTimestamp() < $RefreshLimit->getTimestamp()) {
+        if ( ($Worker->getLastSeen()->getTimestamp() < $RefreshLimit->getTimestamp()) || $Force ) {
             //====================================================================//
             // Reload Worker From DB
             $Worker = $this->WorkerIdentify($Worker->getProcess());
@@ -558,7 +608,9 @@ class TaskingService
             $Worker->setTask("Waiting...");
             //==============================================================================
             // Flush Database
-            $this->em->flush();        
+            $this->em->flush();    
+            echo "Worker Refreshed => " . $Worker->Ping( ) . PHP_EOL;
+            
         }        
             
         return $Worker;
@@ -595,6 +647,13 @@ class TaskingService
         //====================================================================//
         // Load Local Machine Worker        
         $Worker     = $this->WorkerIdentify($Process);
+        //====================================================================//
+        // Worker Found
+        if ( $Worker )  {
+            //====================================================================//
+            // Refresh From DataBase
+            $this->em->refresh($Worker);
+        }
         //====================================================================//
         // Worker Found & Running
         if ( $Worker && $Worker->getRunning() )  {
@@ -660,7 +719,7 @@ class TaskingService
         //====================================================================//
         // Check Tasks Counter        
         if ($TaskCount > $this->Config->workers["max_tasks"]) {
-            $this->Output('Exit on Worker Tasks Counter', "question");
+            $this->Output('Exit on Worker Tasks Counter (' . $TaskCount . ")", "question");
             return True;
         }
         
@@ -704,7 +763,7 @@ class TaskingService
         $RawCmd.=   $Environement ? $Environement : $this->Config->environement;
         //====================================================================//
         // Create Sub-Porcess
-        $process = new Process($RawCmd . self::CMD_SUFIX);
+        $process = new Process($RawCmd . " ". self::CMD_SUFIX);
         //====================================================================//
         // Clean Working Dir
         $WorkingDirectory   =   $process->getWorkingDirectory();
@@ -727,13 +786,15 @@ class TaskingService
         $process->start();
         //====================================================================//
         // Wait for Script Startup
-        usleep(1E4);             
+        usleep(100 * 1E3); // 100MS
         $this->OutputVeryVerbose("Tasking :: Process Started (" . $RawCmd . ")", "info");
         return True;
     }
     
+    
+    
     /**
-     *  @abstract   Indentify Current Worker on this machine using it's PID 
+     *  @abstract   Identify Current Worker on this machine using it's PID 
      *  @param      int $ProcessId Worker Process Id
      *  @return     Worker
      */    
@@ -766,7 +827,7 @@ class TaskingService
         $this->Output = $Output;
     }   
     
-    public function Output($Text, $Type = Null) : void
+    public function Output($Text, $Type = Null)
     {
         //====================================================================//
         // No Outputs Interface defined => Exit
@@ -795,7 +856,7 @@ class TaskingService
         }         
     }       
     
-    public function OutputIsWaiting() : void
+    public function OutputIsWaiting()
     {
         //====================================================================//
         // No Outputs Interface defined => Exit
@@ -807,7 +868,7 @@ class TaskingService
         $this->Output->write(".");
     }       
     
-    public function OutputTokenReleased() : void
+    public function OutputTokenReleased()
     {
         //====================================================================//
         // No Outputs Interface defined => Exit

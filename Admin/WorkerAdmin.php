@@ -37,6 +37,7 @@ class WorkerAdmin extends Admin
             ->end()
             ->with('Status', array('class' => 'col-lg-9 col-md-7 col-sm-12'))
                 ->add('running')
+                ->add('enabled')
                 ->add('lastSeen')
                 ->add('task')
             ->end()

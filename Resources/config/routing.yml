@@ -1,0 +1,16 @@
+
+################################################################################    
+#    Tasking Rest Actions
+################################################################################    
+
+tasking_start:
+    path:     /start
+    defaults: { _controller: SplashTaskingBundle:Actions:start }
+
+################################################################################    
+#    Tasks Index & Display Page Routes
+################################################################################    
+
+tasking_list:
+    path:     /list
+    defaults: { _controller: SplashTaskingBundle:Notify:notify }

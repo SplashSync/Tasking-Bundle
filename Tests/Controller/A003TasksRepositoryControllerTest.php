@@ -2,9 +2,11 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
+use Splash\Tasking\Tests\Jobs\TestJob;
 use Splash\Tasking\Entity\Task;
 
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Console\Output\NullOutput;
 
 class A003TasksRepositoryControllerTest extends KernelTestCase
 {
@@ -35,39 +37,28 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
         $this->_em = static::$kernel->getContainer()
             ->get('doctrine')
             ->getManager();
-        
-        $this->TaskRepository = $this->_em->getRepository('TaskingBundle:Task');         
-        $this->TokenRepository = $this->_em->getRepository('TaskingBundle:Token');   
+        //====================================================================//
+        // Link to Tasks Reprository        
+        $this->TaskRepository = $this->_em->getRepository('SplashTaskingBundle:Task');
+        //====================================================================//
+        // Link to Token Reprository        
+        $this->TokenRepository = $this->_em->getRepository('SplashTaskingBundle:Token');   
     }        
-
-    /**
-     * @abstract    Render Status or Result
-     */    
-    public function Render($Status,$Result = Null)
-    {
-//        fwrite(STDOUT, "\n" . $Status . " ==> " . $Result); 
-    }
 
     /**
      * @abstract    Delete All Tasks
      */    
     public function testDeleteAllTaskss()
     {
-        $this->Render(__METHOD__);   
-        
         //====================================================================//
         // Delete All Tasks Completed
         $this->TaskRepository->Clean(0);
-        
         //====================================================================//
         // Verify Delete All Tokens
         $this->assertEquals(0, $this->TaskRepository->Clean(0));
-
         //====================================================================//
         // Delete All Tasks
         $this->DeleteAllTasks();
-        
-        
     }     
     
     /**
@@ -75,8 +66,6 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
      */    
     public function testWaitingTasksCount()
     {
-        $this->Render(__METHOD__);   
-        
         //====================================================================//
         // Generate a Random Token Name
         $this->RandomStrA    = base64_encode(rand(1E5, 1E10));
@@ -85,9 +74,9 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
         
         //====================================================================//
         // Create a Task with Token
-        $this->assertInstanceOf(Task::class , $this->AddTask($this->RandomStrA));        
-        $this->assertInstanceOf(Task::class , $this->AddTask($this->RandomStrB));        
-        $this->assertInstanceOf(Task::class , $this->AddTask($this->RandomStrC));        
+        $this->assertInstanceOf( TestJob::class , $this->InsertTask($this->RandomStrA));        
+        $this->assertInstanceOf( TestJob::class , $this->InsertTask($this->RandomStrB));        
+        $this->assertInstanceOf( TestJob::class , $this->InsertTask($this->RandomStrC));        
 
         //====================================================================//
         // Verify Waiting Tasks
@@ -116,8 +105,6 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
      */    
     public function testActiveTasksCount()
     {
-        $this->Render(__METHOD__);   
-        
         //====================================================================//
         // Generate a Random Token Name
         $this->RandomStrA    = base64_encode(rand(1E5, 1E10));
@@ -126,14 +113,14 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
         
         //====================================================================//
         // Create a Task with Token
-        $this->assertInstanceOf(Task::class , $this->AddTask($this->RandomStrA));        
-        $this->assertInstanceOf(Task::class , $this->AddTask($this->RandomStrB));        
-        $this->assertInstanceOf(Task::class , $this->AddTask($this->RandomStrC));        
+        $this->assertInstanceOf( TestJob::class , $this->InsertTask($this->RandomStrA));        
+        $this->assertInstanceOf( TestJob::class , $this->InsertTask($this->RandomStrB));        
+        $this->assertInstanceOf( TestJob::class , $this->InsertTask($this->RandomStrC));        
 
         //====================================================================//
         // Load a Task
         $Task   =   $this->TaskRepository->findOneByJobToken($this->RandomStrA);
-        $this->assertInstanceOf(Task::class , $Task);        
+        $this->assertInstanceOf( Task::class , $Task);        
         $this->assertFalse($Task->getRunning());        
         $this->assertFalse($Task->getFinished());        
 
@@ -149,7 +136,8 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
         
         //====================================================================//
         // Set Task As Running
-        $Task->Init();
+        $Task->Validate( new NullOutput() , static::$kernel->getContainer());
+        $Task->Prepare( new NullOutput() );
         $this->assertFalse($Task->getFinished());        
         $this->assertTrue($Task->getRunning());        
         $this->assertNotEmpty($Task->getStartedAt());        
@@ -174,7 +162,17 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
      * @abstract    Test Get Next Task Function
      */    
     public function testGetNextTask(){
-        $this->Render(__METHOD__);   
+        
+        //====================================================================//
+        // Load Tasks Parameters
+        $Options = static::$kernel->getContainer()->getParameter("splash_tasking")["tasks"];
+        $Options["try_delay"] = $Options["error_delay"] = 10;
+        $NoErrorsOptions    = $Options;
+        $NoErrorsOptions["error_delay"] = -1;
+        $NoRetryOptions     = $Options;
+        $NoRetryOptions["try_delay"]    = -1;
+        
+//        ob_start();
         
         //====================================================================//
         // Delete All Tasks
@@ -183,7 +181,7 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
         
         //====================================================================//
         // Verify
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($Options,Null,False));
         
         //====================================================================//
         // Generate a Random Token Name
@@ -191,12 +189,13 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
 
         //====================================================================//
         // Create a Task with Token
-        $Task   =   $this->AddTask($this->RandomStr);
-        $this->assertInstanceOf(Task::class , $Task);     
+        $TestJob    =   $this->AddTask($this->RandomStr);
+        $this->assertInstanceOf( TestJob::class , $TestJob);     
         //====================================================================//
         // Verify
-        $this->assertInstanceOf(Task::class , $this->TaskRepository->getNextTask(10,10,Null,False));
-        $this->assertInstanceOf(Task::class , $this->TaskRepository->getNextTask(10,10,$this->RandomStr,False));
+        $this->assertInstanceOf( Task::class , $this->TaskRepository->getNextTask($Options,Null,False));
+        $this->assertInstanceOf( Task::class , $this->TaskRepository->getNextTask($Options,$this->RandomStr,False));
+        $Task       =   $this->TaskRepository->getNextTask($Options,$this->RandomStr,False);
         
         //====================================================================//
         // Create Task Token
@@ -207,134 +206,142 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
         $this->assertNotEmpty($Token);
         //====================================================================//
         // Verify
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,Null,False));
-        $this->assertInstanceOf(Task::class , $this->TaskRepository->getNextTask(10,10,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($Options,Null,False));
+        $this->assertInstanceOf( Task::class , $this->TaskRepository->getNextTask($Options,$this->RandomStr,False));
 
         //====================================================================//
         // Set Task as Started
-        $Task->Init();
+        $Task->Validate( new NullOutput() , static::$kernel->getContainer());
+        $Task->Prepare(new NullOutput());
         $this->_em->flush();   
         //====================================================================//
         // Verify
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,$this->RandomStr,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,0,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,0,$this->RandomStr,False));
-        $this->assertNull($this->TaskRepository->getNextTask(0,10,Null,False));
-        $this->assertInstanceOf(Task::class , $this->TaskRepository->getNextTask(0,10,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($Options,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($Options,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoErrorsOptions,Null,False));
+        $this->assertInstanceOf( Task::class , $this->TaskRepository->getNextTask($NoErrorsOptions,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoRetryOptions,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoRetryOptions,$this->RandomStr,False));
 
         
         //====================================================================//
         // Set Task as Completed
-        $Task->Close();
+        $Task->Close(5);
         $Task->setFinished(True);        
         $this->_em->flush();   
         //====================================================================//
         // Verify
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,$this->RandomStr,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,0,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,0,$this->RandomStr,False));
-        $this->assertNull($this->TaskRepository->getNextTask(0,10,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(0,10,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($Options,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($Options,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoErrorsOptions,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoErrorsOptions,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoRetryOptions,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoRetryOptions,$this->RandomStr,False));
         
         //====================================================================//
         // Set Task as Tried but Not Finished
-        $Task->Init();
-        $Task->Close();
+        $Task->Validate( new NullOutput() , static::$kernel->getContainer());
+        $Task->Prepare(new NullOutput());
+        $Task->Close(5);
         $Task->setFinished(False);        
         $this->_em->flush();   
         //====================================================================//
         // Verify
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,$this->RandomStr,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,0,Null,False));
-        $this->assertInstanceOf(Task::class , $this->TaskRepository->getNextTask(10,0,$this->RandomStr,False));
-        $this->assertNull($this->TaskRepository->getNextTask(0,10,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(0,10,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($Options,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($Options,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoErrorsOptions,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoErrorsOptions,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoRetryOptions,Null,False));
+        $this->assertInstanceOf( Task::class , $this->TaskRepository->getNextTask($NoRetryOptions,$this->RandomStr,False));
         
         //====================================================================//
         // Release Token
         $this->assertTrue($this->TokenRepository->Release($this->RandomStr));
-        //====================================================================//
-        // Verify
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,$this->RandomStr,False));
-        $this->assertInstanceOf(Task::class , $this->TaskRepository->getNextTask(10,0,Null,False));
-        $this->assertInstanceOf(Task::class , $this->TaskRepository->getNextTask(10,0,$this->RandomStr,False));
-        $this->assertNull($this->TaskRepository->getNextTask(0,10,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(0,10,$this->RandomStr,False));
         
         //====================================================================//
-        // Set Task as Tried but Not Finished
-        $Task->Init();
-        $Task->Close();
-        $Task->setFinished(False);        
-        $this->_em->flush();   
-        //====================================================================//
         // Verify
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,$this->RandomStr,False));
-        $this->assertInstanceOf(Task::class , $this->TaskRepository->getNextTask(10,0,Null,False));
-        $this->assertInstanceOf(Task::class , $this->TaskRepository->getNextTask(10,0,$this->RandomStr,False));
-        $this->assertNull($this->TaskRepository->getNextTask(0,10,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(0,10,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($Options,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($Options,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoErrorsOptions,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoErrorsOptions,$this->RandomStr,False));
+        $this->assertInstanceOf( Task::class , $this->TaskRepository->getNextTask($NoRetryOptions,Null,False));
+        $this->assertInstanceOf( Task::class , $this->TaskRepository->getNextTask($NoRetryOptions,$this->RandomStr,False));
         
         //====================================================================//
         // Set Task as Running but In Timeout
-        $Task->Init();
+        $Task->Validate( new NullOutput() , static::$kernel->getContainer());
+        $Task->Prepare(new NullOutput());
         $Task->setFinished(False);        
         $this->_em->flush();   
         //====================================================================//
         // Verify
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,$this->RandomStr,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,0,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,0,$this->RandomStr,False));
-        $this->assertInstanceOf(Task::class , $this->TaskRepository->getNextTask(0,10,Null,False));
-        $this->assertInstanceOf(Task::class , $this->TaskRepository->getNextTask(0,10,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($Options,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($Options,$this->RandomStr,False));
+        $this->assertInstanceOf( Task::class , $this->TaskRepository->getNextTask($NoErrorsOptions,Null,False));
+        $this->assertInstanceOf( Task::class , $this->TaskRepository->getNextTask($NoErrorsOptions,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoRetryOptions,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoRetryOptions,$this->RandomStr,False));
         
         //====================================================================//
         // Set Task as Completed
-        $Task->Close();
-        $Task->setFinished(True);        
+        $Task->Close(0);
         $this->_em->flush(); 
         //====================================================================//
         // Verify
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,10,$this->RandomStr,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,0,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(10,0,$this->RandomStr,False));
-        $this->assertNull($this->TaskRepository->getNextTask(0,10,Null,False));
-        $this->assertNull($this->TaskRepository->getNextTask(0,10,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($Options,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($Options,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoErrorsOptions,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoErrorsOptions,$this->RandomStr,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoRetryOptions,Null,False));
+        $this->assertNull($this->TaskRepository->getNextTask($NoRetryOptions,$this->RandomStr,False));
         
     }
     
     /**
-     * @abstract    Add a New Dummy Simple Task
+     * @abstract    Add a New Test Simple Task & Run
      */    
     public function AddTask($Token)
     {
         //====================================================================//
-        // Create a New Task
-        $Task    =   new Task();
+        // Create a New Test Job
+        $Job    =   new TestJob();
         //====================================================================//
         // Setup Task Parameters
-        $Task
-                ->setName("Test Task (" . $Token . ")")
-                ->setServiceName("TaskingSamplingService")
-                ->setJobName("MicroDelayTask")
-                ->setJobParameters(array("Delay" => 1E3))
-                ->setJobPriority(Task::DO_LOW)
-                ->setJobToken($Token);
-        
+        $Job
+                ->setInputs(array("Delay-S" => 1))
+                ->setToken($Token);
         //====================================================================//
         // Save Task
-        $this->_em->persist($Task);
-        $this->_em->flush();
+        static::$kernel
+                ->getContainer()
+                ->get('event_dispatcher')
+                ->dispatch("tasking.add", $Job);
         
-        return $Task;
+        return $Job;
     }
+    
+    /**
+     * @abstract    Add a New Test Simple Task
+     */    
+    public function InsertTask($Token)
+    {
+        //====================================================================//
+        // Create a New Test Job
+        $Job    =   new TestJob();
+        //====================================================================//
+        // Setup Task Parameters
+        $Job
+                ->setInputs(array("Delay-S" => 1))
+                ->setToken($Token);
+        //====================================================================//
+        // Save Task
+        static::$kernel
+                ->getContainer()
+                ->get('event_dispatcher')
+                ->dispatch("tasking.insert", $Job);
+        
+        return $Job;
+    }    
     
     /**
      * @abstract    Delete All Tasks In Db

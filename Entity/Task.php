@@ -269,7 +269,10 @@ class Task
                 //==============================================================================
                 // Execute Job Action
                 $Result = $this->job->{$this->getJobAction()}();
-                
+                if ( !$Result ) {
+                    $this->setFaultStr("An error occured when executing this Job.", $Output);
+                }
+            
                 //==============================================================================
                 // Execute Job Self Finalize & Close Methods
                 if ( !$this->job->finalize() || !$this->job->close() ) {
@@ -375,6 +378,10 @@ class Task
             $Output->write('<info>o</info>');
         }    
         
+//        set_error_handler(function($errno, $errstr, $errfile, $errline ){
+//            throw new \Exception($errstr, $errno, 0, $errfile, $errline);
+//        });
+
         return True;
 
     } 

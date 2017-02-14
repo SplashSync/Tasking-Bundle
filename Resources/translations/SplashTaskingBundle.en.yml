@@ -1,0 +1,8 @@
+
+################################################################################    
+#    User Tasks Index & Display Page Routes
+################################################################################    
+
+tasking_notify:
+    path:     /notify
+    defaults: { _controller: TaskingBundle:Notify:notify }

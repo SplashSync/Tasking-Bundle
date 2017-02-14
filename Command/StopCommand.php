@@ -67,7 +67,7 @@ class StopCommand extends ContainerAwareCommand
 
     }
 
-    private function SetupAllWorkers($Enabled = True) : void 
+    private function SetupAllWorkers($Enabled = True) 
     {
         //====================================================================//
         // Clear EntityManager
@@ -97,7 +97,7 @@ class StopCommand extends ContainerAwareCommand
         $this->getContainer()->get('doctrine')->getManager()->flush();
     }
     
-    private function CountActiveWorkers() : int 
+    private function CountActiveWorkers() : int
     {
 
         //====================================================================//
@@ -130,7 +130,7 @@ class StopCommand extends ContainerAwareCommand
         return $ActivesWorkers;
     }
     
-    private function SetupTimeout() : void 
+    private function SetupTimeout() 
     {
         $TimeOutDelay = $this->getContainer()->getParameter('splash_tasking')["watchdog_delay"];
         $this->Timeout  = new \DateTime("- " . $TimeOutDelay . " Seconds");

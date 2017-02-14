@@ -16,25 +16,28 @@ class A001InitialisationControllerTest extends KernelTestCase
         self::bootKernel();
     }        
 
-    /**
-     * @abstract    Render Status or Result
+        /**
+     * @abstract    Stop All Supervisor & Worker Process
      */    
-    public function Render($Status,$Result = Null)
+    public function testDisplayLogo()
     {
-//        fwrite(STDOUT, "\n" . $Status . " ==> " . $Result); 
+        echo " ______     ______   __         ______     ______     __  __    ";
+        echo "/\  ___\   /\  == \ /\ \       /\  __ \   /\  ___\   /\ \_\ \   ";
+        echo "\ \___  \  \ \  _-/ \ \ \____  \ \  __ \  \ \___  \  \ \  __ \  ";
+        echo " \/\_____\  \ \_\    \ \_____\  \ \_\ \_\  \/\_____\  \ \_\ \_\ ";
+        echo "  \/_____/   \/_/     \/_____/   \/_/\/_/   \/_____/   \/_/\/_/ ";
+        echo "                                                                ";
+        $this->assertTrue(True);
     }
-
     
     /**
      * @abstract    Stop All Supervisor & Worker Process
      */    
     public function testStopWorkers()
     {
-        $this->Render(__METHOD__);   
-        
         //====================================================================//
         // Create Process
-        $process = new Process("bin/console tasking:stop --env=test");
+        $process = new Process("bin/console tasking:stop");
         
         //====================================================================//
         // Clean Working Dir
@@ -50,8 +53,8 @@ class A001InitialisationControllerTest extends KernelTestCase
         //====================================================================//
         // Fail => Display Process Outputs
         if ( !$process->isSuccessful() ) {
-            echo $process->getCommandLine() . PHP_EOL;
-            echo $process->getOutput();
+            echo PHP_EOL . "Exeucted : " . $process->getCommandLine();
+            echo PHP_EOL . $process->getOutput();
         }
         
         $this->assertTrue($process->isSuccessful());

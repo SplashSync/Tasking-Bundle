@@ -10,7 +10,7 @@ use Splash\Tasking\Model\AbstractStaticJob;
  *
  * @author Bernard Paquier <eshop.bpaquier@gmail.com>
  */
-class StaticJob extends AbstractStaticJob {
+class TestStaticJob extends AbstractStaticJob {
     
 //==============================================================================
 //  Constants Definition           

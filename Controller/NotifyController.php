@@ -51,14 +51,14 @@ class NotifyController extends Controller
      */
     public function notifyAction()
     {
-        //==============================================================================
-        // Init & Safety Check 
-        if (!$this->initialize()) {
-            return "ERROR";
-        }                
+//        //==============================================================================
+//        // Init & Safety Check 
+//        if (!$this->initialize()) {
+//            return "ERROR";
+//        }                
         
         return $this->render('TaskingBundle:Notify:contents.html.twig', array(
-            'summary'         =>  $this->TasksRepository->getUserSortedTasks($this->User)
+            'summary'         =>  $this->get('doctrine')->getManager()->getRepository('SplashTaskingBundle:Task')->getUserSortedTasks($this->User)
         ));
     } 
 }
