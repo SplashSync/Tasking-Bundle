@@ -7,6 +7,10 @@ tasking_start:
     path:     /start
     defaults: { _controller: SplashTaskingBundle:Actions:start }
 
+tasking_test:
+    path:     /test
+    defaults: { _controller: SplashTaskingBundle:Actions:test }
+
 ################################################################################    
 #    Tasks Index & Display Page Routes
 ################################################################################    

@@ -350,6 +350,7 @@ class Task
         $this->setStartedAt     (new \DateTime());
         $this->setStartedBy     ($this->getCurrentServer());
         $this->setTry           ($this->getTry() + 1 );
+        $this->setFaultStr      (Null);
 
         //==============================================================================
         // Check Task Parameters

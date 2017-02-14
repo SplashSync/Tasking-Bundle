@@ -51,6 +51,7 @@ class WorkerCommand extends ContainerAwareCommand
     
     protected function execute(InputInterface $input, OutputInterface $Output)
     {
+
         //====================================================================//
         // Init
         $this->Initialisation($input, $Output);

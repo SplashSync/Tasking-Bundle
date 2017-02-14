@@ -7,6 +7,7 @@ use Symfony\Component\EventDispatcher\GenericEvent;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Worker;
 
+use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use ArrayObject, DateTime;
@@ -24,14 +25,11 @@ class TaskingService
     /*
      *  Processing Parameters
      */    
-    const CMD_NOHUP         = "/usr/bin/nohup ";                                         // Console Command For NoHup
-    const CMD_PHP           = "/usr/bin/php ";                                  // Console Command For Php
-    const CMD_CONSOLE       = "bin/console ";                                   // Console Command Prefix
+    const CMD_PHP           = "nohup /usr/bin/php ";                            // Console Command Prefix
+    const CMD_CONSOLE        = "/var/www/Bundles/Tasking/bin/console ";          // Console Command Prefix
     const CMD_SUFIX         = "  < /dev/null > /dev/null 2>&1 &";               // Console Command Suffix
-    const WORKER            = "tasking:worker ";                                // Worker Start Console Command
-    const SUPERVISOR        = "tasking:supervisor ";                            // Supervisor Start Console Command    
-    const CHECK             = "tasking:check ";                                 // Check Start Console Command    
-    const CRON              = "* * * * * ";                                     // Crontab Frequency    
+    const WORKER            = "tasking:worker ";                // Worker Start Console Command
+    const SUPERVISOR        = "tasking:supervisor ";            // Supervisor Start Console Command    
     
 //==============================================================================
 //  Variables Definition           
@@ -189,6 +187,7 @@ class TaskingService
         $StaticTaskList =   $Dispatcher
                 ->dispatch("tasking.static", $GenericEvent)
                 ->getArguments();
+
         //====================================================================//
         // Get List of Static Tasks in Database
         $Database       =   $this->em
@@ -216,7 +215,14 @@ class TaskingService
             $this->em->remove($Task);
             $this->em->flush();
         }
-       
+        
+        //====================================================================//
+        // Loop on Tasks to Add on Database
+        foreach($Delete as $Task) {
+            $this->em->remove($Task);
+            $this->em->flush();
+        }
+        
         //====================================================================//
         // Loop on Tasks to Add it On Database
         foreach($StaticTaskList as $StaticTask) {
@@ -412,17 +418,15 @@ class TaskingService
             $this->em->refresh($Supervisor);
             //====================================================================//
             // Supervisor Is Running        
-            if ( !$Supervisor->getEnabled() || $Supervisor->getRunning() )  {
+            if ( $Supervisor && $Supervisor->getRunning() )  {
                 //====================================================================//
                 // YES =>    Exit
-                $this->OutputVerbose("Supervisor is Running or Disabled", "comment");
                 return True;
             }
             
         }
         //====================================================================//
         // NO =>    Start Supervisor Process
-        $this->OutputVerbose("Supervisor not Running", "question");
         return $this->ProcessStart(self::SUPERVISOR);
     }    
 
@@ -748,49 +752,40 @@ class TaskingService
 //==============================================================================
     
     /**
-     *      @abstract    Check Crontab Configuration and 
-     */    
-    public function CrontabCheck() 
-    {
-        //====================================================================//
-        // Compute Working Dir 
-        $WorkingDirectory = dirname($this->container->get('kernel')->getRootDir());
-        //====================================================================//
-        // Compute Expected Cron Tab Command
-        $Command = self::CRON . " " . self::CMD_PHP ;
-        $Command.= " " . $WorkingDirectory . "/" . self::CMD_CONSOLE;
-        $Command.= " " . self::CHECK . self::CMD_SUFIX;        
-        //====================================================================//
-        // Read Current Cron Tab Configuration
-        $CronTab = [];
-        exec("crontab -l", $CronTab);
-        $Current = array_shift($CronTab);
-        //====================================================================//
-        // Update Cron Tab Configuration if Needed
-        if ( $Current !==  $Command) {
-            exec('echo "' . $Command . '" > crontab.conf');
-            exec("crontab crontab.conf");
-            return "Crontab Configuration Updated";
-        }
-        return "Crontab Configuration Already Done";
-    }    
-    
-    /**
      *      @abstract    Start a Process on Local Machine (Server Node)
      */    
     private function ProcessStart($Command,$Environement = Null) 
     {
         //====================================================================//
         // Finalize Command
-        $RawCmd = self::CMD_NOHUP . self::CMD_PHP;
-        $RawCmd.= dirname($this->container->get('kernel')->getRootDir()) . "/" . self::CMD_CONSOLE;
-        $RawCmd.= $Command . self::CMD_SUFIX;                
+        $RawCmd     =   self::CMD_CONSOLE . " " . $Command . " --env=";
+        $RawCmd.=   $Environement ? $Environement : $this->Config->environement;
         //====================================================================//
-        // Execute Command
-        exec($RawCmd);
+        // Create Sub-Porcess
+        $process = new Process($RawCmd . " ". self::CMD_SUFIX);
+        //====================================================================//
+        // Clean Working Dir
+        $WorkingDirectory   =   $process->getWorkingDirectory();
+        if (strrpos($WorkingDirectory, "/web") == (strlen($WorkingDirectory) - 4) ){
+            $process->setWorkingDirectory(substr($WorkingDirectory, 0, strlen($WorkingDirectory) - 4));
+        } 
+        else if (strrpos($WorkingDirectory, "/app") == (strlen($WorkingDirectory) - 4) ){
+            $process->setWorkingDirectory(substr($WorkingDirectory, 0, strlen($WorkingDirectory) - 4));
+        }         
+        //====================================================================//
+        // Verify This Command Not Already Running
+        $List = array();
+        exec("pgrep '" . self::CMD_PHP .  $RawCmd . "' -f",$List);
+        if ( count($List) > 1 ) {
+            $this->OutputVerbose("Tasking :: Process already active (" . $RawCmd . ")", "info");
+            return True;
+        }        
+        //====================================================================//
+        // Run Shell Command
+        $process->start();
         //====================================================================//
         // Wait for Script Startup
-        usleep(200 * 1E3); // 100MS
+        usleep(100 * 1E3); // 100MS
         $this->OutputVeryVerbose("Tasking :: Process Started (" . $RawCmd . ")", "info");
         return True;
     }

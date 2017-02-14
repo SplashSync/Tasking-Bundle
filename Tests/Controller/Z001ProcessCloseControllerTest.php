@@ -11,7 +11,7 @@ use Splash\Tasking\Tests\Jobs\TestJob;
 
 use Symfony\Component\Process\Process;
 
-class B002ProcessControllerTest extends WebTestCase
+class Z001ProcessCloseControllerTest extends WebTestCase
 {
     /**
      * @var \Doctrine\ORM\EntityManager

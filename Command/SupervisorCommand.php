@@ -33,7 +33,7 @@ class SupervisorCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $Input, OutputInterface $Output)
     {
-        
+         
 //        $Job = new \Splash\Tasking\Model\AbstractBatchJob();
 //        $this->getContainer()->get("event_dispatcher")->dispatch("tasking.add", $Job );
 
