@@ -1,0 +1,93 @@
+{% trans_default_domain "SplashTaskingBundle" %}
+
+{{dump(summary)}}
+
+
+{#
+
+<ul class="notification-body">
+    {% for name, tasktype in summary %}
+        
+    {% if (tasktype.Running + tasktype.Waiting) > 0 %}
+        {% set Percent = (( (tasktype.Running) / (tasktype.Running + tasktype.Waiting) ) * 100) | round %}
+    {% else %}
+        {% set Percent = 100 %}
+    {% endif %}
+
+    <li>
+        <span>
+            <div class="bar-holder no-padding">
+                <p class="margin-bottom-5">
+                    {{ _self.AlertIco(tasktype) }}
+                    {{ _self.Label(tasktype) }}
+                    {{ _self.Status(tasktype,Percent) }}
+                </p>
+                {{ _self.Bar(tasktype,Percent) }}
+            </div>
+        </span> 
+    </li>
+    {% endfor %}
+</ul>
+    
+{% if summary is empty %}
+    </br>
+    <div class="alert alert-transparent text-center">
+        <h4>{{ 'layout.notasks' | trans({}, 'UserBundle') }}</h4>
+    </div>    
+    </br>
+    </br>
+    <i class="fa fa-check fa-4x fa-border"></i>
+{% endif %}
+
+{% macro AlertIco(TaskType) %}
+    {% if TaskType.Waiting > 0 and TaskType.Running == 0 %}
+        <i class="fa fa-warning text-warning"></i>
+    {% endif %}
+{% endmacro %}
+
+{% macro Label(TaskType) %}
+    {% if TaskType.Settings.label is defined %}
+        {{ TaskType.Settings.label |trans( TaskType.Settings ,  TaskType.Settings.translation_domain) | raw }}
+    {% else %}
+        {{ TaskType.Name }}
+    {% endif %}
+{% endmacro %}
+
+{% macro Status(TaskType,Percent) %}
+    
+    {% if TaskType.Waiting > 0 and TaskType.Running == 0 %}
+        <i class="fa fa-warning text-warning pull-right "> Waiting</i>
+        
+    {% elseif TaskType.Running > 0  %}
+        <span class="pull-right semi-bold text-muted">
+            {{ Percent }}%
+        </span>
+    
+    {% elseif TaskType.Finished == TaskType.Total %}
+        <span class="pull-right semi-bold text-muted"><i class="fa fa-check text-success"></i> {{ 'actions.completed' | trans({}, 'ThemeBundle') }}</span>
+        
+    {% endif %}    
+        
+{% endmacro %}
+
+{% macro Bar(TaskType,Percent) %}
+    
+    {% if TaskType.Waiting > 0 and TaskType.Running == 0 %}
+        <div class="progress progress-sm">
+                <div class="progress-bar bg-color-orange" style="width: {{ Percent }}%;"></div>
+        </div>
+        
+    {% elseif TaskType.Running > 0  %}
+        <div class="progress progress-sm progress-striped active">
+                <div class="progress-bar bg-color-orange" style="width: {{ Percent }}%;"></div>
+        </div>
+    
+    {% elseif TaskType.Finished == TaskType.Total %}
+        <div class="progress progress-sm">
+                <div class="progress-bar bg-color-teal" style="width: {{ Percent }}%;"></div>
+        </div>
+        
+    {% endif %}    
+        
+{% endmacro %}
+#}

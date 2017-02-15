@@ -114,14 +114,20 @@ class Worker
         if (!$this->running) {
             return False;
         } 
-        
         //==============================================================================
         // Check if Worker WatchDog is Ok
         $Limit = new \DateTime("-30 Seconds");
         if ($this->getLastSeen() < $Limit) {
             return False;
         }
-
+        //====================================================================//
+        // Load Current Server Infos
+        $System    = posix_uname();
+        //==============================================================================
+        // If We Are NOT on Worker Real Machine
+        if ( $System["nodename"] !== $this->getNodeName() ) {
+            return True;
+        }
         //==============================================================================
         // Check if Worker Process is Ok
         return $this->Ping();

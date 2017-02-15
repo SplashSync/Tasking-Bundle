@@ -33,23 +33,6 @@ class SupervisorCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $Input, OutputInterface $Output)
     {
-         
-//        $Job = new \Splash\Tasking\Model\AbstractBatchJob();
-//        $this->getContainer()->get("event_dispatcher")->dispatch("tasking.add", $Job );
-
-//        $Job = new \Splash\Tasking\Tests\Jobs\SimpleJob();
-//        $Job->setDelay(3);
-//        $this->getContainer()->get("event_dispatcher")->dispatch("tasking.add", $Job );
-//        $this->getContainer()->get("event_dispatcher")->dispatch("tasking.add", $Job );
-//        $this->getContainer()->get("event_dispatcher")->dispatch("tasking.add", $Job );
-//        $this->getContainer()->get("event_dispatcher")->dispatch("tasking.add", $Job );
-//        $Job->setToken("JOB_SIMPLE2");
-//        $this->getContainer()->get("event_dispatcher")->dispatch("tasking.add", $Job );
-//        $this->getContainer()->get("event_dispatcher")->dispatch("tasking.add", $Job );
-//        $this->getContainer()->get("event_dispatcher")->dispatch("tasking.add", $Job );
-//        $this->getContainer()->get("event_dispatcher")->dispatch("tasking.add", $Job );
-        
-        
         //====================================================================//
         // Initialize Supervisor Worker
         $this->Initialize($Input, $Output);    
@@ -89,6 +72,7 @@ class SupervisorCommand extends ContainerAwareCommand
         //==============================================================================
         // Set Status as Stopped
         $this->supervisor->setTask("Stopped");
+        $this->worker->setRunning(False);
         $this->Tasking->em->flush();
                 
         //====================================================================//

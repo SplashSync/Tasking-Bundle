@@ -12,9 +12,13 @@ tasking_test:
     defaults: { _controller: SplashTaskingBundle:Actions:test }
 
 ################################################################################    
-#    Tasks Index & Display Page Routes
+#    Tasks Controler Demo Display Page
 ################################################################################    
 
-tasking_list:
-    path:     /list
-    defaults: { _controller: SplashTaskingBundle:Notify:notify }
+tasking_controler_demo:
+    path:     /list/{Key1}/{Key2}
+    defaults:
+        _controller:    FrameworkBundle:Template:template
+        template:       'SplashTaskingBundle::index.html.twig'
+        Key1:           null
+        Key2:           null

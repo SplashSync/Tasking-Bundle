@@ -24,7 +24,7 @@ class CheckCommand extends ContainerAwareCommand
     }
 
     protected function execute(InputInterface $Input, OutputInterface $Output)
-    {
+    {       
         //====================================================================//
         // Load Tasking Service        
         $Tasking = $this->getContainer()

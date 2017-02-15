@@ -182,7 +182,10 @@ class Z001ProcessCloseControllerTest extends WebTestCase
         // Load Workers for Local Supervisor
         $Workers    = $this->_em
                 ->getRepository('SplashTaskingBundle:Worker')
-                ->findByNodeName($Supervisor->getNodeName());
+                ->findBy(array(
+                    "nodeName"  => $Supervisor->getNodeName(),
+                    "running"   => 1
+                ));
 
         //====================================================================//
         // Verify Workers Count

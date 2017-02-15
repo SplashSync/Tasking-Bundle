@@ -1,0 +1,24 @@
+{% trans_default_domain "SplashTaskingBundle" %}
+
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Descritption</th>
+            <th>Running</th>
+            <th>Finished</th>
+        </tr>
+    </thead>
+    
+    <tbody>
+    {% for task in tasks %}
+        <tr style="text-align:center">
+            <td>{{ task.settings.label | trans( task.settings.translation_params , task.settings.translation_domain  ) }}</td>
+            <td>{{ task.settings.description | trans( task.settings.translation_params , task.settings.translation_domain ) }}</td>
+            <td> {% if task.running %}  O   {% else %}  X   {% endif %}</td>
+            <td> {% if task.finished %} O   {% else %}  X   {% endif %}</td>
+        </tr>
+    {% endfor %}        
+    </tbody>
+</table>

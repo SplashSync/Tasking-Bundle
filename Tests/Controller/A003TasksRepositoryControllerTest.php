@@ -369,5 +369,5 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
         }
         
         $this->assertEmpty($this->TokenRepository->findAll());
-    }   
+    }  
 }

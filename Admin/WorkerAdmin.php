@@ -51,7 +51,7 @@ class WorkerAdmin extends Admin
     {
         $listMapper
             ->addIdentifier('_toString', null, array('route' => array('name' => 'show')))
-            ->add('nodeIp')
+//            ->add('nodeIp')
             ->add('enabled', null , ['editable' => True])
             ->add('pID')                
             ->add('running')

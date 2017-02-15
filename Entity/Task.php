@@ -13,6 +13,9 @@ use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
+
 /**
  * @abstract    Splash Task Storage Object
  * 
@@ -149,6 +152,11 @@ class Task
      * 
      * @var integer
      * @ORM\Column(name="NbTry", type="integer", nullable=TRUE)
+     * 
+     * @Assert\Range(
+     *      min = 0,
+     *      max = 10
+     * )
      */
     private $try = 0;
 
@@ -214,6 +222,14 @@ class Task
     //      Audit           
     //==============================================================================
     
+    /**
+     * @abstract        Task Discriminator - Unique Task Identification
+     * 
+     * @var integer
+     * @ORM\Column(name="Md5", type="string", length=250)
+     */
+    private $discriminator = Null;
+        
     /**
      * @var \DateTime
      * @ORM\Column(name="CreatedAt", type="datetime")
@@ -464,6 +480,17 @@ class Task
         // Set Created By
         $this->setCreatedBy(  $this->getCurrentServer() );
         
+        //====================================================================//
+        // Update Task Discriminator
+        $this->updateDiscriminator();
+    }
+
+    /** @ORM\PreUpdate() */    
+    public function preUpdate()
+    {
+        //====================================================================//
+        // Update Task Discriminator
+        $this->updateDiscriminator();
     }
     
 //==============================================================================
@@ -612,6 +639,29 @@ class Task
         return "<PRE>" . print_r($this->jobInputs , True) . "</PRE>";
     }
     
+    /**
+     * Update Task Disciminator
+     *
+     * @return Task
+     */
+    private function updateDiscriminator()
+    {
+        //====================================================================//
+        // Prepare Discrimination Array
+        $Array  =   array(
+            $this->getJobClass(),
+            $this->getJobAction(),
+            $this->getSettings()
+        );
+        
+        //====================================================================//
+        // Setup Discriminator
+        $this->discriminator    =   md5(serialize($Array));
+        
+        return $this;
+    }    
+    
+
     
 //==============================================================================
 //      Getters & Setters
@@ -1139,4 +1189,13 @@ class Task
         return $this->outputs;
     }
     
+    /**
+     * Get Task Disciminator
+     *
+     * @return string
+     */
+    public function getDiscriminator()
+    {
+        return $this->discriminator;
+    }    
 }

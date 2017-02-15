@@ -90,6 +90,7 @@ class WorkerCommand extends ContainerAwareCommand
         //==============================================================================
         // Set Status as Stopped
         $this->worker->setTask("Stopped");
+        $this->worker->setRunning(False);
         $this->Tasking->em->flush();
         
         //====================================================================//

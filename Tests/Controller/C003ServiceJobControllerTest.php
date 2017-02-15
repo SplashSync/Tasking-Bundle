@@ -60,6 +60,7 @@ class C003ServiceJobControllerTest extends WebTestCase
         //====================================================================//
         // Link to Entity Repository Services
         $this->TasksRepository  = $this->_em->getRepository('SplashTaskingBundle:Task'); 
+        $this->TokenRepository  = $this->_em->getRepository('SplashTaskingBundle:Token'); 
         
         //====================================================================//
         // Link to Tasking manager Services

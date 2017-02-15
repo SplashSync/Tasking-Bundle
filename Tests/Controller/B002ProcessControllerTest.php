@@ -92,7 +92,7 @@ class B002ProcessControllerTest extends WebTestCase
         //====================================================================//
         
         $R = [];
-        exec('crontab -r', $R);
+        exec('crontab -r > /dev/null 2>&1', $R);
         
         //====================================================================//
         // CHECK CRONTAB CONFIG
@@ -182,8 +182,11 @@ class B002ProcessControllerTest extends WebTestCase
         // Load Workers for Local Supervisor
         $Workers    = $this->_em
                 ->getRepository('SplashTaskingBundle:Worker')
-                ->findByNodeName($Supervisor->getNodeName());
-
+                ->findBy(array(
+                    "nodeName"  => $Supervisor->getNodeName(),
+                    "running"   => 1
+                ));
+      
         //====================================================================//
         // Verify Workers Count
         $this->assertEquals(

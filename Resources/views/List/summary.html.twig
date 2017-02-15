@@ -1,0 +1,20 @@
+{% trans_default_domain "SplashTaskingBundle" %}
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Waiting</th>
+            <th>Running</th>
+            <th>Finished</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr style="text-align:center">
+            <td>    {{ summary.Waiting }}   </td>
+            <td>    {{ summary.Running }}   </td>
+            <td>    {{ summary.Finished }}  </td>
+            <td>    {{ ( summary.Waiting + summary.Running + summary.Finished ) }}</td>
+        </tr>
+    </tbody>
+</table>

@@ -1,0 +1,50 @@
+
+<h1>Splash Tasking Bundle - Lists Demo</h1>
+
+<h3>Tasks Summary</h3>
+<p>
+    <code>"\{\{ render(controller('SplashTaskingBundle:List:summary', {} )) }}"</code>
+</p>
+{{ render(controller('SplashTaskingBundle:List:summary',  { 
+                    'Key1':     app.request.attributes.get("Key1"), 
+                    'Key2':     app.request.attributes.get("Key2") 
+                } )) }}
+
+<h3>Tasks Status Table</h3>
+<p>
+    <code>"\{\{ render(controller('SplashTaskingBundle:List:status', {} )) }}"</code>
+</p>
+{{ render(controller('SplashTaskingBundle:List:status',  { 
+                    'Key1':     app.request.attributes.get("Key1"), 
+                    'Key2':     app.request.attributes.get("Key2") 
+                } )) }}
+                
+                
+
+<h3>Waiting Tasks List</h3>
+<p>
+    <code>"\{\{ render(controller('SplashTaskingBundle:List:waiting', {} )) }}"</code>
+</p>
+{{ render(controller('SplashTaskingBundle:List:active', {} )) }}
+
+<h3>Actives Tasks List</h3>
+<p>
+<code>"\{\{ render(controller('SplashTaskingBundle:List:active', {} )) }}"</code>
+</p>
+{{ render(controller('SplashTaskingBundle:List:active', {} )) }}
+
+<h3>Finished Tasks List</h3>
+<p>
+<code>"\{\{ render(controller('SplashTaskingBundle:List:completed', {} )) }}"</code>
+</p>
+{{ render(controller('SplashTaskingBundle:List:completed', {} )) }}
+
+
+<h3>Complete Tasks List</h3>
+<p>
+<code>"\{\{ render(controller('SplashTaskingBundle:List:all', {} )) }}"</code>
+</p>
+{{ render(controller('SplashTaskingBundle:List:all', {} )) }}
+
+
+

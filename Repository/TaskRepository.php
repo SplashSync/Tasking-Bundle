@@ -69,67 +69,52 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
             ->setParameter('MaxDate'            , ($NowTimeStamp - $Options["try_delay"]))      // Delay Before retry an unfinished Task
             ->setMaxResults(1);
         
-//        var_dump($NowTimeStamp - $Options["error_delay"]);
-//dump(   $this->_em->createQueryBuilder()
-//            ->select('tokens.name')
-//            ->from('Splash\Tasking\Entity\Token', 'tokens')
-//            ->where("tokens.locked = 1")                                    // Token is Locked
-//            ->andwhere("tokens.lockedAtTimeStamp > :TokenExpireDate")       // Token Started before Error Date
-//            ->setParameter('TokenExpireDate'   , ($NowTimeStamp - Token::SELFRELEASE_DELAY))
-//            ->getQuery()->getResult()
-//);        
-        
-        //====================================================================//
-        // Execute Query
-//        dump($this->qb->getQuery()->getDQL());
-//        dump($this->qb->getQuery()->getParameters());
-        
         return $this->qb->getQuery()->getOneOrNullResult();
     }
     
     /**
-     *      @abstract    Load User Task Summmary Array
+     *      @abstract    Load Tasks Summmary Array
      * 
-     *      @param  User    $User         Delay before we consider a task as faulty
+     *      @param  string    $IndexKey1         Your Custom Index Key 1
+     *      @param  string    $IndexKey2         Your Custom Index Key 2
      * 
-     *      @return array User Task Summary Array
+     *      @return array Task Summary Array
      */        
-    function getUserTasksSummary(User $User)
+    function getTasksSummary(string $IndexKey1 = Null, string $IndexKey2 = Null)
     {
         //====================================================================//
         // Count User Running Tasks
         //====================================================================//
-        $Waiting = $this->createQueryBuilder("T")
-            ->select('count(T.id)')
-            ->where("T.user = :User")
-            ->andwhere("T.running = 0")
-            ->andwhere("T.finished = 0")
-            ->setParameter('User'  , $User)
-            ->getQuery()->getSingleScalarResult();
+        $WaitingQb = $this->createQueryBuilder("T")
+                ->select('count(T.id)')
+                ->where("T.running = 0")
+                ->andwhere("T.finished = 0");
+        $this->setupIndexKeys($WaitingQb, $IndexKey1, $IndexKey2);
+
         //====================================================================//
         // Count User Running Tasks
         //====================================================================//
-        $Running = $this->createQueryBuilder("T")
+        $RunningQb = $this->createQueryBuilder("T")
             ->select('count(T.id)')
-            ->where("T.user = :User")
-            ->andwhere("T.running = 1")
-            ->setParameter('User'  , $User)
-            ->getQuery()->getSingleScalarResult();
+            ->where("T.running = 1");
+        $this->setupIndexKeys($RunningQb, $IndexKey1, $IndexKey2);
+        
         //====================================================================//
         // Count User Finished Tasks
         //====================================================================//
-        $Finished = $this->createQueryBuilder("T")
+        $FinishedQb = $this->createQueryBuilder("T")
             ->select('count(T.id)')
-            ->where("T.user = :User")
-            ->andwhere("T.finished = 1")
-            ->setParameter('User'  , $User)
-            ->getQuery()->getSingleScalarResult();
-
+            ->where("T.running = 0")
+            ->andwhere("T.finished = 1");
+        $this->setupIndexKeys($FinishedQb, $IndexKey1, $IndexKey2);
         
+        //====================================================================//
+        // Compte Results Array
+        //====================================================================//
         return array (
-            "Waiting"   => $Waiting,
-            "Running"   => $Running,
-            "Finished"  => $Finished
+            "Waiting"   => $WaitingQb->getQuery()->getSingleScalarResult(),
+            "Running"   => $RunningQb->getQuery()->getSingleScalarResult(),
+            "Finished"  => $FinishedQb->getQuery()->getSingleScalarResult()
         );
     }
     
@@ -158,34 +143,63 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     }
     
     /**
-     *      @abstract    Load User Task Array, Sorted By Type
+     * @abstract    Load User Task Array, Sorted By Type
      * 
-     *      @param  User    $User         Delay before we consider a task as faulty
+     * @param   string      $Key1           Your Custom Index Key 1
+     * @param   string      $Key2           Your Custom Index Key 2
+     * @param   array       $OrderBy        List Ordering
+     * @param   int         $Limit          Limit Number of Items
+     * @param   int         $Offset         Page Offset
      * 
-     *      @return array User Task Summary Array
+     * @return array User Task Summary Array
      */        
-    function getUserSortedTasks(User $User)
+    function getTasksStatus( string $Key1 = Null, string $Key2 = Null, array $OrderBy = [], int $Limit = 10, int $Offset = 0 )
     {
-        $Summary = array();
+        //====================================================================//
+        // Get List of Tasks By Types 
+        //====================================================================//
+        $StatusQuery    =   $this
+                ->createQueryBuilder("T")
+                ->select(array('T.name','count(T.name) as Total','T.discriminator as Md5', 'T.settings'))    
+                ->groupBy("T.discriminator");
+        
+        $this
+                ->setupIndexKeys($StatusQuery, $Key2, $Key1)
+                ->setupOrderBy($StatusQuery, $OrderBy)
+                ->setupLimit($StatusQuery, $Limit)
+                ->setupOffset($StatusQuery, $Offset);
+        
+        $Status = $StatusQuery->getQuery()
+            ->getArrayResult();
+        
+        //====================================================================//
+        // Add Tasks Counters 
+        //====================================================================//
+        foreach ($Status as &$TaskStatus) {
+            $TaskStatus["Waiting"]  = $this->getWaitingTasksCount(Null,$TaskStatus["Md5"],$Key1,$Key2);
+            $TaskStatus["Running"]  = $this->getActiveTasksCount(Null,$TaskStatus["Md5"],$Key1,$Key2);
+            $TaskStatus["Finished"] = $TaskStatus["Total"] - $TaskStatus["Waiting"] - $TaskStatus["Running"];
+        }
+        
+        return $Status;
         
         //====================================================================//
         // Waiting Tasks Types 
         //====================================================================//
         $Waiting    =    $this->createQueryBuilder("T")
-            ->select(array('T.name','count(T.name)','T.settings'))    
+            ->select(array('T.name','count(T.name) as Total','T.settings'))    
             ->where("T.user = :User")
             ->andwhere("T.running = 0")
             ->andwhere("T.finished = 0")
-            ->setParameter('User'  , $User)
-            ->groupBy("T.name")
-//            ->addGroupBy("T.settings")
-            ->getQuery()
-            ->getArrayResult();
+            ->setParameter('User'  , $User);        
+        return $this;
+
+
         
 
         foreach ( $Waiting as $TaskType ) {
-            if (!array_key_exists($TaskType["name"],$Summary)){
-                $Summary[$TaskType["name"]] = array(
+            if (!array_key_exists($TaskType["name"],$Status)){
+                $Status[$TaskType["name"]] = array(
                     "Name"      => $TaskType["name"], 
                     "Waiting"   => 0, 
                     "Running"   => 0, 
@@ -193,8 +207,8 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
                     "Total"     => 0, 
                     "Settings"  => $TaskType['settings']);
             }
-            $Summary[$TaskType["name"]]["Waiting"]      =   (int) $TaskType['1']; 
-            $Summary[$TaskType["name"]]["Total"]        +=  $TaskType['1']; 
+            $Status[$TaskType["name"]]["Waiting"]      =   (int) $TaskType['1']; 
+            $Status[$TaskType["name"]]["Total"]        +=  $TaskType['1']; 
             
         }
         
@@ -212,8 +226,8 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
             ->getQuery()
             ->getArrayResult();
         foreach ( $Running as $TaskType ) {
-            if (!array_key_exists($TaskType["name"],$Summary)){
-                $Summary[$TaskType["name"]] = array(
+            if (!array_key_exists($TaskType["name"],$Status)){
+                $Status[$TaskType["name"]] = array(
                     "Name"      => $TaskType["name"], 
                     "Waiting"   => 0, 
                     "Running"   => 0, 
@@ -221,8 +235,8 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
                     "Total"     => 0, 
                     "Settings"  => $TaskType['settings']);
             }
-            $Summary[$TaskType["name"]]["Running"]      =   (int) $TaskType['1']; 
-            $Summary[$TaskType["name"]]["Total"]        +=  $TaskType['1']; 
+            $Status[$TaskType["name"]]["Running"]      =   (int) $TaskType['1']; 
+            $Status[$TaskType["name"]]["Total"]        +=  $TaskType['1']; 
         }
         
         //====================================================================//
@@ -239,8 +253,8 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
             ->getQuery()
             ->getArrayResult();
         foreach ( $Finished as $TaskType ) {
-            if (!array_key_exists($TaskType["name"],$Summary)){
-                $Summary[$TaskType["name"]] = array(
+            if (!array_key_exists($TaskType["name"],$Status)){
+                $Status[$TaskType["name"]] = array(
                     "Name"      => $TaskType["name"], 
                     "Waiting"   => 0, 
                     "Running"   => 0, 
@@ -248,21 +262,24 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
                     "Total"     => 0, 
                     "Settings"  => $TaskType['settings']);
             }
-            $Summary[$TaskType["name"]]["Finished"]     =   (int) $TaskType['1']; 
-            $Summary[$TaskType["name"]]["Total"]        +=  $TaskType['1']; 
+            $Status[$TaskType["name"]]["Finished"]     =   (int) $TaskType['1']; 
+            $Status[$TaskType["name"]]["Total"]        +=  $TaskType['1']; 
         }
 
-        return $Summary;
+        return $Status;
     }    
     
     /**
      *      @abstract    Return Number of Active Tasks
      * 
      *      @param  string      $TokenName  Filter on a specific token Name
+     *      @param  string      $Md5        Filter on a specific Discriminator
+     *      @param  string      $Key1           Your Custom Index Key 1
+     *      @param  string      $Key2           Your Custom Index Key 2
      * 
      *      @return int
      */        
-    function getActiveTasksCount($TokenName = Null)
+    function getActiveTasksCount(string $TokenName = Null, string $Md5 = Null, string $Key1 = Null, string $Key2 = Null)
     {
         //====================================================================//
         // Count Active/Running Tasks
@@ -273,14 +290,12 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
             ->andwhere("T.finished = 0");
         
         //====================================================================//
-        // Filter Tasks
+        // Filter Tasks 
         //====================================================================//
-        if ($TokenName) {
-            $Qb
-                ->andwhere("T.jobToken = :Token")
-                ->setParameter('Token'  , $TokenName)
-            ;
-        }
+        $this
+            ->setupIndexKeys($Qb, $Key2, $Key1)
+            ->setupToken($Qb, $TokenName)
+            ->setupDiscriminator($Qb, $Md5);
         
         return $Qb->getQuery()->getSingleScalarResult();
     }
@@ -289,10 +304,13 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
      *      @abstract    Return Number of Active Tasks
      * 
      *      @param  string      $TokenName  Filter on a specific token Name
+     *      @param  string      $Md5        Filter on a specific Discriminator
+     *      @param  string      $Key1           Your Custom Index Key 1
+     *      @param  string      $Key2           Your Custom Index Key 2
      * 
      *      @return int
      */        
-    function getWaitingTasksCount($TokenName = Null)
+    function getWaitingTasksCount($TokenName = Null, string $Md5 = Null, string $Key1 = Null, string $Key2 = Null)
     {
         //====================================================================//
         // Count Active/Running Tasks
@@ -303,14 +321,12 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
             ->andwhere("T.finished = 0");
         
         //====================================================================//
-        // Filter Tasks
+        // Filter Tasks 
         //====================================================================//
-        if ($TokenName) {
-            $Qb
-                ->andwhere("T.jobToken = :Token")
-                ->setParameter('Token'  , $TokenName)
-            ;
-        }
+        $this
+            ->setupIndexKeys($Qb, $Key2, $Key1)
+            ->setupToken($Qb, $TokenName)
+            ->setupDiscriminator($Qb, $Md5);
         
         return $Qb->getQuery()->getSingleScalarResult();
     }
@@ -445,5 +461,109 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
         
         return $this;
     }    
+
+    /**
+     * @abstract    Setup Index Keys Filter on a QueryBuilder
+     *  
+     * @param   builder     $QueryBuilder       Target QueryBuilder
+     * @param   string      $IndexKey1          Your Custom Index Key 1
+     * @param   string      $IndexKey2          Your Custom Index Key 2
+     */        
+    private function setupIndexKeys(&$QueryBuilder, string $IndexKey1 = Null , string $IndexKey2 = Null) {
+        if ( !empty($IndexKey1) ) {
+            $QueryBuilder->andwhere("T.jobIndexKey1 = '" . $IndexKey1 . "'" );
+        }
+        if ( !empty($IndexKey2) ) {
+            $QueryBuilder->andwhere("T.jobIndexKey2 = '" . $IndexKey2 . "'" );
+        }
         
+        return $this;
+    }    
+    
+    /**
+     * @abstract    Setup Order By Filter on a QueryBuilder
+     *  
+     * @param   builder     $QueryBuilder       Target QueryBuilder
+     * @param   array       $OrderBy            OrderBy Array
+     */        
+    private function setupOrderBy(&$QueryBuilder, array $OrderBy = [] ) {
+        if ( !empty($OrderBy) ) {
+            $Count = 0;
+            foreach ($OrderBy as $Key => $Dir ) {
+                if (!$Count) {
+                    $QueryBuilder->orderBy($Key,$Dir);
+                } else {
+                    $QueryBuilder->andOrderBy($Key,$Dir);
+                }
+                $Count++;
+            }
+        } 
+        
+        return $this;
+    }
+    
+    /**
+     * @abstract    Setup Limit Filter on a QueryBuilder
+     *  
+     * @param   builder     $QueryBuilder       Target QueryBuilder
+     * @param   int         $Limit              Result Limit
+     */        
+    private function setupLimit(&$QueryBuilder, int $Limit = Null ) {
+        if ( !empty($Limit) ) {
+            $QueryBuilder->setMaxResults($Limit);
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * @abstract    Setup Offset Filter on a QueryBuilder
+     *  
+     * @param   builder     $QueryBuilder       Target QueryBuilder
+     * @param   int         $Offset             Pagination Offset
+     */        
+    private function setupOffset(&$QueryBuilder, int $Offset = Null ) {
+        if ( !empty($Offset) ) {
+            $QueryBuilder->setFirstResult($Offset);
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * @abstract    Setup Token Filter on a QueryBuilder
+     *  
+     * @param   builder     $QueryBuilder       Target QueryBuilder
+     * @param  string       $TokenName          Filter on a specific token Name
+     */        
+    private function setupToken(&$QueryBuilder, string $TokenName = Null ) {
+        
+        if ( !empty($TokenName) ) {
+            $QueryBuilder
+                ->andwhere("T.jobToken = :Token")
+                ->setParameter('Token'  , $TokenName)
+            ;
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * @abstract    Setup Token Filter on a QueryBuilder
+     *  
+     * @param   builder     $QueryBuilder       Target QueryBuilder
+     * @param   string      $Md5                Filter on a specific Discriminator
+     */        
+    private function setupDiscriminator(&$QueryBuilder, string $Md5 = Null ) {
+        
+        if ( !empty($Md5) ) {
+            $QueryBuilder
+                ->andwhere("T.discriminator = :Md5")
+                ->setParameter('Md5'  , $Md5)
+            ;
+        }
+        
+        return $this;
+    }
+    
 }
