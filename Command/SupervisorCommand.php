@@ -72,7 +72,7 @@ class SupervisorCommand extends ContainerAwareCommand
         //==============================================================================
         // Set Status as Stopped
         $this->supervisor->setTask("Stopped");
-        $this->worker->setRunning(False);
+        $this->supervisor->setRunning(False);
         $this->Tasking->em->flush();
                 
         //====================================================================//
