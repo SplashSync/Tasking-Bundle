@@ -8,7 +8,7 @@ use Symfony\Component\Console\Output\NullOutput;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Tests\Jobs\TestJob;
 
-class A005TaskingControllerTest extends WebTestCase
+class C002TaskingControllerTest extends WebTestCase
 {
     const TEST_DETPH    =   50;
     
@@ -265,9 +265,8 @@ class A005TaskingControllerTest extends WebTestCase
             $this->assertInstanceOf(TestJob::class , $this->AddMicroTask($this->TokenC, $Delay));
         }
         
-        sleep(1);
-        $this->_em->Clear();
-        $this->assertGreaterThan(0,$this->TasksRepository->getActiveTasksCount());
+        $this->_em->clear();
+        $this->assertGreaterThan(0,$this->TasksRepository->getWaitingTasksCount());
         
         //====================================================================//
         // While Tasks Are Running
@@ -313,8 +312,6 @@ class A005TaskingControllerTest extends WebTestCase
         $this->TokenRepository->Delete($this->TokenB);
         $this->TokenRepository->Delete($this->TokenC);
         
-$this->assertFalse(True);
-
         //====================================================================//
         // Clean Finished Tasks
         $this->TasksRepository->Clean(0);

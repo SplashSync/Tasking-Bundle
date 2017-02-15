@@ -604,8 +604,9 @@ class TaskingService
             //==============================================================================
             // Flush Database
             $this->em->flush();    
-            echo "Worker Refreshed => " . $Worker->Ping( ) . PHP_EOL;
-            
+            //====================================================================//
+            // Output Refresh Sign
+            $this->OutputRefreshed();
         }        
             
         return $Worker;
@@ -763,7 +764,7 @@ class TaskingService
         //====================================================================//
         // Read Current Cron Tab Configuration
         $CronTab = [];
-        exec("crontab -l", $CronTab);
+        exec("crontab -l > /dev/null 2>&1 &", $CronTab);
         $Current = array_shift($CronTab);
         //====================================================================//
         // Update Cron Tab Configuration if Needed
@@ -870,6 +871,18 @@ class TaskingService
         //====================================================================//
         // Write waiting Sign
         $this->Output->write(".");
+    }       
+    
+    public function OutputRefreshed()
+    {
+        //====================================================================//
+        // No Outputs Interface defined => Exit
+        if ( !$this->Output ) {
+            return;
+        }
+        //====================================================================//
+        // Write waiting Sign
+        $this->Output->write("|");
     }       
     
     public function OutputTokenReleased()

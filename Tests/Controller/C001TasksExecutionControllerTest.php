@@ -19,7 +19,7 @@ class TasksExecutionControllerTest extends WebTestCase
     /**
      * @var \Splash\Tasking\Repository\TaskRepository
      */
-    private $TaskRepository;    
+    private $TasksRepository;    
     
     /**
      * @var \Splash\Tasking\Repository\TokenRepository
@@ -60,7 +60,7 @@ class TasksExecutionControllerTest extends WebTestCase
         
         //====================================================================//
         // Link to Tasks Reprository        
-        $this->TaskRepository = static::$kernel->getContainer()
+        $this->TasksRepository = static::$kernel->getContainer()
                 ->get('doctrine')
                 ->getManager()
                 ->getRepository('SplashTaskingBundle:Task');
@@ -107,13 +107,13 @@ class TasksExecutionControllerTest extends WebTestCase
         $Dispatcher->dispatch("tasking.add" , $Job);
 
         //====================================================================//
-        // Wait 1 Second to get this Task Executed
-        sleep(1);
-        
+        // Wait Until All Tasks are Completed
+        $this->WaitUntilCompleted(2);
+
         //====================================================================//
         // Load a Task
         $this->_em->clear();
-        $Task   =   $this->TaskRepository->findOneByJobToken($this->RandomStr);
+        $Task   =   $this->TasksRepository->findOneByJobToken($this->RandomStr);
         
         //====================================================================//
         // Verify Task
@@ -152,13 +152,13 @@ class TasksExecutionControllerTest extends WebTestCase
         $Dispatcher->dispatch("tasking.add" , $Job);
 
         //====================================================================//
-        // Wait 1 Second to get this Task Executed
-        usleep(1E3 * 200);
+        // Wait Until All Tasks are Completed
+        $this->WaitUntilCompleted(2);
         
         //====================================================================//
         // Load a Task
         $this->_em->clear();
-        $Task   =   $this->TaskRepository->findOneByJobToken($this->RandomStr);
+        $Task   =   $this->TasksRepository->findOneByJobToken($this->RandomStr);
         
         //====================================================================//
         // Verify Task
@@ -199,13 +199,13 @@ class TasksExecutionControllerTest extends WebTestCase
         $Dispatcher->dispatch("tasking.add" , $Job);
 
         //====================================================================//
-        // Wait 1 Second to get this Task Executed
-        usleep(1E3 * 200);
+        // Wait Until All Tasks are Completed
+        $this->WaitUntilCompleted(2);
         
         //====================================================================//
         // Load a Task
         $this->_em->clear();
-        $Task   =   $this->TaskRepository->findOneByJobToken($this->RandomStr);
+        $Task   =   $this->TasksRepository->findOneByJobToken($this->RandomStr);
         
         //====================================================================//
         // Verify Task
@@ -224,13 +224,13 @@ class TasksExecutionControllerTest extends WebTestCase
      */    
     public function DeleteAllTasks()
     {
-        $Tasks = $this->TaskRepository->findAll();
+        $Tasks = $this->TasksRepository->findAll();
         foreach ($Tasks as $Task) {
             $this->_em->remove($Task);
             $this->_em->flush();            
         }
         
-        $this->assertEmpty($this->TaskRepository->findAll());
+        $this->assertEmpty($this->TasksRepository->findAll());
         
         return $this;
     }    
@@ -265,5 +265,26 @@ class TasksExecutionControllerTest extends WebTestCase
         );
         
     }    
+    
+    /**
+     * @abstract    Wait Until Tasks Queue Completed 
+     */    
+    public function WaitUntilCompleted($Limit)
+    {    
+        //====================================================================//
+        // Wait Unit get this Task Executed
+        $WatchDog   = 0;
+        $Queue      = 0;
+        do {
+            usleep(500 * 1E3);  // 500Ms
+            $WatchDog++;
+            
+            $this->_em->clear();
+            $Queue = $this->TasksRepository->getWaitingTasksCount();
+            $Queue+= $this->TasksRepository->getActiveTasksCount();
+            
+        } while ( ($WatchDog < (2 * $Limit) ) && ($Queue) );
+                
+    }
     
 }

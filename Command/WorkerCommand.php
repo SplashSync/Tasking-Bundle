@@ -20,7 +20,6 @@ class WorkerCommand extends ContainerAwareCommand
     // Time & Tasks Counters 
     private $TaskStart  =   0;              // Last Task Startup date in Us
     private $StandByUs  =   0;              // Current Pause in Us
-    private $StandBySec =   0;              // Current Pause Total in Sec
     private $TaskTotal  =   0;              // Total of Tasks Treated since Worker Started
     private $EndDate    = Null;             // Script Max End Date
     private $MaxTry     =  10;              // Tasks Max Try Count
@@ -137,6 +136,7 @@ class WorkerCommand extends ContainerAwareCommand
             //==============================================================================
             // Validate & Prepare User Job Execution
             if ( $this->CurrentTask->validate($Output, $this->getContainer() ) && $this->CurrentTask->Prepare($Output)) {
+                
                 //==============================================================================
                 // Save Status in Db
                 $this->Tasking->em->flush();
@@ -252,44 +252,28 @@ class WorkerCommand extends ContainerAwareCommand
     }   
     
     /**
-     *      @abstract    Check if Worker Needs To Be Restarted
+     * @abstract    This Tempo Function is Called when Working loop was completed without job execution. 
      */        
     private function onLoopCompleted()
     {
         //====================================================================//
-        // Wait MicroSeconds
-        usleep(self::USLEEP_TIME);
-        $this->StandByUs += self::USLEEP_TIME;
+        // Each Time We Increase Wait Period Between Two Loops 
+        //  => On first Loops   => Minimum Pause
+        //  => On next Loops    => Pause is multiplicated until a second
+        //  => Not to overload Proc & SQL Server for nothing!
+        //  => When a task is executed, StandByUs is cleared 
         //====================================================================//
-        // Wait Seconds Counters        
-        if ($this->StandByUs != 1E6 ) {
-            return;
-        }
+        if ($this->StandByUs <  (10 * self::USLEEP_TIME) ) {
+            $this->StandByUs += self::USLEEP_TIME;
+        } elseif ($this->StandByUs < 1E6) {
+            $this->StandByUs = 2 * $this->StandByUs;
+        } 
+        usleep($this->StandByUs);
         //====================================================================//
-        // User Information             
-        if ($this->StandBySec ) {
+        // If we are waiting More than a Second        
+        if ($this->StandByUs >= 1E6 ) {
             $this->Tasking->OutputIsWaiting();
-        }       
-        //====================================================================//
-        // Increment Seconds Counter             
-        $this->StandBySec++;
-        $this->StandByUs     = 0;
-    }    
-    
-    /**
-     *  @abstract    When a task was Executed
-     */        
-    private function onJobExecuted()
-    {
-
-
-        //==============================================================================
-        // End of Task Execution
-        $Task->Close();
-        
-        //====================================================================//
-        // Save Changes
-        $this->em->flush();
+        }
     }    
     
     /**
@@ -299,19 +283,13 @@ class WorkerCommand extends ContainerAwareCommand
      */        
     private function onJobCompleted()
     {
-        
-        
-        
-        
-        
-        
         //====================================================================//
         // Inc. Counters
         $this->TaskTotal++;
+        
         //====================================================================//
-        // Reset StandBy Counters
+        // Reset StandBy Counter
         $this->StandByUs       = 0;
-        $this->StandBySec      = 0;
 
         //====================================================================//
         // Ensure a Minimal Task Time of 50Ms  

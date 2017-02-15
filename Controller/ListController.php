@@ -176,13 +176,10 @@ class ListController extends Controller
                 ->getManager()
                 ->getRepository('SplashTaskingBundle:Task');
         
-        dump($Repository->getTasksStatus($Key1,$Key2,$OrderBy,$Limit,$Offset));
-        
-        return new Response("OK", 200);
         //==============================================================================
         // Render Tasks Sumary
         return $this->render('SplashTaskingBundle:List:status.html.twig', array(
-            'summary'         =>  $Repository->getTasksStatus($Key1,$Key2,$OrderBy,$Limit,$Offset)
+            'status'         =>  $Repository->getTasksStatus($Key1,$Key2,$OrderBy,$Limit,$Offset)
         ));
     } 
     

@@ -88,11 +88,10 @@ class B002ProcessControllerTest extends WebTestCase
     public function testCronTab()
     {
         //====================================================================//
-        // DELET Crontab Configuration
+        // DELETE Crontab Configuration
         //====================================================================//
         
-        $R = [];
-        exec('crontab -r > /dev/null 2>&1', $R);
+        exec('crontab -r > /dev/null 2>&1 &');
         
         //====================================================================//
         // CHECK CRONTAB CONFIG
@@ -255,7 +254,7 @@ class B002ProcessControllerTest extends WebTestCase
         //====================================================================//      
         
         $this->Tasking->SupervisorCheckIsRunning();
-        sleep($Config["refresh_delay"] + 1);
+        sleep($Config["refresh_delay"] + 2);
         
         //====================================================================//
         // VERIFY ALL WORKERS ARE OFF
