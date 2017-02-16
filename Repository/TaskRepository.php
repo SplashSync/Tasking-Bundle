@@ -164,7 +164,7 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
                 ->groupBy("T.discriminator");
         
         $this
-                ->setupIndexKeys($StatusQuery, $Key2, $Key1)
+                ->setupIndexKeys($StatusQuery, $Key1, $Key2)
                 ->setupOrderBy($StatusQuery, $OrderBy)
                 ->setupLimit($StatusQuery, $Limit)
                 ->setupOffset($StatusQuery, $Offset);
