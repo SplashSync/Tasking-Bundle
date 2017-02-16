@@ -182,91 +182,6 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
         }
         
         return $Status;
-        
-        //====================================================================//
-        // Waiting Tasks Types 
-        //====================================================================//
-        $Waiting    =    $this->createQueryBuilder("T")
-            ->select(array('T.name','count(T.name) as Total','T.settings'))    
-            ->where("T.user = :User")
-            ->andwhere("T.running = 0")
-            ->andwhere("T.finished = 0")
-            ->setParameter('User'  , $User);        
-        return $this;
-
-
-        
-
-        foreach ( $Waiting as $TaskType ) {
-            if (!array_key_exists($TaskType["name"],$Status)){
-                $Status[$TaskType["name"]] = array(
-                    "Name"      => $TaskType["name"], 
-                    "Waiting"   => 0, 
-                    "Running"   => 0, 
-                    "Finished"  => 0, 
-                    "Total"     => 0, 
-                    "Settings"  => $TaskType['settings']);
-            }
-            $Status[$TaskType["name"]]["Waiting"]      =   (int) $TaskType['1']; 
-            $Status[$TaskType["name"]]["Total"]        +=  $TaskType['1']; 
-            
-        }
-        
-        //====================================================================//
-        // Running Tasks Types 
-        //====================================================================//
-        $Running    =    $this->createQueryBuilder("T")
-            ->select(array('T.name','count(T.name)','T.settings'))   
-            ->where("T.user = :User")
-            ->andwhere("T.running = 1")
-            ->andwhere("T.finished = 0")
-            ->setParameter('User'  , $User)
-            ->groupBy("T.name")
-//            ->addGroupBy("T.settings")
-            ->getQuery()
-            ->getArrayResult();
-        foreach ( $Running as $TaskType ) {
-            if (!array_key_exists($TaskType["name"],$Status)){
-                $Status[$TaskType["name"]] = array(
-                    "Name"      => $TaskType["name"], 
-                    "Waiting"   => 0, 
-                    "Running"   => 0, 
-                    "Finished"  => 0, 
-                    "Total"     => 0, 
-                    "Settings"  => $TaskType['settings']);
-            }
-            $Status[$TaskType["name"]]["Running"]      =   (int) $TaskType['1']; 
-            $Status[$TaskType["name"]]["Total"]        +=  $TaskType['1']; 
-        }
-        
-        //====================================================================//
-        // Finished Tasks Types 
-        //====================================================================//
-        $Finished    =    $this->createQueryBuilder("T")
-            ->select(array('T.name','count(T.name)','T.settings'))    
-            ->where("T.user = :User")
-            ->andwhere("T.running = 0")
-            ->andwhere("T.finished = 1")
-            ->setParameter('User'  , $User)
-            ->groupBy("T.name")
-//            ->addGroupBy("T.settings")
-            ->getQuery()
-            ->getArrayResult();
-        foreach ( $Finished as $TaskType ) {
-            if (!array_key_exists($TaskType["name"],$Status)){
-                $Status[$TaskType["name"]] = array(
-                    "Name"      => $TaskType["name"], 
-                    "Waiting"   => 0, 
-                    "Running"   => 0, 
-                    "Finished"  => 0, 
-                    "Total"     => 0, 
-                    "Settings"  => $TaskType['settings']);
-            }
-            $Status[$TaskType["name"]]["Finished"]     =   (int) $TaskType['1']; 
-            $Status[$TaskType["name"]]["Total"]        +=  $TaskType['1']; 
-        }
-
-        return $Status;
     }    
     
     /**
@@ -293,7 +208,7 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
         // Filter Tasks 
         //====================================================================//
         $this
-            ->setupIndexKeys($Qb, $Key2, $Key1)
+            ->setupIndexKeys($Qb, $Key1, $Key2)
             ->setupToken($Qb, $TokenName)
             ->setupDiscriminator($Qb, $Md5);
         
@@ -324,7 +239,7 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
         // Filter Tasks 
         //====================================================================//
         $this
-            ->setupIndexKeys($Qb, $Key2, $Key1)
+            ->setupIndexKeys($Qb, $Key1, $Key2)
             ->setupToken($Qb, $TokenName)
             ->setupDiscriminator($Qb, $Md5);
         
