@@ -25,12 +25,12 @@ class TaskingService
      *  Processing Parameters
      */    
     const CMD_NOHUP         = "/usr/bin/nohup ";                                         // Console Command For NoHup
-    const CMD_PHP           = "/usr/bin/php ";                                  // Console Command For Php
+    const CMD_PHP           = "php ";                                  // Console Command For Php
     const CMD_CONSOLE       = "bin/console ";                                   // Console Command Prefix
     const CMD_SUFIX         = "  < /dev/null > /dev/null 2>&1 &";               // Console Command Suffix
-    const WORKER            = "tasking:worker ";                                // Worker Start Console Command
-    const SUPERVISOR        = "tasking:supervisor ";                            // Supervisor Start Console Command    
-    const CHECK             = "tasking:check ";                                 // Check Start Console Command    
+    const WORKER            = "tasking:worker";                                // Worker Start Console Command
+    const SUPERVISOR        = "tasking:supervisor";                            // Supervisor Start Console Command    
+    const CHECK             = "tasking:check";                                 // Check Start Console Command    
     const CRON              = "* * * * * ";                                     // Crontab Frequency    
     
 //==============================================================================
@@ -529,6 +529,13 @@ class TaskingService
             return True;
         }        
         
+        //====================================================================//
+        // Check Worker is Alone with this Number
+        if ( $this->ProcessExists(self::WORKER . " " . $Worker->getProcess() )) {
+            $this->Output('Exit on Duplicate Worker Deteted', "question");
+            return True;
+        } 
+        
         return False;
         
     }
@@ -779,16 +786,33 @@ class TaskingService
     /**
      *      @abstract    Start a Process on Local Machine (Server Node)
      */    
-    private function ProcessStart($Command,$Environement = Null) 
+    private function ProcessStart($Command, $Environement = Null) 
     {
+        //====================================================================//
+        // Select Environement
+        $Env = $Environement ? $Environement : $this->Config["environement"]; 
+        
+        //====================================================================//
+        // Detect Working Directory
+        $WorkingDir = dirname($this->container->get('kernel')->getRootDir());
+        
         //====================================================================//
         // Finalize Command
         $RawCmd = self::CMD_NOHUP . self::CMD_PHP;
-        $RawCmd.= dirname($this->container->get('kernel')->getRootDir()) . "/" . self::CMD_CONSOLE;
-        $RawCmd.= $Command . self::CMD_SUFIX;                
+        $RawCmd.= $WorkingDir . "/" . self::CMD_CONSOLE;
+        $RawCmd.= $Command . " --env=" . $Env . self::CMD_SUFIX;     
+        
+        //====================================================================//
+        // Verify This Command Not Already Running
+        if ( $this->ProcessExists($Command, $Env) ) {
+            $this->OutputVerbose("Tasking :: Process already active (" . $RawCmd . ")", "info");
+            return True;
+        }      
+        
         //====================================================================//
         // Execute Command
         exec($RawCmd);
+        
         //====================================================================//
         // Wait for Script Startup
         usleep(200 * 1E3); // 100MS
@@ -797,6 +821,31 @@ class TaskingService
     }
     
     
+    /**
+     *      @abstract    Check if a Similar Process Exists on Local Machine (Server Node)
+     */    
+    private function ProcessExists($Command, $Environement = Null) 
+    {
+        //====================================================================//
+        // Select Environement
+        $Env = $Environement ? $Environement : $this->Config["environement"]; 
+                
+        //====================================================================//
+        // Detect Working Directory
+        $WorkingDir = dirname($this->container->get('kernel')->getRootDir());
+    
+        //====================================================================//
+        // Find Command
+        $ListCommand = self::CMD_PHP .  $WorkingDir . "/" . self::CMD_CONSOLE; 
+        $ListCommand.= $Command . " --env=" . $Env; 
+        
+        //====================================================================//
+        // Verify This Command Not Already Running
+        $List           = array();
+        exec("pgrep '" . $ListCommand . "' -f",$List);
+        
+        return count($List) - 1;
+    }    
     
     /**
      *  @abstract   Identify Current Worker on this machine using it's PID 
