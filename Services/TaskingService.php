@@ -770,11 +770,12 @@ class TaskingService
         //====================================================================//
         // Compute Working Dir 
         $WorkingDirectory = dirname($this->container->get('kernel')->getRootDir());
+        $Env    = $this->container->get('kernel')->getEnvironment();
         //====================================================================//
         // Compute Expected Cron Tab Command
         $Command = self::CRON . " " . self::CMD_PHP ;
-        $Command.= " " . $WorkingDirectory . "/" . self::CMD_CONSOLE;
-        $Command.= " " . self::CHECK . self::CMD_SUFIX;        
+        $Command.= " " . $WorkingDirectory . "/" . self::CMD_CONSOLE;    
+        $Command.= " " . self::CHECK . " --env=" . $Env . " " . self::CMD_SUFIX;        
         //====================================================================//
         // Read Current Cron Tab Configuration
         $CronTab = [];
@@ -788,7 +789,7 @@ class TaskingService
             return "Crontab Configuration Updated";
         }
         return "Crontab Configuration Already Done";
-    }    
+    }   
     
     /**
      *      @abstract    Start a Process on Local Machine (Server Node)
@@ -848,10 +849,7 @@ class TaskingService
         
         //====================================================================//
         // Verify This Command Not Already Running
-        $List           = array();
-        exec("pgrep '" . $ListCommand . "' -f",$List);
-        
-        return count($List);
+        return (int) exec("pgrep '" . $ListCommand . "' -xfc ",$List);
     }    
     
     /**
