@@ -531,7 +531,7 @@ class TaskingService
         
         //====================================================================//
         // Check Worker is Alone with this Number
-        if ( $this->ProcessExists(self::WORKER . " " . $Worker->getProcess() )) {
+        if ( $this->ProcessExists(self::SUPERVISOR ) > 1) {
             $this->Output('Exit on Duplicate Worker Deteted', "question");
             return True;
         } 
@@ -745,7 +745,14 @@ class TaskingService
         if ( !$Worker->getEnabled() ) {
             $this->Output('Exit on User Request, Worker Now Disabled', "question");
             return True;
-        }        
+        }
+        
+        //====================================================================//
+        // Check Worker is Alone with this Number
+        if ( $this->ProcessExists(self::WORKER . " " . $Worker->getProcess() ) > 1) {
+            $this->Output('Exit on Duplicate Worker Deteted', "question");
+            return True;
+        } 
         
         return False;
         
@@ -804,7 +811,7 @@ class TaskingService
         
         //====================================================================//
         // Verify This Command Not Already Running
-        if ( $this->ProcessExists($Command, $Env) ) {
+        if ( $this->ProcessExists($Command, $Env) > 1) {
             $this->OutputVerbose("Tasking :: Process already active (" . $RawCmd . ")", "info");
             return True;
         }      
@@ -844,7 +851,7 @@ class TaskingService
         $List           = array();
         exec("pgrep '" . $ListCommand . "' -f",$List);
         
-        return count($List) - 1;
+        return count($List);
     }    
     
     /**
