@@ -107,14 +107,22 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
             ->where("T.running = 0")
             ->andwhere("T.finished = 1");
         $this->setupIndexKeys($FinishedQb, $IndexKey1, $IndexKey2);
-        
+
+        //====================================================================//
+        // Count User Total of Tasks
+        //====================================================================//
+        $TotalQb = $this->createQueryBuilder("T")
+            ->select('count(T.id)');
+        $this->setupIndexKeys($TotalQb, $IndexKey1, $IndexKey2);
+
         //====================================================================//
         // Compte Results Array
         //====================================================================//
         return array (
             "Waiting"   => $WaitingQb->getQuery()->getSingleScalarResult(),
             "Running"   => $RunningQb->getQuery()->getSingleScalarResult(),
-            "Finished"  => $FinishedQb->getQuery()->getSingleScalarResult()
+            "Finished"  => $FinishedQb->getQuery()->getSingleScalarResult(),
+            "Total"     => $TotalQb->getQuery()->getSingleScalarResult()
         );
     }
     

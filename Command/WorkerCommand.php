@@ -274,6 +274,9 @@ class WorkerCommand extends ContainerAwareCommand
         if ($this->StandByUs >= 1E6 ) {
             $this->Tasking->OutputIsWaiting();
         }
+        //====================================================================//
+        // Clear Entity Manager Cache        
+        $this->Tasking->em->clear();          
     }    
     
     /**

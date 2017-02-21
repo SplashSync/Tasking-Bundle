@@ -251,10 +251,16 @@ class AbstractBatchJob extends AbstractJob {
     /*
      * @abstract    Check if batch actions are completed or task needs to be executed again (pagination)
      */    
-    public function isCompleted() : int {
+    public function isCompleted() : bool {
         return $this->inputs["state"]["isCompleted"];
     }
     
+    /*
+     * @abstract    Check if Errors have occured during batch action
+     */    
+    public function hasErrors() : bool {
+        return $this->inputs["state"]["jobsError"] ? True : False;
+    }    
     
 //==============================================================================
 //      Specific Getters & Setters
