@@ -67,7 +67,7 @@ class Configuration implements ConfigurationInterface
                         ->end()
                         ->integerNode('max_memory')
                             ->info('Maximum Memory usage for Supervisor. Exit when reached.')
-                            ->defaultValue(200)
+                            ->defaultValue(100)
                         ->end()
                     ->end()
                 ->end()

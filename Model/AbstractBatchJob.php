@@ -162,7 +162,7 @@ class AbstractBatchJob extends AbstractJob {
         //====================================================================//
         // Init Task Planification Counters
         $TaskStart      = $State["currentJob"];  
-        $TaskMax        = $State["jobsCount"] - 1;  
+        $TaskMax        = $State["jobsCount"];  
         $TaskEnd        = static::paginate    ?   ($TaskStart + static::paginate) : $TaskMax; 
         if ( $TaskEnd > $TaskMax ) {
             $TaskEnd = $TaskMax;
@@ -170,7 +170,7 @@ class AbstractBatchJob extends AbstractJob {
         
         //====================================================================//
         // Batch Execution Loop
-        for ( $Index = $TaskStart ; $Index <= $TaskEnd ; $Index++ ) {
+        for ( $Index = $TaskStart ; $Index < $TaskEnd ; $Index++ ) {
             
             //==============================================================================
             //      Update State
@@ -205,7 +205,7 @@ class AbstractBatchJob extends AbstractJob {
         
         //==============================================================================
         //      Manage Stop on Error
-        if ( $State["jobsCompleted"] >= $State["jobsCount"] ) {
+        if ( $State["currentJob"] >= $State["jobsCount"] ) {
             $this->setStateItem("isCompleted", True);
         }         
         
