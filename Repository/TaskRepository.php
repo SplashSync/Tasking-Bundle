@@ -58,6 +58,10 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
         }
 
         //====================================================================//
+        // Setup Task Priority Ordering
+        $this->qb->orderBy("task.jobPriority","DESC");
+
+        //====================================================================//
         // Setup Query Time Parameters
         if ($Static) {
             $this->qb->setParameter('Now'       , $NowTimeStamp);

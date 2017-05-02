@@ -2,6 +2,8 @@
 
 namespace Splash\Tasking\Model;
 
+use Splash\Tasking\Entity\Task;
+
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
@@ -45,6 +47,12 @@ class AbstractBatchJob extends AbstractJob {
      * @var bool
      */    
     const stopOnError       = TRUE;
+    
+    /*
+     * @abstract    Job Priority
+     * @var int
+     */    
+    const priority      = Task::DO_LOWEST;
     
     /*
      * @abstract    Parameter - Batch Action Pagination. 
