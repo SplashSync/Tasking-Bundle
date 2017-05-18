@@ -812,7 +812,7 @@ class TaskingService
         
         //====================================================================//
         // Verify This Command Not Already Running
-        if ( $this->ProcessExists($Command, $Env) > 1) {
+        if ( $this->ProcessExists($Command, $Env) > 0) {
             $this->OutputVerbose("Tasking :: Process already active (" . $RawCmd . ")", "info");
             return True;
         }      
