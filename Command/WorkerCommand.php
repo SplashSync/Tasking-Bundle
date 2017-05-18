@@ -190,6 +190,9 @@ class WorkerCommand extends ContainerAwareCommand
         //====================================================================//
         // Init Worker        
         $this->InitializeWorker();
+        //====================================================================//
+        // Setup PHP Error Reporting Level        
+        error_reporting(E_ERROR);
     }
     
     /**
@@ -300,6 +303,10 @@ class WorkerCommand extends ContainerAwareCommand
         if ($uPause > 0) {
             usleep($uPause);
         } 
+        
+        //====================================================================//
+        // Refresh Supervisor Worker Status (WatchDog)
+        $this->Tasking->WorkerRefresh($this->worker);        
     }
     
     

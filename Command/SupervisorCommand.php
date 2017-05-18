@@ -166,6 +166,10 @@ class SupervisorCommand extends ContainerAwareCommand
         //====================================================================//
         // Refresh Worker
         $this->Tasking->WorkerRefresh($this->supervisor , True);
+        //====================================================================//
+        // Setup PHP Error Reporting Level        
+        error_reporting(E_ERROR);
+
     }             
 }
     

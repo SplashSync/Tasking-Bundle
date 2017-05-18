@@ -247,6 +247,12 @@ class Task
      * @ORM\Column(name="Fault", type="text", nullable=TRUE)
      */
     private $fault_str;
+
+    /**
+     * @var string
+     * @ORM\Column(name="FaultTrace", type="text", nullable=TRUE)
+     */
+    private $fault_trace;
     
     /**
      * @var string
@@ -302,6 +308,7 @@ class Task
         // Catch Any Exceptions that may occur during task execution
         catch( \Exception $e) {
             $this->setFaultStr($e->getMessage() . PHP_EOL . $e->getFile() . " Line " . $e->getLine(), $Output);
+            $this->setFaultTrace($e->getTraceAsString());
         }
         
         //==============================================================================
@@ -463,6 +470,8 @@ class Task
 
         return $this;
     }    
+    
+
     
 //==============================================================================
 //      LifeCycle Events
@@ -1167,8 +1176,6 @@ class Task
         return $this->createdBy;
     }
 
-
-
     /**
      * Get faultStr
      *
@@ -1178,6 +1185,29 @@ class Task
     {
         return $this->fault_str;
     }
+    
+    /**
+     * Set fault Trace
+     *
+     * @param string $faultTrace
+     *
+     * @return Task
+     */
+    public function setFaultTrace($faultTrace)
+    {
+        $this->fault_trace = $faultTrace;
+        return $this;
+    } 
+    
+    /**
+     * Get fault Trace
+     *
+     * @return string
+     */
+    public function getFaultTrace()
+    {
+        return $this->fault_trace;
+    }    
     
     /**
      * Get Task Outputs

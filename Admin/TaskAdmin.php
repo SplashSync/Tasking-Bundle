@@ -34,6 +34,7 @@ class TaskAdmin extends Admin
                 ->add('finished')
                 ->add('try')
                 ->add('fault_str')
+                ->add('fault_trace')
             ->end()
             ->with('General', array('class' => 'col-md-6'))
                 ->add('name')
