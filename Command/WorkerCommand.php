@@ -115,7 +115,7 @@ class WorkerCommand extends ContainerAwareCommand
         $Token = $this->CurrentTask ? $this->CurrentTask->getJobToken() : Null;
         $this->CurrentTask      = $this->Tasking
                 ->TasksFindNext($Token, $StaticMode);
-
+        
         //====================================================================//
         // No Tasks To Execute 
         if ( is_null($this->CurrentTask) ) {
