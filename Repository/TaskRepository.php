@@ -267,11 +267,12 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     {
         //==============================================================================
         // Prepare Max Age DateTime
-        $MaxDate = (new \DateTime())->getTimestamp() - $Age;
+        $MaxDate        = (new \DateTime())->getTimestamp() - $Age;
+        $MaxErrorDate   = (new \DateTime())->getTimestamp() - ( 10 * $Age);
         
         //==============================================================================
         // Count Old Finished Tasks
-        $Count = $this->createQueryBuilder("t")
+        $Finished = $this->createQueryBuilder("t")
             ->delete()
             ->where("t.finished = 1")
             ->andwhere("t.finishedAtTimeStamp < :maxage")
@@ -280,7 +281,19 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
             ->getQuery()
             ->execute();        
         
-        return $Count;        
+        //==============================================================================
+        // Count In Error Tasks
+        $Error = $this->createQueryBuilder("t")
+            ->delete()
+            ->where("t.running = 1")
+            ->where("t.finished = 0")
+            ->andwhere("t.startedAtTimeStamp < :maxage")
+            ->andwhere("t.jobIsStatic != 1")
+            ->setParameter(":maxage" , $MaxErrorDate )
+            ->getQuery()
+            ->execute();        
+        
+        return $Finished + $Error;        
     }
         
     /**
