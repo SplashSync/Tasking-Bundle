@@ -17,12 +17,12 @@ use Symfony\Component\DependencyInjection\ContainerInterface as Container;
 class TaskingEventListener {
 
     private $tasking;
-//    private $logger;
+    private $logger;
 
 
     public function __construct(Container $container) {
         $this->tasking      = $container->get("TaskingService");
-//        $this->logger       = $logger;
+        $this->logger       = $container->get("logger");
     }
 
     public function onSecurityInteractiveLogin() {
@@ -89,6 +89,23 @@ class TaskingEventListener {
         
         return True;
     }     
+    
+    public function onConsoleException(\Symfony\Component\Console\Event\ConsoleExceptionEvent $event)
+    {
+        $command = $event->getCommand();
+        $exception = $event->getException();
+
+        $message = sprintf(
+            '%s: %s (uncaught exception) at %s line %s while running console command `%s`',
+            get_class($exception),
+            $exception->getMessage(),
+            $exception->getFile(),
+            $exception->getLine(),
+            $command->getName()
+        );
+
+        $this->logger->error($message, $exception->getTrace());
+    }
     
     /**
      *  @abstract    Verify given taask before being added to scheduler 

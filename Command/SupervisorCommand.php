@@ -2,7 +2,6 @@
 
 namespace Splash\Tasking\Command;
 
-use DateTime;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -10,6 +9,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class SupervisorCommand extends ContainerAwareCommand
 {
+    
+    use Traits\LexikMonologBridgeCommand;
+    
     //====================================================================//
     // Global Parameters Storage            
     private $Config;
@@ -66,7 +68,7 @@ class SupervisorCommand extends ContainerAwareCommand
             $this->Tasking->WorkerRefresh($this->supervisor);         
             //====================================================================//
             // Wait        
-            $this->Tasking->SupervisorDoPause();         
+            $this->Tasking->SupervisorDoPause();                  
         }
         
         //==============================================================================
@@ -106,6 +108,10 @@ class SupervisorCommand extends ContainerAwareCommand
         //====================================================================//
         // Init Supervisor Worker        
         $this->InitializeSupervisorWorker();
+        
+        //====================================================================//
+        // Setup Lexik Logged Compatibility
+        $this->overrideLexikMonologBridge();       
         
         //====================================================================//
         // Init Static Tasks List

@@ -2,16 +2,15 @@
 
 namespace Splash\Tasking\Command;
 
-use DateTime;
-
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class WorkerCommand extends ContainerAwareCommand
 {
+    use Traits\LexikMonologBridgeCommand;
+        
     //====================================================================//
     // Constants            
     const USLEEP_TIME       = 5 * 1E4;               // Pause Delay When Inactive               => 50Ms
@@ -50,11 +49,10 @@ class WorkerCommand extends ContainerAwareCommand
     
     protected function execute(InputInterface $input, OutputInterface $Output)
     {
-
         //====================================================================//
         // Init
         $this->Initialisation($input, $Output);
-        
+
         //====================================================================//
         // Worker Tasks Execution Loop        
         while( !$this->Tasking->WorkerIsToKill($this->worker, $this->TaskTotal, $this->EndDate) ) {
@@ -115,7 +113,7 @@ class WorkerCommand extends ContainerAwareCommand
         $Token = $this->CurrentTask ? $this->CurrentTask->getJobToken() : Null;
         $this->CurrentTask      = $this->Tasking
                 ->TasksFindNext($Token, $StaticMode);
-
+        
         //====================================================================//
         // No Tasks To Execute 
         if ( is_null($this->CurrentTask) ) {
@@ -190,6 +188,9 @@ class WorkerCommand extends ContainerAwareCommand
         //====================================================================//
         // Init Worker        
         $this->InitializeWorker();
+        //====================================================================//
+        // Setup Lexik Logged Compatibility
+        $this->overrideLexikMonologBridge();       
         //====================================================================//
         // Setup PHP Error Reporting Level        
         error_reporting(E_ERROR);
