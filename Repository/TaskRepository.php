@@ -267,11 +267,12 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     {
         //==============================================================================
         // Prepare Max Age DateTime
-        $MaxDate = (new \DateTime())->getTimestamp() - $Age;
+        $MaxDate        = (new \DateTime())->getTimestamp() - $Age;
+        $MaxErrorDate   = (new \DateTime())->getTimestamp() - ( 10 * $Age);
         
         //==============================================================================
         // Count Old Finished Tasks
-        $Count = $this->createQueryBuilder("t")
+        $Finished = $this->createQueryBuilder("t")
             ->delete()
             ->where("t.finished = 1")
             ->andwhere("t.finishedAtTimeStamp < :maxage")
@@ -280,7 +281,19 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
             ->getQuery()
             ->execute();        
         
-        return $Count;        
+        //==============================================================================
+        // Count In Error Tasks
+        $Error = $this->createQueryBuilder("t")
+            ->delete()
+            ->where("t.running = 1")
+            ->where("t.finished = 0")
+            ->andwhere("t.startedAtTimeStamp < :maxage")
+            ->andwhere("t.jobIsStatic != 1")
+            ->setParameter(":maxage" , $MaxErrorDate )
+            ->getQuery()
+            ->execute();        
+        
+        return $Finished + $Error;        
     }
         
     /**
@@ -348,9 +361,9 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
                 // Task Is Not Running
                 'task.try = 0 AND task.running = 0',
                 // If Task has Already been tried, but failled
-                "task.try > 0 AND task.try < :MaxTry AND task.running = 0 AND task.startedAtTimeStamp <=  :MaxDate",
+                "task.try > 0 AND task.try < :MaxTry AND task.running = 0 AND task.startedAtTimeStamp <  :MaxDate",
                 // If Task Timeout Exeeded
-                "task.try < :MaxTry AND task.running = 1 AND task.startedAtTimeStamp <= :ErrorDate"
+                "task.try < :MaxTry AND task.running = 1 AND task.startedAtTimeStamp < :ErrorDate"
              ))   
             //====================================================================//
             // Select Tasks That Are Not Static
