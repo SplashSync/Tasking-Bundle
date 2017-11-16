@@ -65,50 +65,44 @@ class StatusCommand extends ContainerAwareCommand
                 ->get("doctrine")->getManager()
                 ->getRepository('SplashTaskingBundle:Task');
         
-        $Output->writeln('==============================================');
-        $Output->writeln('= Pending Tasks : ');
+        while (1) {
+            //====================================================================//
+            // Fetch Tasks Summary        
+            $Repo->clear();
+            $Status = $Repo->getTasksSummary();
+            
+            //====================================================================//
+            // Prepare Tasks Status        
+            if ( $Status['Finished'] >= $Status['Total'] ) {
+                $Progress = 100;
+                $this->updateProgressBarr($Output, $Progress, 'All Done! Waiting...');
+            } else {
+                $Progress   = (int) 100 * ($Status['Finished'] / $Status['Total']);
+                $Message    = ($Status['Total'] - $Status['Finished']) . ' Tasks Pending...';
+                $this->updateProgressBarr($Output, $Progress, $Message);
+            }
+            sleep(1);    
+        }
         
+        return;           
+    }
+
+    private function updateProgressBarr( OutputInterface $Output, $Progress, $Status) 
+    {
+        //====================================================================//
+        // delete current progress bar
+        if (isset($this->progress) ) {
+            $this->progress->clear();
+        }
         //====================================================================//
         // create a new progress bar
         $this->progress = new ProgressBar($Output, 100);
-        $this->progress->setMessage("Pending Tasks");
-        $this->progress->setFormat('[%bar%] %current%/%max% -- <question>%message%</question> ');
+        $this->progress->setBarCharacter('<fg=cyan>=</>');
+        $this->progress->setProgressCharacter('<fg=red>|</>');
+        $this->progress->setFormat('= Pending Tasks : [%bar%] %current%/%max% -- <question>%message%</question> ');
         $this->progress->start();        
-        
-        $Progress = 0;
-        while (1) {
-            
-            $Repo->clear();
-            $Status = $Repo->getTasksSummary();
-                    
-            if ( $Status['Finished'] >= $Status['Total'] ) {
-                $Progress = 100;
-                $this->progress->setMessage('All Done! Waiting...');
-            } else {
-                $Progress = (int) 100 * ($Status['Finished'] / $Status['Total']);
-                $this->progress->setMessage( ($Status['Finished'] - $Status['Total']) . ' Tasks Pending...');
-            }
-            $this->progress->setProgress($Progress);        
-            sleep(1);            
-        }
-        
-        return;
-        
-        //====================================================================//
-        // Load Tasking Service        
-        $Tasking = $this->getContainer()->get("TaskingService");
-        
-        //====================================================================//
-        // Init Outputs        
-        $Tasking->setOutputInterface($Output);        
-        //====================================================================//
-        // Check Crontab is Setuped        
-        $Tasking->CrontabCheck();
-        //====================================================================//
-        // Check Supervisor Local is Running        
-        $Tasking->SupervisorCheckIsRunning();
-            
+        $this->progress->setMessage($Status);
+        $this->progress->setProgress($Progress);        
     }
-
 }
     
