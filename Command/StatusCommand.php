@@ -74,12 +74,10 @@ class StatusCommand extends ContainerAwareCommand
             //====================================================================//
             // Prepare Tasks Status        
             if ( $Status['Finished'] >= $Status['Total'] ) {
-                $Progress = 100;
-                $this->updateProgressBarr($Output, $Progress, 'All Done! Waiting...');
+                $this->updateProgressBarr($Output, $Status['Finished'], $Status['Total'], 'All Done! Waiting...');
             } else {
-                $Progress   = (int) 100 * ($Status['Finished'] / $Status['Total']);
                 $Message    = ($Status['Total'] - $Status['Finished']) . ' Tasks Pending...';
-                $this->updateProgressBarr($Output, $Progress, $Message);
+                $this->updateProgressBarr($Output, $Status['Finished'], $Status['Total'], $Message);
             }
             sleep(1);    
         }
@@ -87,7 +85,7 @@ class StatusCommand extends ContainerAwareCommand
         return;           
     }
 
-    private function updateProgressBarr( OutputInterface $Output, $Progress, $Status) 
+    private function updateProgressBarr( OutputInterface $Output, $Pending, $Total, $Status) 
     {
         //====================================================================//
         // delete current progress bar
@@ -96,13 +94,13 @@ class StatusCommand extends ContainerAwareCommand
         }
         //====================================================================//
         // create a new progress bar
-        $this->progress = new ProgressBar($Output, 100);
+        $this->progress = new ProgressBar($Output, $Total);
         $this->progress->setBarCharacter('<fg=cyan>=</>');
         $this->progress->setProgressCharacter('<fg=red>|</>');
         $this->progress->setFormat('= Pending Tasks : [%bar%] %current%/%max% -- <question>%message%</question> ');
         $this->progress->start();        
         $this->progress->setMessage($Status);
-        $this->progress->setProgress($Progress);        
+        $this->progress->setProgress($Pending);        
     }
 }
     
