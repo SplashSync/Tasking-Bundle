@@ -73,14 +73,15 @@ install:
     - cp ../Build/autoload.php app/autoload.php
     
     - echo "Install Symfony"
-    - php bin/console doctrine:schema:update --force --env=test --no-interaction --no-debug
+#    - php bin/console doctrine:schema:update --force --env=test --no-interaction --no-debug
 #    - php bin/console sylius:fixtures:load --env=test --no-interaction --no-debug
 ##    - chmod -R 777 app/autoload.php
 
-    - echo "Enable Splash Bundles"
+#    - echo "Enable Splash Bundles"
     - cp  ../Build/AppKernel.php app/AppKernel.php
     - cat ../Build/config.yml           >> app/config/config.yml
     - cat ../Build/routing.yml          >> app/config/routing.yml
+    - php bin/console doctrine:schema:update --force --env=test --no-interaction --no-debug
     
     - echo "Start Web Srever"
     - php bin/console server:start
