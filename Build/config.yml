@@ -1,20 +1,5 @@
-sonata_block:
-    default_contexts: [cms]
-    blocks:
-        # enable the SonataAdminBundle block
-        sonata.admin.block.admin_list:
-            contexts: [admin]
-            
-sonata_admin:
-
-    dashboard:
-        blocks:
-            
-        groups:
-            sonata.admin.group.system:
-                label: System
-                icon:  '<i class="fa fa-tasks"></i>'
-                items:
-                    - sonata.admin.tasks
-                    - sonata.admin.workers
-                    - sonata.admin.tokens
+                  
+services:
+    
+    Tasking.Sampling.Service:
+        class: Splash\Tasking\Tests\Services\TasksSamplingService
