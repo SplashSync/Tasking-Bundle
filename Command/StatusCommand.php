@@ -24,6 +24,8 @@ class StatusCommand extends ContainerAwareCommand
         //====================================================================//
         // User Information        
         if ($Output->isVerbose()) {
+            $this->showHead($Input, $Output);
+            $this->showWorkers($Input, $Output);
         }
         
         //====================================================================//
