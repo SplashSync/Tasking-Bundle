@@ -41,14 +41,14 @@ php:
 # Define an environment variable
 env:
 #  - SF_VERSION=""
-  - SF_VERSION="v2.8.31"
-#  - SF_VERSION="3.3"
+#  - SF_VERSION="v2.8.31"
+  - SF_VERSION="v3.3.13"
 
 before_install:
 # Update composer
   - composer self-update
 # Create Database
-  - mysql -e 'CREATE DATABASE myapp_test;'    
+  - mysql -e 'CREATE DATABASE symfony;'    
 # Increase memory limit to 4GB  
   - phpenv config-rm xdebug.ini
 #  - phpenv config-add build/x_memory.ini
