@@ -58,14 +58,14 @@ before_install:
 # Install composer dependencies,
 # Create database, schema and fixtures
 install:   
-    - composer create-project symfony/symfony-standard symfony $SF_VERSION --prefer-dist --stability=dev
+    - composer create-project symfony/framework-standard-edition symfony $SF_VERSION --prefer-dist --stability=dev --no-scripts
     - cd symfony
 #    - composer install --no-interaction --no-scripts --prefer-dist
 #    - composer require splash/phpcore:dev-master --no-interaction --no-scripts --prefer-dist
 #    - composer require splash/php-bundle:dev-master  --no-interaction --no-scripts --prefer-dist
 #    - composer require splash/sylius-bundle:dev-master --no-interaction --no-scripts --prefer-dist
     - echo "Install Splash Tasking Bundles"
-    - composer require splash/tasking-bundle:dev-master --no-interaction --prefer-dist
+    - composer require splash/tasking-bundle:dev-master --prefer-dist --no-interaction --no-scripts
     
     - echo "Configuring Splash Bundles"
     - cp ../Build/parameters.yml.dist app/config/parameters.yml
@@ -81,8 +81,8 @@ install:
     - cp  ../Build/AppKernel.php app/AppKernel.php
     - cat ../Build/routing.yml          >> app/config/routing.yml
     
-#    - echo "Start Web Srever"
-#    - php bin/console server:start --env=test
+    - echo "Start Web Srever"
+    - php bin/console server:start --env=test
 
 # Run script
 script:
