@@ -3,9 +3,7 @@
 namespace Splash\Tasking\Command;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\ProgressBar;
 
@@ -23,11 +21,48 @@ class StatusCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $Input, OutputInterface $Output)
     {       
+        //====================================================================//
+        // User Information        
+        if ($Output->isVerbose()) {
+        }
+        
+        //====================================================================//
+        // Load Tasks Repository        
+        $Repo = $this->getContainer()
+                ->get("doctrine")->getManager()
+                ->getRepository('SplashTaskingBundle:Task');
+        
+        while (1) {
+            //====================================================================//
+            // Fetch Tasks Summary        
+            $Repo->clear();
+            $Status = $Repo->getTasksSummary();
+
+            //====================================================================//
+            // Prepare Tasks Status        
+            if ( $Status['Finished'] >= $Status['Total'] ) {
+                $this->updateProgressBarr($Output, $Status['Finished'], $Status['Total'], 'All Done! Waiting...');
+            } else {
+                $Message    = ($Status['Total'] - $Status['Finished']) . ' Tasks Pending...';
+                $this->updateProgressBarr($Output, $Status['Finished'], $Status['Total'], $Message);
+            }
+            sleep(1);    
+        }
+        
+        return;           
+    }
+
+    
+    protected function showHead(InputInterface $Input, OutputInterface $Output)
+    {  
         $Output->writeln('==============================================');
         $Output->writeln('=          Tasking Bundle Status             =');
         $Output->writeln('==============================================');
         $Output->writeln('');
+    }   
 
+    protected function showWorkers(InputInterface $Input, OutputInterface $Output)
+    {  
         //====================================================================//
         // Load Worker Repository        
         $Workers = $this->getContainer()
@@ -58,33 +93,8 @@ class StatusCommand extends ContainerAwareCommand
         $Output->writeln('==============================================');
         
         $Output->writeln('');
-        
-        //====================================================================//
-        // Load Tasks Repository        
-        $Repo = $this->getContainer()
-                ->get("doctrine")->getManager()
-                ->getRepository('SplashTaskingBundle:Task');
-        
-        while (1) {
-            //====================================================================//
-            // Fetch Tasks Summary        
-            $Repo->clear();
-            $Status = $Repo->getTasksSummary();
-            
-            //====================================================================//
-            // Prepare Tasks Status        
-            if ( $Status['Finished'] >= $Status['Total'] ) {
-                $this->updateProgressBarr($Output, $Status['Finished'], $Status['Total'], 'All Done! Waiting...');
-            } else {
-                $Message    = ($Status['Total'] - $Status['Finished']) . ' Tasks Pending...';
-                $this->updateProgressBarr($Output, $Status['Finished'], $Status['Total'], $Message);
-            }
-            sleep(1);    
-        }
-        
-        return;           
-    }
-
+    }   
+    
     private function updateProgressBarr( OutputInterface $Output, $Pending, $Total, $Status) 
     {
         //====================================================================//
