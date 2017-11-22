@@ -50,7 +50,7 @@ before_install:
   - mysql -e 'CREATE DATABASE myapp_test;'    
 # Increase memory limit to 4GB  
   - phpenv config-rm xdebug.ini
-  - phpenv config-add build/x_memory.ini
+#  - phpenv config-add build/x_memory.ini
 #  - phpenv config-add build/x_errors.ini
   - php -ini | grep memory_limit  
 
