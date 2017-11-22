@@ -85,11 +85,11 @@ install:
     
     - echo "Start Web Srever"
     - php bin/console server:start
-    - php bin/console server:start --env=test
-    - php bin/console server:start --env=test
     
     - bin/console tasking:check
     - bin/console tasking:stop
+    - bin/console tasking:stop --env=test
+    - bin/console tasking:stop --env=test
 
 # Run script
 script:
