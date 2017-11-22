@@ -79,6 +79,7 @@ install:
 
     - echo "Enable Splash Bundles"
     - cp  ../Build/AppKernel.php app/AppKernel.php
+    - cat ../Build/config.yml           >> app/config/config.yml
     - cat ../Build/routing.yml          >> app/config/routing.yml
     
     - echo "Start Web Srever"
