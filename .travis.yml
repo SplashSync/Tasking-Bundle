@@ -40,8 +40,8 @@ php:
     
 # Define an environment variable
 env:
-  - SF_VERSION=""
-#  - SF_VERSION="v2.8.31"
+#  - SF_VERSION=""
+  - SF_VERSION="v2.8.31"
 #  - SF_VERSION="3.3"
 
 before_install:
