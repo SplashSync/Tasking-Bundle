@@ -26,9 +26,8 @@ class Configuration implements ConfigurationInterface
                 // COMMON Parameters
                 //====================================================================//
                 ->scalarNode('environement')
-                    ->isRequired()
-                    ->cannotBeEmpty()
                     ->defaultValue('prod')
+                    ->cannotBeEmpty()
                     ->info('Specify the environement to use for running background tasks.')
                 ->end()
                 ->integerNode('refresh_delay')
