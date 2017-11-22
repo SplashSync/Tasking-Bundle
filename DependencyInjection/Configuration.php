@@ -28,6 +28,7 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('environement')
                     ->isRequired()
                     ->cannotBeEmpty()
+                    ->defaultValue('prod')
                     ->info('Specify the environement to use for running background tasks.')
                 ->end()
                 ->integerNode('refresh_delay')
@@ -45,6 +46,23 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('multiserver_path')
                     ->defaultValue("")
                     ->info('Aditionnal Path for Multi-Server mode. ')
+                ->end()
+                
+                //====================================================================//
+                // SERVER Parameters
+                //====================================================================//
+                ->arrayNode('server')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->booleanNode('force_crontab')
+                            ->defaultValue(False)
+                            ->info('Enable this mode to force setup of users crontab. When disabled you need to manage crontab manaully')
+                        ->end()                
+                        ->scalarNode('php_version')
+                            ->defaultValue("php")
+                            ->info('PHP Cli line to use for starting bash commands.')
+                        ->end()
+                    ->end()
                 ->end()
                 
                 //====================================================================//
@@ -71,6 +89,7 @@ class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
+                
                 //====================================================================//
                 // WORKERS Parameters
                 //====================================================================//
@@ -91,6 +110,7 @@ class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
+                
                 //====================================================================//
                 // TASKS Parameters
                 //====================================================================//
@@ -115,6 +135,7 @@ class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
+                
                 //====================================================================//
                 // STATIC TASKS Parameters
                 //====================================================================//

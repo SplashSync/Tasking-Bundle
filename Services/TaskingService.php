@@ -25,7 +25,6 @@ class TaskingService
      *  Processing Parameters
      */    
     const CMD_NOHUP         = "/usr/bin/nohup ";                                         // Console Command For NoHup
-    const CMD_PHP           = "php ";                                  // Console Command For Php
     const CMD_CONSOLE       = "bin/console ";                                   // Console Command Prefix
     const CMD_SUFIX         = "  < /dev/null > /dev/null 2>&1 &";               // Console Command Suffix
     const WORKER            = "tasking:worker";                                // Worker Start Console Command
@@ -107,7 +106,7 @@ class TaskingService
         //====================================================================//
         // Init Parameters        
         $this->Config               =   new ArrayObject($container->getParameter('splash_tasking'), ArrayObject::ARRAY_AS_PROPS) ;
-
+        
         return True;
     }   
     
@@ -768,12 +767,17 @@ class TaskingService
     public function CrontabCheck() 
     {
         //====================================================================//
+        // Check Crontab Management is ACtivated
+        if( !$this->Config["server"]["force_crontab"])  {
+            return "Crontab Management is Disabled";
+        }
+        //====================================================================//
         // Compute Working Dir 
         $WorkingDirectory = dirname($this->container->get('kernel')->getRootDir());
         $Env    = $this->container->get('kernel')->getEnvironment();
         //====================================================================//
         // Compute Expected Cron Tab Command
-        $Command = self::CRON . " " . self::CMD_PHP ;
+        $Command = self::CRON . " " . $this->Config["server"]["php_version"] . " ";
         $Command.= " " . $WorkingDirectory . "/" . self::CMD_CONSOLE;    
         $Command.= " " . self::CHECK . " --env=" . $Env . " " . self::CMD_SUFIX;        
         //====================================================================//
@@ -806,7 +810,7 @@ class TaskingService
         
         //====================================================================//
         // Finalize Command
-        $RawCmd = self::CMD_NOHUP . self::CMD_PHP;
+        $RawCmd = self::CMD_NOHUP . $this->Config["server"]["php_version"] . " ";
         $RawCmd.= $WorkingDir . "/" . self::CMD_CONSOLE;
         $RawCmd.= $Command . " --env=" . $Env . self::CMD_SUFIX;     
         
@@ -844,7 +848,7 @@ class TaskingService
     
         //====================================================================//
         // Find Command
-        $ListCommand = self::CMD_PHP .  $WorkingDir . "/" . self::CMD_CONSOLE; 
+        $ListCommand = $this->Config["server"]["php_version"]  . " " .  $WorkingDir . "/" . self::CMD_CONSOLE; 
         $ListCommand.= $Command . " --env=" . $Env; 
         
         //====================================================================//

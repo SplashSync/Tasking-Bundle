@@ -88,6 +88,17 @@ class B002ProcessControllerTest extends WebTestCase
     public function testCronTab()
     {
         //====================================================================//
+        // CHECK if Crontab Management is Active
+        //====================================================================//
+        $Config =   static::$kernel->getContainer()->getParameter('splash_tasking');
+        if ( !$Config["server"]["force_crontab"] ) {
+            $this->assertNotEmpty($this->Tasking->CrontabCheck());
+            $this->assertTrue($this->Tasking->SupervisorCheckIsRunning());
+            sleep(1);
+            return;
+        }
+        
+        //====================================================================//
         // DELETE Crontab Configuration
         //====================================================================//
         
