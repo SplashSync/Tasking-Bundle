@@ -85,6 +85,8 @@ install:
     
     - echo "Start Web Srever"
     - php bin/console server:start
+    - php bin/console server:start --env=test
+    - php bin/console server:start --env=test
     
     - bin/console tasking:check
     - bin/console tasking:stop
