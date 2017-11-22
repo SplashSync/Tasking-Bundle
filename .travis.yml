@@ -65,7 +65,7 @@ install:
 #    - composer require splash/php-bundle:dev-master  --no-interaction --no-scripts --prefer-dist
 #    - composer require splash/sylius-bundle:dev-master --no-interaction --no-scripts --prefer-dist
     - echo "Install Splash Tasking Bundles"
-    - composer require splash/tasking-bundle:dev-master --prefer-dist --no-interaction --no-scripts
+    - composer require splash/tasking-bundle:dev-master --prefer-dist --no-interaction --no-scripts --ignore-platform-reqs
     
     - echo "Configuring Splash Bundles"
     - cp ../Build/parameters.yml.dist app/config/parameters.yml
