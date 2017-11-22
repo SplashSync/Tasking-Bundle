@@ -69,7 +69,7 @@ install:
     
     - echo "Configuring Splash Bundles"
     - cp ../Build/parameters.yml.dist app/config/parameters.yml
-#    - cp ../build/phpunit.xml.dist phpunit.xml.dist
+    - cp ../Build/phpunit.xml.dist phpunit.xml.dist
     - cp ../Build/autoload.php app/autoload.php
     
     - echo "Install Symfony"
