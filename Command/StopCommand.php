@@ -54,7 +54,11 @@ class StopCommand extends ContainerAwareCommand
             //====================================================================//
             // User Information        
             $Output->writeln('<info> Still ' . $Count . ' Actives Workers Process... </info>');
-        
+
+            //====================================================================//
+            // Request All Active Workers to Stop
+            $this->SetupAllWorkers(False);
+
             //====================================================================//
             // Pause        
             sleep(1);
