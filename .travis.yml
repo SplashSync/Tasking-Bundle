@@ -41,7 +41,7 @@ php:
 # Define an environment variable
 env:
   - SF_VERSION=""
-  - SF_VERSION="v2.8.31"
+#  - SF_VERSION="v2.8.31"
 #  - SF_VERSION="3.3"
 
 before_install:
@@ -58,7 +58,7 @@ before_install:
 # Install composer dependencies,
 # Create database, schema and fixtures
 install:   
-    - composer create-project symfony/symfony-standard symfony $SF_VERSION --prefer-dist
+    - composer create-project symfony/symfony-standard symfony $SF_VERSION --prefer-dist --stability=dev
     - cd symfony
 #    - composer install --no-interaction --no-scripts --prefer-dist
 #    - composer require splash/phpcore:dev-master --no-interaction --no-scripts --prefer-dist
