@@ -19,6 +19,7 @@ class StopCommand extends ContainerAwareCommand
         $this
             ->setName('tasking:stop')
             ->setDescription('Tasking Service : Stop All Supervisors & Workers Process on All Machines')
+            ->addOption('no-restart', null, InputOption::VALUE_OPTIONAL, 'Do you want to Restart Workers After Stop?', false)
         ;
         
     }
@@ -48,6 +49,12 @@ class StopCommand extends ContainerAwareCommand
         $this->SetupTimeout();
         
         //====================================================================//
+        // Count Total Number of Wrokers
+        $Total = count($this->getContainer()->get('doctrine')
+                ->getRepository('SplashTaskingBundle:Worker')
+                ->findAll());
+                
+        //====================================================================//
         // Track Workers are Stopped       
         while ( ($Count = $this->CountActiveWorkers()) && !$this->isInTimeout() ) {
             
@@ -65,6 +72,11 @@ class StopCommand extends ContainerAwareCommand
             
         } 
         
+        if ( $Input->hasParameterOption('--no-restart') ) {
+            $Output->writeln('<question>' . $Total . ' Workers now Sleeping... </question>');
+            return;
+        }
+                
         //====================================================================//
         // Request All Active Workers to Stop
         $this->SetupAllWorkers(True);
