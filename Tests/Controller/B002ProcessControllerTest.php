@@ -170,7 +170,7 @@ class B002ProcessControllerTest extends WebTestCase
         //====================================================================//      
         
         $this->Tasking->SupervisorCheckIsRunning();
-        sleep(1);
+        sleep(3);
         
         //====================================================================//
         // CHECK SUPERVISOR is RUNNING
@@ -231,7 +231,24 @@ class B002ProcessControllerTest extends WebTestCase
         $Config =   static::$kernel->getContainer()->getParameter('splash_tasking');
       
         //====================================================================//
-        // DISABLE ALL WORKERS
+        // DISABLE & STOP ALL WORKERS
+        //====================================================================//      
+        
+        $this->doStopCommand(True);
+        
+        //====================================================================//
+        // Save to database
+        $this->_em->clear();
+
+        //====================================================================//
+        // RESTART ALL WORKERS
+        //====================================================================//      
+        
+        $this->Tasking->SupervisorCheckIsRunning();
+        sleep(2);
+        
+        //====================================================================//
+        // VERIFY ALL WORKERS ARE OFF
         //====================================================================//      
         
         //====================================================================//
@@ -246,45 +263,8 @@ class B002ProcessControllerTest extends WebTestCase
                 ->findByNodeName($Supervisor->getNodeName());
         
         //====================================================================//
-        // Disable all Workers  (but Supervisor)
-        foreach ($Workers as &$Worker) {
-            
-            $this->assertInstanceOf( Worker::class , $Worker);
-            if ( $Worker->getProcess() != 0 ) {
-                $Worker->setEnabled(False);
-            }
-        }
-        
-        //====================================================================//
-        // Save to database
-        $this->_em->flush();
-        $this->_em->clear();
-
-        //====================================================================//
-        // RESTART ALL WORKERS
-        //====================================================================//      
-        
-        $this->Tasking->SupervisorCheckIsRunning();
-        sleep($Config["refresh_delay"] + 2);
-        
-        //====================================================================//
-        // VERIFY ALL WORKERS ARE OFF
-        //====================================================================//      
-        
-        //====================================================================//
-        // Load Local Supervisor
-        $this->_em->clear();
-        $Supervisor2     =   $this->Tasking->SupervisorIdentify();
-        
-        //====================================================================//
-        // Load Workers for Local Supervisor
-        $Workers2    = $this->_em
-                ->getRepository('SplashTaskingBundle:Worker')
-                ->findByNodeName($Supervisor2->getNodeName());
-        
-        //====================================================================//
         // Check all Workers
-        foreach ($Workers2 as $Worker) {
+        foreach ($Workers as $Worker) {
             
             $RefreshedWorker = $this->_em
                 ->getRepository('SplashTaskingBundle:Worker')
@@ -294,15 +274,9 @@ class B002ProcessControllerTest extends WebTestCase
             $this->assertInstanceOf( Worker::class , $RefreshedWorker);
             $this->assertTrue(      $this->Tasking->WorkerCheckIsRunning($RefreshedWorker->getProcess()));
 
-            if ( $RefreshedWorker->getProcess() != 0 ) {
-                $this->assertFalse(     $RefreshedWorker->getEnabled());                
-                $this->assertFalse(     $this->doCheckProcessIsAlive($RefreshedWorker->getPID()));
-                $this->assertFalse(     $Worker->getRunning());                
-            } else {
-                $this->assertTrue(     $RefreshedWorker->getEnabled());                
-                $this->assertTrue(     $RefreshedWorker->getRunning());                
-                $this->assertTrue(     $this->doCheckProcessIsAlive($RefreshedWorker->getPID()));                
-            }            
+            $this->assertFalse(     $RefreshedWorker->getEnabled());                
+            $this->assertFalse(     $this->doCheckProcessIsAlive($RefreshedWorker->getPID()));
+            $this->assertFalse(     $Worker->getRunning());                
         }        
         
         //====================================================================//
@@ -311,6 +285,7 @@ class B002ProcessControllerTest extends WebTestCase
         
         $this->doStopCommand();
         $this->Tasking->SupervisorCheckIsRunning();
+        sleep(2);
         
     }    
     
@@ -318,11 +293,11 @@ class B002ProcessControllerTest extends WebTestCase
     /**
      * @abstract    Execut Stop Console Command
      */    
-    public function doStopCommand()
+    public function doStopCommand($NoTestart = False)
     {
         //====================================================================//
         // Create Sub-Porcess
-        $process = new Process("bin/console tasking:stop --env=test -vv");
+        $process = new Process("bin/console tasking:stop --env=test -vv" . ($NoTestart? " --no-restart" : Null) );
         //====================================================================//
         // Clean Working Dir
         $WorkingDirectory   =   $process->getWorkingDirectory();
