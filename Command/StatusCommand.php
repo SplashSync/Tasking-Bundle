@@ -161,10 +161,10 @@ class StatusCommand extends ContainerAwareCommand
             
             //====================================================================//
             // Workers is Disabled       
-            if ( !$Worker->getEnabled() ) {
-                $Disabled++;
-            } else if ( $Worker->getRunning() ) {
+            if ( $Worker->getRunning() ) {
                 $Running++;
+            } elseif ( !$Worker->getEnabled() ) {
+                $Disabled++;
             } else {
                 $Sleeping++;
             }
