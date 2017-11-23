@@ -170,12 +170,14 @@ class StatusCommand extends ContainerAwareCommand
             }
         }
         
-        if ( $Running < 1 ) {
-            return ' <error>No Worker Running!</error>';
-        } 
-        if ( $Supervisor < 1 ) {
-            return ' <error>No Supervisor Running!</error>';
-        }         
+        if ( ( $Running < 1 ) || ( $Supervisor < 1 ) ) {
+            if ( $Running < 1 ) {
+                return ' <error>No Worker Running!</error>';
+            } 
+            if ( $Supervisor < 1 ) {
+                return ' <error>No Supervisor Running!</error>';
+            }         
+        }
         $Response = $Running . '/' . ( $Disabled + $Sleeping + $Running ) . ' Workers ';
         $Response.= $Supervisor . ' Supervisors';
         return ' <info>' . $Response . '</info>';
