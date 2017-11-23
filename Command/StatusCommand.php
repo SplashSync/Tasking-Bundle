@@ -39,15 +39,13 @@ class StatusCommand extends ContainerAwareCommand
             // Fetch Tasks Summary        
             $Repo->clear();
             $Status = $Repo->getTasksSummary();
-
             //====================================================================//
-            // Prepare Tasks Status        
-            if ( $Status['Finished'] >= $Status['Total'] ) {
-                $this->updateProgressBarr($Output, $Status['Finished'], $Status['Total'], 'All Done! Waiting...');
-            } else {
-                $Message    = ($Status['Total'] - $Status['Finished']) . ' Tasks Pending...';
-                $this->updateProgressBarr($Output, $Status['Finished'], $Status['Total'], $Message);
-            }
+            // Prepare Tasking Status        
+            $Message    = $this->getTasksStatusStr($Status['Finished'], $Status['Total']);
+            $Message   .= $this->getWorkersStatusStr();
+            //====================================================================//
+            // Update Tasking Progress Bar        
+            $this->updateProgressBarr($Output, $Status['Finished'], $Status['Total'], $Message);
             sleep(1);    
         }
         
@@ -83,12 +81,19 @@ class StatusCommand extends ContainerAwareCommand
             // Workers is Disabled       
             if ( !$Worker->getEnabled() ) {
                 $Disabled++;
-            } 
+                $WorkerStatus = 'Disabled';
+            } else if ( $Worker->getRunning() ) {
+                $WorkerStatus = 'Running';
+            } else {
+                $WorkerStatus = 'Sleeping';
+            }
             //====================================================================//
             // Workers is Enabled       
             $Status = '===> ' . $Worker->getNodeName();
-            $Status.= ' (' . $Worker->getPID() . ':' . ( $Worker->getRunning() ? 'Running' : 'Sleeping' ) . ')';
-            $Status.= ' : ' . $Worker->getTask();
+            $Status.= ' (' . $Worker->getPID() . ':' . $WorkerStatus . ')';
+            if ( $Worker->getEnabled() ) {
+                $Status.= ' : ' . $Worker->getTask();
+            }            
             $Output->writeln( $Status );
         }
         $Output->writeln( '===> ' . $Disabled . ' Workers are Disabled' );
@@ -109,10 +114,72 @@ class StatusCommand extends ContainerAwareCommand
         $this->progress = new ProgressBar($Output, $Total);
         $this->progress->setBarCharacter('<fg=cyan>=</>');
         $this->progress->setProgressCharacter('<fg=red>|</>');
-        $this->progress->setFormat('= Pending Tasks : [%bar%] %current%/%max% -- <question>%message%</question> ');
+        $this->progress->setFormat('= Pending Tasks : [%bar%] %current%/%max% -- %message%');
         $this->progress->start();        
         $this->progress->setMessage($Status);
         $this->progress->setProgress($Pending);        
     }
+    
+    protected function getTasksStatusStr( $Finished, $Total )
+    { 
+        if ( $Finished >= $Total ) {
+            return ' <info>' . 'All Done! ' . '</info>';
+        } else {
+            $Message    = ($Total - $Finished) . ' Tasks Pending... ';
+            return ' <comment>' . $Message . '</comment>';
+        }
+    }
+        
+    protected function getWorkersStatusStr()
+    {  
+        //====================================================================//
+        // Load Worker Repository        
+        $Workers = $this->getContainer()
+                ->get("doctrine")->getManager()
+                ->getRepository('SplashTaskingBundle:Worker');
+        $Workers->clear();
+        
+        //====================================================================//
+        // Init Counters       
+        $Disabled = 0;
+        $Sleeping = 0;
+        $Running = 0;
+        $Supervisor = 0;
+
+        //====================================================================//
+        // Update Workers Counters
+        foreach ( $Workers->findAll() as $Worker) {
+
+            //====================================================================//
+            // Workers is Supervisor       
+            if ( ( $Worker->getProcess() == 0 ) && $Worker->getRunning() ) {
+                $Supervisor++;
+            } 
+            if ( ( $Worker->getProcess() == 0 ) ) {
+                continue;
+            } 
+            
+            //====================================================================//
+            // Workers is Disabled       
+            if ( !$Worker->getEnabled() ) {
+                $Disabled++;
+            } else if ( $Worker->getRunning() ) {
+                $Running++;
+            } else {
+                $Sleeping++;
+            }
+        }
+        
+        if ( $Running < 1 ) {
+            return ' <error>No Worker Running!</error>';
+        } 
+        if ( $Supervisor < 1 ) {
+            return ' <error>No Supervisor Running!</error>';
+        }         
+        $Response = $Running . '/' . ( $Disabled + $Sleeping + $Running ) . ' Workers ';
+        $Response.= $Supervisor . ' Supervisors';
+        return ' <info>' . $Response . '</info>';
+    }  
+    
 }
     
