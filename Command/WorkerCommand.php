@@ -95,8 +95,12 @@ class WorkerCommand extends ContainerAwareCommand
         $this->Tasking->TokenRelease();        
         
         //====================================================================//
-        // Ensure Supervisor is Running
-        $this->Tasking->SupervisorCheckIsRunning();        
+        // Check if Worker is to Restart Automaticaly        
+        if ( $this->worker->getEnabled() ) {
+            //====================================================================//
+            // Ensure Supervisor is Running
+            $this->Tasking->SupervisorCheckIsRunning();        
+        }
         
         //====================================================================//
         // User Information        
