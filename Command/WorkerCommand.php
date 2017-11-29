@@ -95,6 +95,10 @@ class WorkerCommand extends ContainerAwareCommand
         $this->Tasking->TokenRelease();        
         
         //====================================================================//
+        // Ensure Supervisor is Running
+        $this->Tasking->SupervisorCheckIsRunning();        
+        
+        //====================================================================//
         // User Information        
         $this->Tasking->Output('End of Tasking Process Id ' . $this->Id, "info");
     }
