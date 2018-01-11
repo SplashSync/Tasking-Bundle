@@ -12,10 +12,8 @@ services:
 
 # Cache composer packages so "composer install" is faster
 cache:
-    yarn: true
     directories:
         - $HOME/.composer/cache/files
-        - $HOME/.cache/pip
 
 # Matrix to test in every php version
 #matrix:
@@ -61,7 +59,7 @@ before_install:
 # Create database, schema and fixtures
 install:   
     - echo "Build Dependencies"
-    - composer update --prefer-dist --stability=dev --no-scripts --no-interaction    
+    - composer update --prefer-dist --no-scripts --no-interaction    
     
     - echo "Configuring The Bundles"
     - cp app/parameters.yml.dist app/parameters.yml
