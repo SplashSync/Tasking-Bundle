@@ -54,6 +54,8 @@ before_install:
     - if ! [ -z "$STABILITY" ]; then composer config minimum-stability ${STABILITY}; fi;
     # Setup Symfony Version if Required    
     - if [ "$SYMFONY_VERSION" != "" ]; then composer require --no-update symfony/symfony=$SYMFONY_VERSION; fi;
+    # Create Database
+    - mysql -e 'CREATE DATABASE IF NOT EXISTS symfony;'
       
 # Install composer dependencies,
 # Create database, schema and fixtures
