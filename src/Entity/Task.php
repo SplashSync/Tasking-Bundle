@@ -39,6 +39,13 @@ class Task
     const DO_NORMAL         = 5;
     const DO_LOW            = 3;
     const DO_LOWEST         = 1;
+
+    /*
+     *  Crontab Status
+     */    
+    const CRONTAB_OK        = "Crontab Configuration Already Done";
+    const CRONTAB_DISABLED  = "Crontab Management is Disabled";
+    const CRONTAB_UPDATED   = "Crontab Configuration Updated";
     
     /*
      *  Task Settings

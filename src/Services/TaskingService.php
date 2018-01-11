@@ -769,7 +769,7 @@ class TaskingService
         //====================================================================//
         // Check Crontab Management is ACtivated
         if( !$this->Config["server"]["force_crontab"])  {
-            return "Crontab Management is Disabled";
+            return Task::CRONTAB_DISABLED;
         }
         //====================================================================//
         // Compute Working Dir 
@@ -790,9 +790,9 @@ class TaskingService
         if ( $Current !==  $Command) {
             exec('echo "' . $Command . '" > crontab.conf');
             exec("crontab crontab.conf");
-            return "Crontab Configuration Updated";
+            return Task::CRONTAB_UPDATED;
         }
-        return "Crontab Configuration Already Done";
+        return Task::CRONTAB_OK;
     }   
     
     /**

@@ -3,4 +3,4 @@
 # SPLASH Tasking Bundle
 splash_tasking_bundle:
     resource: "@SplashTaskingBundle/Resources/config/routing.yml"
-    prefix:   /tasks/  
+    prefix:   /  

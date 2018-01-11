@@ -7,6 +7,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Process\Process;
 
+use Splash\Tasking\Entity\Task;
+
 /**
  * @author Bernard Paquier <eshop.bpaquier@gmail.com>
  */
@@ -19,15 +21,24 @@ class ActionsController extends Controller
      */
     public function startAction( Request $request)
     {
-        //==============================================================================
-        // Check Cron Tab
-        $Result = $this->get("TaskingService")->CrontabCheck();
+        //====================================================================//
+        // Check Crontab is Setuped     
+        if ( $this->get("TaskingService")->CrontabCheck() == Task::CRONTAB_DISABLED) {
+            //====================================================================//
+            // Ensure Supervisor is Running
+            $Result = $this->get("TaskingService")->SupervisorCheckIsRunning();
+        } else {
+            $Result = True;
+        }
         
+        //==============================================================================
+        // Init Static Tasks 
         $this->get("TaskingService")->StaticTasksInit();
+        
         //==============================================================================
         // Render response
         return new Response(
-                $Result,
+                ($Result ? "Ok" : "KO"),
                 Response::HTTP_OK,
                 array('content-type' => 'text/html')
                 );

@@ -46,20 +46,21 @@ class TaskingEventListener {
         if( !$this->Validate($Job) ) {
             return False;
         }
-        
         //====================================================================//
         // Prepare Task From Job Class
         if ( !($Task = $this->Prepare($Job)) ) {
             return False;
         }
-        
         //====================================================================//
         // Add Task To Queue
         $this->tasking->TaskInsert($Task);  
-        
         //====================================================================//
-        // Check Crontab is Setuped        
-        $this->tasking->CrontabCheck();       
+        // Check Crontab is Setuped     
+        if ( $this->tasking->CrontabCheck() == Task::CRONTAB_DISABLED) {
+            //====================================================================//
+            // Ensure Supervisor is Running
+            $this->tasking->SupervisorCheckIsRunning();
+        }
         
         return True;
     }      
