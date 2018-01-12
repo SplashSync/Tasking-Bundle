@@ -15,36 +15,37 @@ cache:
     directories:
         - $HOME/.composer/cache/files
 
-# Matrix to test in every php version
-#matrix:
-#  include:
-#    - php: 5.5
-#    - php: 5.6
-#    - php: 7.0
-#    - php: 7.1
-#    - php: 7.2
-#    - php: hhvm
-#  allow_failures:
-#    - php: hhvm
-
-# Versions of PHP to test against
-php:
-#    - "5.6"
-#    - "7.0"
-    - "7.1"
-#    - "7.2"
-    - "hhvm"
-    
 # Define an environment variable
 env:
     global:
         - SYMFONY_DEPRECATIONS_HELPER=disabled
         
-    matrix:
-        - SF_VERSION="2.8.*"
-        - SF_VERSION="3.3.*"
-        - SF_VERSION="3.4.*"
-        - SF_VERSION="4.0.*"  STABILITY="dev" 
+# Define Test Matrix
+matrix:
+    include:
+        # Symfony 2.8 Branch       
+        - php: 7.0
+          env: SF_VERSION="2.8.*"        
+        - php: 7.1
+          env: SF_VERSION="2.8.*"        
+          
+        # Symfony 3.3 Branch       
+        - php: 7.0
+          env: SF_VERSION="3.3.*"        
+        - php: 7.1
+          env: SF_VERSION="3.3.*"        
+          
+        # Symfony 3.4 Branch       
+        - php: 7.1
+          env: SF_VERSION="3.4.*"        
+        - php: 7.2
+          env: SF_VERSION="3.4.*"        
+          
+        # Symfony 4.0 Branch       
+        - php: 7.1
+          env: SF_VERSION="4.0.*"  STABILITY="dev"   
+        - php: 7.2
+          env: SF_VERSION="4.0.*"  STABILITY="dev"        
         
     allow_failures:
         - env: SF_VERSION="4.0.*"  STABILITY="dev"       
