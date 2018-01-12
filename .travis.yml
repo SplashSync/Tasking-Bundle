@@ -4,7 +4,7 @@ language: php
 # Allows use container-based infrastructure
 sudo: false
 #sudo: required
-#dist: trusty
+dist: trusty
 
 # Start mysql service
 services:
@@ -32,8 +32,8 @@ cache:
 # Versions of PHP to test against
 php:
 #    - "5.6"
-    - "7.0"
-#    - "7.1"
+#    - "7.0"
+    - "7.1"
 #    - "7.2"
     
 # Define an environment variable
@@ -43,7 +43,7 @@ env:
     matrix:
         - SF_VERSION="2.8.*"
         - SF_VERSION="3.3.*"
-#        - SF_VERSION="3.4.*"
+        - SF_VERSION="3.4.*"
 #
 #    allow_failures:
 #        - env: SF_VERSION="3.4.*"        
