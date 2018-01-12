@@ -80,7 +80,7 @@ class Configuration implements ConfigurationInterface
                         ->end()
                         ->integerNode('max_workers')
                             ->info('Number of active worker on same machine.')
-                            ->defaultValue(5)
+                            ->defaultValue(3)
                         ->end()
                         ->integerNode('max_memory')
                             ->info('Maximum Memory usage for Supervisor. Exit when reached.')
