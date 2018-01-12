@@ -127,7 +127,7 @@ class Z001ProcessCloseControllerTest extends WebTestCase
     {
         //====================================================================//
         // Create Sub-Porcess
-        $process = new Process("bin/console tasking:stop -vv");
+        $process = new Process("php bin/console tasking:stop -vv");
         //====================================================================//
         // Clean Working Dir
         $WorkingDirectory   =   $process->getWorkingDirectory();
