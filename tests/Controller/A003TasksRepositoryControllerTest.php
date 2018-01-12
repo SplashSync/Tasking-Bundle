@@ -331,7 +331,7 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
         //====================================================================//
         // Setup Task Parameters
         $Job
-                ->setInputs(array("Delay-S" => 1))
+                ->setInputs(array("Delay-S" => 3))
                 ->setToken($Token);
         //====================================================================//
         // Save Task
