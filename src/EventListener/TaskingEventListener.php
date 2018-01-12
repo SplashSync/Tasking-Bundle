@@ -118,7 +118,7 @@ class TaskingEventListener {
     public function Validate($Job) { 
         //====================================================================//
         // Job Class and Action are not empty
-        if ( empty(get_class($Job)) || !method_exists($Job, "getAction") || empty($Job->getAction()) ) {
+        if ( empty($Job) || empty(get_class($Job)) || !method_exists($Job, "getAction") || empty($Job->getAction()) ) {
             return False;
         } 
         //====================================================================//
