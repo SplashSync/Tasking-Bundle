@@ -187,7 +187,7 @@ class C002TaskingControllerTest extends WebTestCase
     {       
         $NbTasks    =   self::TEST_DETPH;
         $WatchDog   =   0;
-        $Delay      =   30;     // 30ms
+        $Delay      =   100;     // 30ms
         
         //====================================================================//
         // Generate a Random Token Name
