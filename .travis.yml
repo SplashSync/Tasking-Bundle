@@ -4,7 +4,7 @@ language: php
 # Allows use container-based infrastructure
 sudo: false
 #sudo: required
-dist: trusty
+#dist: trusty
 
 # Start mysql service
 services:
@@ -41,9 +41,9 @@ env:
     global:
         - SYMFONY_DEPRECATIONS_HELPER=disabled
         
-#  - SF_VERSION=""
-#  - SF_VERSION="v2.8.31"
-#  - SF_VERSION="v3.3.13"
+  - SF_VERSION="2.8.*"
+  - SF_VERSION="3.3.*"
+  - SF_VERSION="3.4.*"
 
 before_install:
     # Update composer
