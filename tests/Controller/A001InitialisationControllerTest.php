@@ -38,7 +38,7 @@ class A001InitialisationControllerTest extends KernelTestCase
     {
         //====================================================================//
         // Create Process
-        $process = new Process("bin/console tasking:stop");
+        $process = new Process("php bin/console tasking:stop");
         
         //====================================================================//
         // Clean Working Dir
