@@ -297,7 +297,7 @@ class B002ProcessControllerTest extends WebTestCase
     {
         //====================================================================//
         // Create Sub-Porcess
-        $process = new Process("bin/console tasking:stop --env=test -vv" . ($NoTestart? " --no-restart" : Null) );
+        $process = new Process("php bin/console tasking:stop --env=test -vv" . ($NoTestart? " --no-restart" : Null) );
         //====================================================================//
         // Clean Working Dir
         $WorkingDirectory   =   $process->getWorkingDirectory();
