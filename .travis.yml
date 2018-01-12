@@ -17,8 +17,6 @@ cache:
 
 # Matrix to test in every php version
 #matrix:
-  # Fast finish allows to set the build as "finished" even if the "allow_failures" matrix elements are not finished yet.
-#  fast_finish: true
 #  include:
 #    - php: 5.5
 #    - php: 5.6
@@ -31,22 +29,28 @@ cache:
 
 # Versions of PHP to test against
 php:
-#    - "5.6"
+    - "5.6"
 #    - "7.0"
     - "7.1"
 #    - "7.2"
+    - "hhvm"
     
 # Define an environment variable
 env:
     global:
         - SYMFONY_DEPRECATIONS_HELPER=disabled
+        
     matrix:
         - SF_VERSION="2.8.*"
         - SF_VERSION="3.3.*"
         - SF_VERSION="3.4.*"
-#
-#    allow_failures:
-#        - env: SF_VERSION="3.4.*"        
+        - SF_VERSION="4.0.*"  STABILITY="dev" 
+        
+    allow_failures:
+        - env: SF_VERSION="4.0.*"  STABILITY="dev"       
+        
+    # Fast finish allows to set the build as "finished" even if the "allow_failures" matrix elements are not finished yet.
+    fast_finish: true
 
 before_install:
     # Update composer
@@ -70,20 +74,10 @@ install:
     - cp app/parameters.yml.dist app/parameters.yml
     
     - echo "Install Symfony"
-#    - php bin/console doctrine:database:create --no-interaction --no-debug
     - php bin/console doctrine:schema:update --force  --no-interaction --no-debug
-#    - php bin/console sylius:fixtures:load --env=test --no-interaction --no-debug
-##    - chmod -R 777 app/autoload.php
-#
-##    - echo "Enable Splash Bundles"
-#    - cp  ../Build/AppKernel.php app/AppKernel.php
-#    - cat ../Build/config.yml           >> app/config/config.yml
-#    - cat ../Build/routing.yml          >> app/config/routing.yml
-#    - php bin/console doctrine:schema:update --force --env=test --no-interaction --no-debug
     
     - echo "Start Web Srever"
     - php bin/console server:start
-    
 
 # Run script
 script:
@@ -91,7 +85,7 @@ script:
     - php bin/console tasking:start     --env=test
     - php bin/console tasking:check     --env=test
     - phpunit --testdox
-    - phpunit --testdox
+    - phpunit
 
 # After a build, send email notification with the build results
 #notifications:
