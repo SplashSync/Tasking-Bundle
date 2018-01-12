@@ -90,8 +90,8 @@ script:
     - php bin/console tasking:check     --env=test
     - php bin/console tasking:start     --env=test
     - php bin/console tasking:check     --env=test
-    - phpunit
-    - phpunit
+    - phpunit --testdox
+    - phpunit --testdox
 
 # After a build, send email notification with the build results
 #notifications:

@@ -84,6 +84,10 @@ class WorkerCommand extends ContainerAwareCommand
             $this->onLoopCompleted();
         }
         
+        //====================================================================//
+        // Refresh Supervisor Worker Status (WatchDog)
+        $this->Tasking->WorkerRefresh($this->worker, True);
+                    
         //==============================================================================
         // Set Status as Stopped
         $this->worker->setTask("Stopped");
