@@ -2,8 +2,8 @@
 language: php
 
 # Allows use container-based infrastructure
-#sudo: false
-sudo: required
+sudo: false
+#sudo: required
 dist: trusty
 
 # Start mysql service
@@ -81,14 +81,16 @@ install:
     - echo "Start Web Srever"
     - php bin/console server:start
     
-    - bin/console tasking:check     --env=test
-    - bin/console tasking:start     --env=test
-    - bin/console tasking:check     --env=test
 
 # Run script
 script:
-  - phpunit
-  - phpunit
+    - bin/console tasking:stop      --env=test
+    - bin/console tasking:check
+    - bin/console tasking:check     --env=test
+    - bin/console tasking:start     --env=test
+    - bin/console tasking:check     --env=test
+    - phpunit
+    - phpunit
 
 # After a build, send email notification with the build results
 #notifications:
