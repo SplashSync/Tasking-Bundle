@@ -25,6 +25,8 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
      */
     private $TokenRepository;  
     
+    private $MaxItems   =   10;
+    
     /**
      * {@inheritDoc}
      */
@@ -62,10 +64,15 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
     }     
     
     /**
-     * @abstract    Add Task
+     * @abstract    Test Counting of Waiting Tasks
      */    
     public function testWaitingTasksCount()
     {
+        //====================================================================//
+        // Delete All Tasks
+        $this->DeleteAllTasks();
+        $this->DeleteAllTokens();
+        
         //====================================================================//
         // Generate a Random Token Name
         $this->RandomStrA    = base64_encode(rand(1E5, 1E10));
@@ -99,12 +106,16 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
         
     }      
 
-    
     /**
-     * @abstract    Add Task
+     * @abstract    Test Counting of Actives Tasks
      */    
     public function testActiveTasksCount()
     {
+        //====================================================================//
+        // Delete All Tasks
+        $this->DeleteAllTasks();
+        $this->DeleteAllTokens();
+        
         //====================================================================//
         // Generate a Random Token Name
         $this->RandomStrA    = base64_encode(rand(1E5, 1E10));
@@ -136,13 +147,7 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
         
         //====================================================================//
         // Set Task As Running
-        $Task->Validate( new NullOutput() , static::$kernel->getContainer());
-        $Task->Prepare( new NullOutput() );
-        $this->assertFalse($Task->getFinished());        
-        $this->assertTrue($Task->getRunning());        
-        $this->assertNotEmpty($Task->getStartedAt());        
-        $this->assertNotEmpty($Task->getStartedBy());        
-        $this->_em->flush();
+        $this->StartTask($Task);
         
         //====================================================================//
         // Verify Active Count Tasks
@@ -157,6 +162,180 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
        
     }      
     
+    /**
+     * @abstract    Test Counting of Pending Tasks (Waiting or Pending)
+     */    
+    public function testPendingTasksCount()
+    {
+        //====================================================================//
+        // Delete All Tasks
+        $this->DeleteAllTasks();
+        $this->DeleteAllTokens();
+        
+        //====================================================================//
+        // Generate a Random Token Name
+        $this->RandomStrA    = base64_encode(rand(1E5, 1E10));
+        $this->RandomStrB    = base64_encode(rand(1E5, 1E10));
+        $this->RandomStrC    = base64_encode(rand(1E5, 1E10));
+        
+        //====================================================================//
+        // Create X Tasks with Token
+        for ( $i=0 ; $i< $this->MaxItems ; $i++) {
+            $this->assertInstanceOf( TestJob::class , $this->InsertTask($this->RandomStrA));        
+            $this->assertInstanceOf( TestJob::class , $this->InsertTask($this->RandomStrB));        
+            $this->assertInstanceOf( TestJob::class , $this->InsertTask($this->RandomStrC));        
+        }
+
+        //====================================================================//
+        // Load a Task
+        $Task   =   $this->TaskRepository->findOneByJobToken($this->RandomStrA);        
+        //====================================================================//
+        // Set Task As Running
+        $this->StartTask($Task);
+        
+        //====================================================================//
+        // Verify Waiting Tasks
+        $this->assertEquals(
+                $this->MaxItems -1, 
+                $this->TaskRepository->getWaitingTasksCount($this->RandomStrA)
+                );
+        $this->assertEquals(
+                $this->MaxItems, 
+                $this->TaskRepository->getWaitingTasksCount($this->RandomStrB)
+                );
+        $this->assertEquals(
+                $this->MaxItems, 
+                $this->TaskRepository->getWaitingTasksCount($this->RandomStrC)
+                );
+        //====================================================================//
+        // Verify Active Tasks
+        $this->assertEquals(
+                1, 
+                $this->TaskRepository->getActiveTasksCount($this->RandomStrA)
+                );
+        $this->assertEquals(
+                0, 
+                $this->TaskRepository->getActiveTasksCount($this->RandomStrB)
+                );
+        $this->assertEquals(
+                0, 
+                $this->TaskRepository->getActiveTasksCount($this->RandomStrC)
+                );
+        
+        //====================================================================//
+        // Verify Pending Tasks
+        $this->assertEquals(
+                $this->MaxItems, 
+                $this->TaskRepository->getPendingTasksCount($this->RandomStrA)
+                );
+        $this->assertEquals(
+                $this->MaxItems, 
+                $this->TaskRepository->getPendingTasksCount($this->RandomStrB)
+                );
+        $this->assertEquals(
+                $this->MaxItems, 
+                $this->TaskRepository->getPendingTasksCount($this->RandomStrC)
+                );
+        
+    }
+    
+    /**
+     * @abstract    Test Counting of User Pending Tasks (Waiting or Pending)
+     */    
+    public function testUserPendingTasksCount()
+    {
+        //====================================================================//
+        // Delete All Tasks
+        $this->DeleteAllTasks();
+        $this->DeleteAllTokens();
+        
+        //====================================================================//
+        // Generate a Random Index Key
+        $Key =  base64_encode(rand(1E2, 1E4));
+        //====================================================================//
+        // Create X Tasks with Token
+        for ( $i=0 ; $i< $this->MaxItems ; $i++) {
+            $this->assertInstanceOf( TestJob::class , $this->InsertTask(Null, $Key ));        
+        }
+
+        //====================================================================//
+        // Verify Waiting Tasks
+        $this->assertEquals(
+                $this->MaxItems, 
+                $this->TaskRepository->getWaitingTasksCount(Null,Null,$Key)
+                );
+        //====================================================================//
+        // Verify Active Tasks
+        $this->assertEquals(
+                0, 
+                $this->TaskRepository->getActiveTasksCount(Null,Null,$Key)
+                );
+        //====================================================================//
+        // Verify Pending Tasks
+        $this->assertEquals(
+                $this->MaxItems, 
+                $this->TaskRepository->getPendingTasksCount(Null,Null,$Key)
+            );
+
+        //====================================================================//
+        // Load Tasks List
+        $Tasks   =   $this->TaskRepository->findByJobIndexKey1($Key);        
+        $this->assertEquals( $this->MaxItems, count($Tasks) );
+        //====================================================================//
+        // Set Task As Running
+        $ActiveTasks    =   (int) ($this->MaxItems / 2);
+        for ( $i=0 ; $i< $ActiveTasks ; $i++) {
+            $this->StartTask($Tasks[$i]);
+        }
+        
+        //====================================================================//
+        // Verify Waiting Tasks
+        $this->assertEquals(
+                $this->MaxItems - $ActiveTasks, 
+                $this->TaskRepository->getWaitingTasksCount(Null,Null,$Key)
+                );
+        //====================================================================//
+        // Verify Active Tasks
+        $this->assertEquals(
+                $ActiveTasks, 
+                $this->TaskRepository->getActiveTasksCount(Null,Null,$Key)
+                );
+        //====================================================================//
+        // Verify Pending Tasks
+        $this->assertEquals(
+                $this->MaxItems, 
+                $this->TaskRepository->getPendingTasksCount(Null,Null,$Key)
+            );
+
+        //====================================================================//
+        // Load Tasks List
+        $Task   =   $this->TaskRepository->findOneByJobIndexKey1($Key);        
+        $this->assertEquals( $this->MaxItems, count($Tasks) );
+        //====================================================================//
+        // Set Task As Finished
+        $this->FinishTask($Task);
+        $ActiveTasks--;
+        
+        //====================================================================//
+        // Verify Waiting Tasks
+        $this->assertEquals(
+                $this->MaxItems - ($ActiveTasks + 1), 
+                $this->TaskRepository->getWaitingTasksCount(Null,Null,$Key)
+                );
+        //====================================================================//
+        // Verify Active Tasks
+        $this->assertEquals(
+                $ActiveTasks, 
+                $this->TaskRepository->getActiveTasksCount(Null,Null,$Key)
+                );
+        //====================================================================//
+        // Verify Pending Tasks
+        $this->assertEquals(
+                $this->MaxItems - 1, 
+                $this->TaskRepository->getPendingTasksCount(Null,Null,$Key)
+            );
+        
+    }
     
     /**
      * @abstract    Test Get Next Task Function
@@ -321,18 +500,38 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
     }
     
     /**
-     * @abstract    Add a New Test Simple Task
-     */    
-    public function InsertTask($Token)
+     * @abstract    Insert a New Test Simple Task (Do Not Start Workers)
+     * 
+     * @param   string  $Token
+     * @param   string  $Index1
+     * @param   string  $Index2
+     * 
+     * @return TestJob
+     */
+    public function InsertTask(string $Token = Null, string $Index1 = Null, string $Index2 = NUll)
     {
+        //====================================================================//
+        // Generate Token if Needed
+        if (is_null($Token)){
+            $Token = base64_encode(rand(1E5, 1E10));
+        } 
+         
         //====================================================================//
         // Create a New Test Job
         $Job    =   new TestJob();
         //====================================================================//
         // Setup Task Parameters
         $Job
-                ->setInputs(array("Delay-S" => 3))
+                ->setInputs(array("Delay-S" => 2))
                 ->setToken($Token);
+        //====================================================================//
+        // Setup Indexes
+        if ( !is_null($Index1) ){
+            $Job->__set('indexKey1', $Index1);
+        } 
+        if ( !is_null($Index2) ){
+            $Job->__set('indexKey2', $Index2);
+        } 
         //====================================================================//
         // Save Task
         static::$kernel
@@ -342,6 +541,54 @@ class A003TasksRepositoryControllerTest extends KernelTestCase
         
         return $Job;
     }    
+    
+    /**
+     * @abstract    Manually Start a Task
+     * @param       Task    $Task
+     * @return      Task
+     */
+    private function StartTask(Task $Task)
+    {
+        
+        //====================================================================//
+        // Manually Start Task
+        $Task->Validate( new NullOutput() , static::$kernel->getContainer());
+        $Task->Prepare( new NullOutput() );
+        //====================================================================//
+        // Verify Task State
+        $this->assertFalse($Task->getFinished());        
+        $this->assertTrue($Task->getRunning());        
+        $this->assertNotEmpty($Task->getStartedAt());        
+        $this->assertNotEmpty($Task->getStartedBy());        
+        //====================================================================//
+        // Save
+        $this->_em->flush();
+        
+        return $Task;
+    }   
+    
+    /**
+     * @abstract    Manually Finish a Task
+     * @param       Task    $Task
+     * @return      Task
+     */
+    private function FinishTask(Task $Task)
+    {
+        
+        //====================================================================//
+        // Manually Finish Task
+        $Task->Close( 0 );
+        //====================================================================//
+        // Verify Task State
+        $this->assertTrue($Task->getFinished());        
+        $this->assertFalse($Task->getRunning());        
+        $this->assertNotEmpty($Task->getFinishedAt());        
+        //====================================================================//
+        // Save
+        $this->_em->flush();
+        
+        return $Task;
+    }     
     
     /**
      * @abstract    Delete All Tasks In Db

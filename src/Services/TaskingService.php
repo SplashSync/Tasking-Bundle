@@ -161,6 +161,67 @@ class TaskingService
         return $CleanCounter;
     }    
     
+    /**
+     * @abstract    Wait Until All Tasks are Completed
+     * 
+     * @param  int          $Timeout        TimeOut in Seconds
+     * @param  string       $TokenName      Filter on a specific token Name
+     * @param  string       $Md5            Filter on a specific Discriminator
+     * @param  string       $Key1           Your Custom Index Key 1
+     * @param  string       $Key2           Your Custom Index Key 2
+     * 
+     * @return bool     True if Ok, False if Exited on Timout
+     */
+    public function waitUntilTaskCompleted($Timeout = 10, string $TokenName = Null, string $Md5 = Null, string $Key1 = Null, string $Key2 = Null)
+    {
+        //==============================================================================
+        // Init Time Counters
+        $MsSteps        =   100;                // 100 ms
+        $MsTimeout      =   1E3 * $Timeout;     // Timeout in µs
+        
+        //==============================================================================
+        // Add 200 ms pause to Ensure Task Started
+        usleep( 200 * 1E3);   
+        //==============================================================================
+        // Init Watchdogs Timers 
+        $Watchdog       =   0;
+        $AbsWatchdog    =   0;
+        //==============================================================================
+        // Init Counters 
+        $Pending        =   1;
+        $LastPending    =   1;
+        
+        //====================================================================//
+        // Loop While Tasks are Running
+        do {
+            //==============================================================================
+            // Sampling Pause
+            usleep($MsSteps * 1E3);   
+            //==============================================================================
+            // Get Number of Pending Tasks
+            $Pending = $this->TaskRepository->getPendingTasksCount($TokenName, $Md5, $Key1, $Key2);
+            //==============================================================================
+            // Check If Tasks Completed
+            if ( ($Pending == 0) && ($LastPending == 0) ) {
+                return True;
+            } 
+            //==============================================================================
+            // Increment WatchDogs
+            if ( $Pending != $LastPending ) {
+                $Watchdog   =   0;
+            } else {
+                $Watchdog   +=  $MsSteps;
+            }
+            $AbsWatchdog+=  $MsSteps;
+            //==============================================================================
+            // Store Last Pending Task Count
+            $LastPending    =   $Pending;
+        }
+        while ( ($Watchdog < $MsTimeout) && ($AbsWatchdog < (10 * $MsTimeout)) );
+
+        return False;
+    }    
+    
 //====================================================================//
 // *******************************************************************//
 // Static Tasks Management
@@ -831,7 +892,6 @@ class TaskingService
         $this->OutputVeryVerbose("Tasking :: Process Started (" . $RawCmd . ")", "info");
         return True;
     }
-    
     
     /**
      *      @abstract    Check if a Similar Process Exists on Local Machine (Server Node)

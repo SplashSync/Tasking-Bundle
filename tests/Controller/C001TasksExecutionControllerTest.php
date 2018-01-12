@@ -172,8 +172,6 @@ class TasksExecutionControllerTest extends WebTestCase
         $this->assertEquals( 1,             $Task->getTry());   
     }
     
-    
-
     /**
      * @abstract    Test of Task Exceptions Management
      * @dataProvider jobsMethodsProvider
@@ -218,7 +216,80 @@ class TasksExecutionControllerTest extends WebTestCase
         $this->assertNotEmpty(              $Task->getFaultStr());  
         $this->assertEquals( 1,             $Task->getTry());   
     }    
+
+    /**
+     * @abstract    Test Wait Until Tasks Buffer is Empty
+     */    
+    public function testWaitUntilTasksCompleted() {
         
+        //====================================================================//
+        // Delete All Tasks
+        $this->DeleteAllTasks();
+        $this->DeleteAllTokens();
+        
+        //====================================================================//
+        // Test with no Tasks in Buffer
+        $this->assertTrue( $this->WorkerService->waitUntilTaskCompleted() );
+        $this->assertEquals( 0, $this->TasksRepository->getPendingTasksCount() );        
+        
+        //====================================================================//
+        // Test with a 1 second Tasks in Buffer
+        $this->AddTask($this->RandomStr, 1);
+        $this->assertEquals( 1, $this->TasksRepository->getPendingTasksCount() );        
+        $this->assertTrue( $this->WorkerService->waitUntilTaskCompleted() );
+        $this->assertEquals( 0, $this->TasksRepository->getPendingTasksCount() );        
+        
+        //====================================================================//
+        // Test with a 3 second Tasks in Buffer
+        $this->AddTask($this->RandomStr, 3);
+        $this->assertEquals( 1, $this->TasksRepository->getPendingTasksCount() );        
+        $this->assertFalse( $this->WorkerService->waitUntilTaskCompleted(1) );
+        $this->assertEquals( 1, $this->TasksRepository->getPendingTasksCount() );        
+        $this->assertTrue( $this->WorkerService->waitUntilTaskCompleted() );
+        $this->assertEquals( 0, $this->TasksRepository->getPendingTasksCount() );        
+
+        //====================================================================//
+        // Test with a 5 x 1 second Tasks in Buffer
+        for ( $i=0 ; $i< 5 ; $i++) {
+            $this->AddTask($this->RandomStr, 1);
+        }        
+        $this->assertEquals( 5, $this->TasksRepository->getPendingTasksCount() );        
+        $this->assertTrue( $this->WorkerService->waitUntilTaskCompleted(2) );
+        $this->assertEquals( 0, $this->TasksRepository->getPendingTasksCount() );        
+
+        //====================================================================//
+        // Test with a 12 x 1 second Tasks in Buffer
+        for ( $i=0 ; $i< 12 ; $i++) {
+            $this->AddTask($this->RandomStr, 1);
+        }        
+        $this->assertEquals( 12, $this->TasksRepository->getPendingTasksCount() );        
+        $this->assertFalse( $this->WorkerService->waitUntilTaskCompleted(1) );
+        
+    }
+
+    /**
+     * @abstract    Add a New Test Simple Task & Run
+     */    
+    public function AddTask($Token, $Delay = 1)
+    {
+        //====================================================================//
+        // Create a New Test Job
+        $Job    =   new TestJob();
+        //====================================================================//
+        // Setup Task Parameters
+        $Job
+                ->setInputs(array("Delay-S" => $Delay))
+                ->setToken($Token);
+        //====================================================================//
+        // Save Task
+        static::$kernel
+                ->getContainer()
+                ->get('event_dispatcher')
+                ->dispatch("tasking.add", $Job);
+        
+        return $Job;
+    }    
+    
     /**
      * @abstract    Delete All Tasks In Db
      */    

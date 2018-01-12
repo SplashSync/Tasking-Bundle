@@ -199,8 +199,8 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     /**
      *      @abstract    Return Number of Active Tasks
      * 
-     *      @param  string      $TokenName  Filter on a specific token Name
-     *      @param  string      $Md5        Filter on a specific Discriminator
+     *      @param  string      $TokenName      Filter on a specific token Name
+     *      @param  string      $Md5            Filter on a specific Discriminator
      *      @param  string      $Key1           Your Custom Index Key 1
      *      @param  string      $Key2           Your Custom Index Key 2
      * 
@@ -230,8 +230,8 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     /**
      *      @abstract    Return Number of Active Tasks
      * 
-     *      @param  string      $TokenName  Filter on a specific token Name
-     *      @param  string      $Md5        Filter on a specific Discriminator
+     *      @param  string      $TokenName      Filter on a specific token Name
+     *      @param  string      $Md5            Filter on a specific Discriminator
      *      @param  string      $Key1           Your Custom Index Key 1
      *      @param  string      $Key2           Your Custom Index Key 2
      * 
@@ -246,6 +246,36 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
             ->select('count(T.id)')
             ->where("T.running = 0")
             ->andwhere("T.finished = 0");
+        
+        //====================================================================//
+        // Filter Tasks 
+        //====================================================================//
+        $this
+            ->setupIndexKeys($Qb, $Key1, $Key2)
+            ->setupToken($Qb, $TokenName)
+            ->setupDiscriminator($Qb, $Md5);
+        
+        return $Qb->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     *      @abstract    Return Number of Pending Tasks
+     * 
+     *      @param  string      $TokenName      Filter on a specific token Name
+     *      @param  string      $Md5            Filter on a specific Discriminator
+     *      @param  string      $Key1           Your Custom Index Key 1
+     *      @param  string      $Key2           Your Custom Index Key 2
+     * 
+     *      @return int
+     */        
+    function getPendingTasksCount($TokenName = Null, string $Md5 = Null, string $Key1 = Null, string $Key2 = Null)
+    {
+        //====================================================================//
+        // Count Active/Running Tasks
+        //====================================================================//
+        $Qb = $this->createQueryBuilder("T")
+            ->select('count(T.id)')
+            ->where("T.finished = 0");
         
         //====================================================================//
         // Filter Tasks 
