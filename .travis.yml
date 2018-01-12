@@ -43,7 +43,10 @@ env:
     matrix:
         - SF_VERSION="2.8.*"
         - SF_VERSION="3.3.*"
-        - SF_VERSION="3.4.*"
+#        - SF_VERSION="3.4.*"
+#
+#    allow_failures:
+#        - env: SF_VERSION="3.4.*"        
 
 before_install:
     # Update composer
