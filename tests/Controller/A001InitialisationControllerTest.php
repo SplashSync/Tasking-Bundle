@@ -38,7 +38,7 @@ class A001InitialisationControllerTest extends KernelTestCase
     {
         //====================================================================//
         // Create Process
-        $process = new Process("php bin/console tasking:stop");
+        $process = new Process("php bin/console tasking:stop --no-restart");
         
         //====================================================================//
         // Clean Working Dir
@@ -54,7 +54,7 @@ class A001InitialisationControllerTest extends KernelTestCase
         //====================================================================//
         // Fail => Display Process Outputs
         if ( !$process->isSuccessful() ) {
-            echo PHP_EOL . "Exeucted : " . $process->getCommandLine();
+            echo PHP_EOL . "Executed : " . $process->getCommandLine();
             echo PHP_EOL . $process->getOutput();
         }
         
