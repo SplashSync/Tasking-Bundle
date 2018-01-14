@@ -82,9 +82,9 @@ install:
 
 # Run script
 script:
-    - php bin/console tasking:check     --env=test
-    - php bin/console tasking:start     --env=test
-    - php bin/console tasking:stop      --env=test --no-restart
+#    - php bin/console tasking:check     --env=test
+#    - php bin/console tasking:start     --env=test
+#    - php bin/console tasking:stop      --env=test --no-restart
     - phpunit
 
 # After a build, send email notification with the build results
