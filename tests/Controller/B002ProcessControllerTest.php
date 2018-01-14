@@ -94,7 +94,7 @@ class B002ProcessControllerTest extends WebTestCase
         if ( !$Config["server"]["force_crontab"] ) {
             $this->assertNotEmpty($this->Tasking->CrontabCheck());
             $this->assertTrue($this->Tasking->SupervisorCheckIsRunning());
-            sleep(3);
+            sleep(5);
             return;
         }
         
