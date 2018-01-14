@@ -83,7 +83,7 @@ class B002ProcessControllerTest extends WebTestCase
     }        
 
     /**
-     * @abstract    Test of Lnux Crontab management
+     * @abstract    Test of Linux Crontab management
      */    
     public function testCronTab()
     {
@@ -94,7 +94,7 @@ class B002ProcessControllerTest extends WebTestCase
         if ( !$Config["server"]["force_crontab"] ) {
             $this->assertNotEmpty($this->Tasking->CrontabCheck());
             $this->assertTrue($this->Tasking->SupervisorCheckIsRunning());
-            sleep(1);
+            sleep(3);
             return;
         }
         
