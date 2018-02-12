@@ -61,7 +61,7 @@ before_install:
     # Setup Composer Stability if Required   
     - if ! [ -z "$STABILITY" ]; then composer config minimum-stability ${STABILITY}; fi;
     # Setup Symfony Version if Required    
-    - if [ "$SYMFONY_VERSION" != "" ]; then composer require --no-update symfony/symfony=$SYMFONY_VERSION; fi;
+    - if [ "$SF_VERSION" != "" ]; then composer require --no-update symfony/symfony=$SF_VERSION; fi;
     # Create Database
     - mysql -e 'CREATE DATABASE IF NOT EXISTS symfony;'
       
@@ -78,7 +78,7 @@ install:
     - php bin/console doctrine:schema:update --force  --no-interaction --no-debug
 
     - echo "List Console Commands"
-    - php bin/console list
+    - php bin/console list tasking
     
     - echo "Start Web Server"
     - php bin/console server:start -d web
