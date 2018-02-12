@@ -78,7 +78,7 @@ install:
     - php bin/console doctrine:schema:update --force  --no-interaction --no-debug
     
     - echo "Start Web Srever"
-    - php bin/console server:start -d web
+    - php bin/console server:start -d web --env=test
 
 # Run script
 script:
