@@ -70,16 +70,16 @@ before_install:
 install:   
     - echo "Build Dependencies"
     - composer update --prefer-dist --no-scripts --no-interaction    
-    
+
     - echo "Configuring The Bundles"
     - cp app/parameters.yml.dist app/parameters.yml
+    
+    - echo "List Console Commands"
+    - php bin/console list tasking
     
     - echo "Install Symfony"
     - php bin/console doctrine:schema:update --force  --no-interaction --no-debug
 
-    - echo "List Console Commands"
-    - php bin/console list tasking
-    
     - echo "Start Web Server"
     - php bin/console server:start -d web
 
