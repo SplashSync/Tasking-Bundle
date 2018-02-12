@@ -21,7 +21,7 @@ class StopCommand extends ContainerAwareCommand
             ->setDescription('Tasking Service : Stop All Supervisors & Workers Process on All Machines')
             ->addOption('no-restart', null, InputOption::VALUE_OPTIONAL, 'Do you want to Restart Workers After Stop?', false)
         ;
-        
+        parent::configure();
     }
 
     protected function execute(InputInterface $Input, OutputInterface $Output)
