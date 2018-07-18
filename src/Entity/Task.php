@@ -447,7 +447,7 @@ class Task
             return;
         }        
               
-        if ( is_a($this->job, "Splash\Tasking\Model\AbstractBatchJob") ) {
+        if ( isset($this->job) && is_a($this->job, "Splash\Tasking\Model\AbstractBatchJob") ) {
             //==============================================================================
             // If Batch Task Not Completed => Setup For Next Execution
             if ( !$this->job->getStateItem("isCompleted") ) {

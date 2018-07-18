@@ -131,27 +131,34 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     }
     
     /**
-     *      @abstract    Load User Task Summmary Array
+     * @abstract    Load Tasks By Index Keys or Token
      * 
-     *      @param  User    $User         Delay before we consider a task as faulty
+     * @param   string      $IndexKey1      Your Custom Index Key 1
+     * @param   string      $IndexKey2      Your Custom Index Key 2
+     * @param   string      $Token          Your Custom Token
      * 
-     *      @return array User Task Summary Array
+     * @return  ArrayCollection
      */        
-    function getUserTasks(User $User, $Grouped = True,  $Limit = 25)
+    function getTasks(string $IndexKey1 = Null, string $IndexKey2 = Null, string $Token = Null)
     {
         //====================================================================//
-        // Search for User Tasks
+        // Search for Tasks
         //====================================================================//
-        return $this->createQueryBuilder("T")
+        $Qb = $this->createQueryBuilder("T");
+        
             //====================================================================//
-            // Select User Tasks
-            ->where("T.user = :User")
-            ->andwhere("T.jobIsStatic != 1")
-            ->orderBy("T.createdAt", "DESC")
-            ->setParameter('User'  , $User)
-            ->setMaxResults($Limit)
-            ->getQuery()
-            ->getResult();
+        // Filter On IndexKeys
+        if ($IndexKey1 || $IndexKey2) {
+            $this->setupIndexKeys($Qb, $IndexKey1, $IndexKey2);        
+    }
+    
+        //====================================================================//
+        // Filter On Token
+        if ($Token) {
+            $this->setupTokenFilter($Qb, $Token);        
+        } 
+        
+        return $Qb->getQuery()->getResult();
     }
     
     /**
