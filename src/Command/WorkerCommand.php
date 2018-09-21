@@ -159,7 +159,7 @@ class WorkerCommand extends ContainerAwareCommand
                 
                 //==============================================================================
                 // Do Post Execution Actions
-                $this->CurrentTask->Close($this->MaxTry);
+                $this->CurrentTask->Close($this->MaxTry, $Output);
                 
             }
         

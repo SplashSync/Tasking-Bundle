@@ -422,7 +422,7 @@ class Task
      * 
      * @param   int $MaxTry Max number of retry. Once reached, task is forced to finished.
      */    
-    public function Close($MaxTry) {
+    public function Close($MaxTry, OutputInterface $Output = null) {
 
         
         //==============================================================================
@@ -457,7 +457,13 @@ class Task
             //==============================================================================
             // Backup Inputs Parameters For Next Actions
             $this->setJobInputs($this->job->__get("inputs"));
-        } 
+        }    
+        
+        //====================================================================//
+        // User Information             
+        if ($Output && $Output->isVerbose()) {
+            $Output->writeln('<info> Delay : ' . $this->getDelay() . " Second </info>");
+        }         
     }            
     
     /**
@@ -564,6 +570,19 @@ class Task
         
         return $this;
     }
+    
+    /**
+     * Get Task Delay in Seconds
+     *
+     * @return int
+     */
+    public function getDelay()
+    {
+        if (empty($this->finishedAtTimeStamp) || empty($this->startedAtTimeStamp)) {
+            return 0;
+        }
+        return ($this->finishedAtTimeStamp - $this->startedAtTimeStamp);
+    } 
     
     /**
      * Set plannedAt
