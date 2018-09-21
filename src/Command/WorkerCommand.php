@@ -23,25 +23,26 @@ class WorkerCommand extends ContainerAwareCommand
     private $EndDate    = Null;             // Script Max End Date
     private $MaxTry     =  10;              // Tasks Max Try Count
 
-    /*
+    /**
      * @abstract    Worker Process Id Number
      * @var         int
      */
-    private $Id    = Null;  
+    private $Id    = Null; 
+    
 
-    /*
+    /**
      * @abstract    Worker Object
      * @var         \Splash\Tasking\Entity\Worker
      */
     private $worker    = Null;  
     
-    /*
+    /**
      * @abstract    Supervisor Service
      * @var         \Splash\Tasking\Services\TaskingService
      */
     private $Tasking    = Null;      
     
-    /*
+    /**
      * @abstract    Current Task Class to Execute
      * @var         \Splash\Tasking\Entity\Task
      */
