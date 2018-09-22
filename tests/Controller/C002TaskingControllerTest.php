@@ -10,7 +10,7 @@ use Splash\Tasking\Tests\Jobs\TestJob;
 
 class C002TaskingControllerTest extends WebTestCase
 {
-    const TEST_DETPH    =   50;
+    const TEST_DETPH    =   100;
     
     
     /**
@@ -91,6 +91,10 @@ class C002TaskingControllerTest extends WebTestCase
         // Create a New Job
         $Job    =   (new TestJob())
                 ->setToken($Token)
+                ->setInputs( [
+                    "Delay-S"   => 1, 
+                    "random"    => base64_encode(rand(1E5, 1E10))
+                        ] )                
                 ;
         //====================================================================//
         // Add Job to Queue
@@ -108,7 +112,10 @@ class C002TaskingControllerTest extends WebTestCase
         // Create a New Job
         $Job    =   (new TestJob())
                 ->setToken($Token)
-                ->setInputs( [ "Delay-Ms" => $Delay ] )
+                ->setInputs( [
+                    "Delay-Ms"  => $Delay, 
+                    "random"    => base64_encode(rand(1E5, 1E10))
+                        ] )
                 ;
         //====================================================================//
         // Add Job to Queue
@@ -322,5 +329,5 @@ class C002TaskingControllerTest extends WebTestCase
 //        $this->assertTrue($TaskBFound);
 //        $this->assertTrue($TaskCFound);
     }      
-    
+
 }

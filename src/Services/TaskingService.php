@@ -117,10 +117,24 @@ class TaskingService
 //====================================================================//
       
     /**
-     * Insert Tasks in DataBase
+     * @abstract    Insert Tasks in DataBase
+     * @param   Task    $Task       Task Item to Insert
+     * @return  void
      */
-    public function TaskInsert($Task)
+    public function TaskInsert(Task $Task)
     {
+        //====================================================================//
+        // Ensure no Similar Task Already Waiting
+        $Count  =   $this->TaskRepository
+                ->getWaitingTasksCount(
+                        $Task->getJobToken(), 
+                        $Task->getDiscriminator(),
+                        $Task->getJobIndexKey1(), 
+                        $Task->getJobIndexKey2()
+                    );
+        if($Count > 0) {
+            return;
+        } 
         //====================================================================//
         // Persist New Task to Db
         $this->em->persist($Task);

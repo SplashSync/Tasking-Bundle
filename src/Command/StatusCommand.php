@@ -115,8 +115,8 @@ class StatusCommand extends ContainerAwareCommand
         $this->progress->setBarCharacter('<fg=cyan>=</>');
         $this->progress->setProgressCharacter('<fg=red>|</>');
         $this->progress->setFormat('= Pending Tasks : [%bar%] %current%/%max% -- %message%');
-        $this->progress->start();        
         $this->progress->setMessage($Status);
+        $this->progress->start();        
         $this->progress->setProgress($Pending);        
     }
     

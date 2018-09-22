@@ -278,7 +278,7 @@ class TasksExecutionControllerTest extends WebTestCase
         //====================================================================//
         // Setup Task Parameters
         $Job
-                ->setInputs(array("Delay-S" => $Delay))
+                ->setInputs(array("Delay-S" => $Delay, "random" => base64_encode(rand(1E5, 1E10))))
                 ->setToken($Token);
         //====================================================================//
         // Save Task

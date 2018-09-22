@@ -55,10 +55,10 @@ abstract class AbstractServiceJob extends AbstractJob {
         //====================================================================//
         // Check Service & Method Exists
         if( !$this->container->has($this->getService()) ) {
-            return False;
+            throw new \Exception("Service " . $this->getService() . " not found");            
         }
         if( !method_exists($this->container->get($this->getService()) , $this->getMethod()) ) {
-            return False;
+            throw new \Exception("Method " . $this->getMethod() . " not found");            
         }
         return True;
     }

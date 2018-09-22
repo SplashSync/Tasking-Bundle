@@ -2,6 +2,8 @@
 
 namespace Splash\Tasking\Entity;
 
+use DateTime;
+
 use Doctrine\ORM\Mapping as ORM;
 
 use Symfony\Component\Console\Output\OutputInterface;
@@ -184,7 +186,7 @@ class Task
     private $finished = False;
 
     /**
-     * @var \DateTime
+     * @var DateTime
      * @ORM\Column(name="StartedAt", type="datetime", nullable=TRUE)
      */
     private $startedAt;
@@ -194,6 +196,11 @@ class Task
      * @ORM\Column(name="StartedAtTimeStamp", type="integer", nullable=TRUE)
      */
     private $startedAtTimeStamp;
+
+    /**
+     * @var integer
+     */
+    private $startedAtMicroTime;
     
     /**
      * @var integer
@@ -202,7 +209,7 @@ class Task
     private $finishedAt;
 
     /**
-     * @var \DateTime
+     * @var integer
      * @ORM\Column(name="FinishedAtTimeStamp", type="integer", nullable=TRUE)
      */
     private $finishedAtTimeStamp;
@@ -214,16 +221,23 @@ class Task
     private $startedBy;
     
     /**
-     * @var \DateTime
+     * @var DateTime
      * @ORM\Column(name="PlannedAt", type="datetime", nullable=TRUE)
      */
     private $plannedAt;
     
     /**
-     * @var \DateTime
+     * @var integer
      * @ORM\Column(name="PlannedAtTimeStamp", type="integer", nullable=TRUE)
      */
     private $plannedAtTimeStamp;
+
+    /**
+     * @abstract    Task Duration in Ms
+     * @var integer
+     * @ORM\Column(name="duration", type="integer", nullable=TRUE)
+     */
+    private $duration;
     
     //==============================================================================
     //      Audit           
@@ -307,7 +321,7 @@ class Task
                 if ( !$this->job->finalize() || !$this->job->close() ) {
                     $this->setFaultStr("An error occured when closing this Job.", $Output);
                 }
-            } else {
+            } elseif (empty($this->getFaultStr())) {
                 $this->setFaultStr("Unable to initiate this Job.", $Output);
             }
         }            
@@ -377,7 +391,7 @@ class Task
         // Init Task
         $this->setRunning       (True);
         $this->setFinished      (False);
-        $this->setStartedAt     (new \DateTime());
+        $this->setStartedAt     ();
         $this->setStartedBy     ($this->getCurrentServer());
         $this->setTry           ($this->getTry() + 1 );
         $this->setFaultStr      (Null);
@@ -409,10 +423,6 @@ class Task
             $Output->write('<info>o</info>');
         }    
         
-//        set_error_handler(function($errno, $errstr, $errfile, $errline ){
-//            throw new \Exception($errstr, $errno, 0, $errfile, $errline);
-//        });
-
         return True;
 
     } 
@@ -428,7 +438,7 @@ class Task
         //==============================================================================
         // End of Task Execution
         $this->setRunning(False);
-        $this->setFinishedAt(new \DateTime());
+        $this->setFinishedAt();
         
 
         //==============================================================================
@@ -462,7 +472,7 @@ class Task
         //====================================================================//
         // User Information             
         if ($Output && $Output->isVerbose()) {
-            $Output->writeln('<info> Delay : ' . $this->getDelay() . " Second </info>");
+            $Output->writeln('<info> Delay : ' . $this->getDuration() . " Milliseconds </info>");
         }         
     }            
     
@@ -537,30 +547,39 @@ class Task
     /**
      * Set startedAt
      *
-     * @param \DateTime $startedAt
+     * @param DateTime $startedAt
      *
      * @return Task
      */
-    private function setStartedAt($startedAt)
+    private function setStartedAt(DateTime $startedAt = null)
     {
+        if (is_null($startedAt)) {
+            $startedAt  = new DateTime();
+        } 
         //====================================================================//
         // Store date as DateTime
         $this->startedAt            = $startedAt;
         //====================================================================//
         // Store date as TimeStamp
-        $this->startedAtTimeStamp  = $startedAt->getTimestamp();
+        $this->startedAtTimeStamp   = $startedAt->getTimestamp();
+        //====================================================================//
+        // Store date as MicroTime
+        $this->startedAtMicroTime   = microtime(true);
         return $this;
     }
     
     /**
      * Set finishedAt
      *
-     * @param \DateTime $finishedAt
+     * @param DateTime $finishedAt
      *
      * @return Task
      */
-    private function setFinishedAt($finishedAt)
+    private function setFinishedAt(DateTime $finishedAt = null)
     {
+        if (is_null($finishedAt)) {
+            $finishedAt  = new DateTime();
+        }         
         //====================================================================//
         // Store date as DateTime
         $this->finishedAt           = $finishedAt;
@@ -568,6 +587,11 @@ class Task
         // Store date as TimeStamp
         $this->finishedAtTimeStamp  = $finishedAt->getTimestamp();
         
+        //====================================================================//
+        // Store Task Duration
+        if ($this->startedAtMicroTime) {
+            $this->setDuration((int) 1E3 * (microtime(true) - $this->startedAtMicroTime));    
+        }
         return $this;
     }
     
@@ -679,14 +703,15 @@ class Task
      *
      * @return Task
      */
-    private function updateDiscriminator()
+    public function updateDiscriminator()
     {
         //====================================================================//
         // Prepare Discrimination Array
         $Array  =   array(
             $this->getJobClass(),
             $this->getJobAction(),
-            $this->getSettings()
+            $this->getJobInputs(),
+            $this->getSettings(),
         );
         
         //====================================================================//
@@ -1254,4 +1279,29 @@ class Task
     {
         return $this->discriminator;
     }    
+    
+    /**
+     * Set duration
+     *
+     * @param integer $duration
+     *
+     * @return Task
+     */
+    public function setDuration($duration)
+    {
+        $this->duration = $duration;
+
+        return $this;
+    }
+
+    /**
+     * Get duration
+     *
+     * @return integer
+     */
+    public function getDuration()
+    {
+        return $this->duration;
+    }
+    
 }

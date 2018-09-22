@@ -108,6 +108,7 @@ class EventListnerControllerTest extends WebTestCase
         $this->assertFalse(     $Task->getFinished() );
         $this->assertEquals(    0, $Task->getTry() );
         $this->assertEmpty(     $Task->getFaultStr() );
+        $this->assertNotEmpty(  $Task->getDiscriminator() );
         
         
         //====================================================================//
@@ -123,5 +124,39 @@ class EventListnerControllerTest extends WebTestCase
         
     }
 
-        
+    /**
+     * @abstract    Test Similar Tasks are not Added Twice
+     */
+    public function testNoDuplicateTask() 
+    {
+        $NbTasks = 10;
+        //====================================================================//
+        // Link to Entity Repository Services
+        $TasksRepository  = static::$kernel->getContainer()->get('doctrine')->getRepository('SplashTaskingBundle:Task');         
+        //====================================================================//
+        // Link to Tasking manager Services
+        $Dispatcher       = static::$kernel->getContainer()->get('event_dispatcher');
+        //====================================================================//
+        // Generate a Random Token Name
+        $Token = base64_encode(rand(1E5, 1E10));
+        //====================================================================//
+        // Add Task To List
+        for ($i = 0; $i < $NbTasks; $i++) {
+            //====================================================================//
+            // Create a New Job
+            $Job    =   (new TestJob())
+                    ->setToken($Token)
+                    ->setInputs( [ "Delay-Ms"  => 100 ] )
+                    ;
+            //====================================================================//
+            // Add Job to Queue
+            $Dispatcher->dispatch("tasking.add" , $Job);
+        }
+        //====================================================================//
+        //Verify Only One Task Added
+        $this->assertEquals(1, $TasksRepository->getWaitingTasksCount($Token));
+        //====================================================================//
+        // Finished Tasks
+        $TasksRepository->Clear(0);
+    }        
 }

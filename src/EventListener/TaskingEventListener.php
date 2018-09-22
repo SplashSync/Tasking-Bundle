@@ -2,27 +2,33 @@
 
 namespace Splash\Tasking\EventListener;
 
-use Monolog\Logger;
-
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Model\AbstractJob;
+use Splash\Tasking\Services\TaskingService;
 
+use Psr\Log\LoggerInterface;
 
 use Symfony\Component\DependencyInjection\ContainerInterface as Container; 
 
 /**
  * @author Bernard Paquier <eshop.bpaquier@gmail.com>
  */
-
 class TaskingEventListener {
 
+    /**
+     * @var TaskingService
+     */
     private $tasking;
+    
+    /**
+     * @var LoggerInterface
+     */
     private $logger;
 
 
-    public function __construct(Container $container) {
-        $this->tasking      = $container->get("TaskingService");
-        $this->logger       = $container->get("logger");
+    public function __construct(TaskingService $TaskingService, LoggerInterface $Logger) {
+        $this->tasking      = $TaskingService;
+        $this->logger       = $Logger;
     }
 
     public function onSecurityInteractiveLogin() {
@@ -210,6 +216,10 @@ class TaskingEventListener {
             $Task
                 ->setName           ("[B] " . $Task->getName());
         }         
+        
+        //====================================================================//
+        // Update Task Discriminator
+        $Task->updateDiscriminator();
         
         //==============================================================================
         // Validate Token Before Task Insert

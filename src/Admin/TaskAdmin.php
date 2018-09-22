@@ -56,7 +56,7 @@ class TaskAdmin extends Admin
                 ->add('startedAt')
                 ->add('startedBy')
                 ->add('finishedAt')
-                ->add('delay')
+                ->add('duration')
             ->end()
             ->with('Inputs', array('class' => 'col-md-6'))
                 ->add('jobInputsStr', null, array('safe' => true) )
@@ -78,7 +78,7 @@ class TaskAdmin extends Admin
             ->add('finished', null, ['editable' => true])
             ->add('jobIsStatic')
             ->add('try')
-            ->add('delay')                
+            ->add('duration')                
             ->add('fault_str')
         ;
     }

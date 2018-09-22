@@ -26,5 +26,13 @@ doctrine:
         
 services:
     
+    # default configuration for services in *this* file
+    _defaults:
+        autowire:       false    
+        autoconfigure:  false    
+        public:         false   
+        
+    
     Tasking.Sampling.Service:
         class: Splash\Tasking\Tests\Services\TasksSamplingService
+        public:         true
