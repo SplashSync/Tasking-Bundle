@@ -40,12 +40,14 @@ class StatusCommand extends ContainerAwareCommand
             $Repo->clear();
             $Status = $Repo->getTasksSummary();
             //====================================================================//
-            // Prepare Tasking Status        
-            $Message    = $this->getTasksStatusStr($Status['Finished'], $Status['Total']);
-            $Message   .= $this->getWorkersStatusStr();
-            //====================================================================//
             // Update Tasking Progress Bar        
-            $this->updateProgressBarr($Output, $Status['Finished'], $Status['Total'], $Message);
+            $this->updateProgressBarr(
+                    $Output, 
+                    $Status['Finished'], 
+                    $Status['Total'], 
+                    $this->getTasksStatusStr($Status['Finished'], $Status['Total'], $Status['Token']),
+                    $this->getWorkersStatusStr()
+                    );
             sleep(1);    
         }
         
@@ -102,7 +104,7 @@ class StatusCommand extends ContainerAwareCommand
         $Output->writeln('');
     }   
     
-    private function updateProgressBarr( OutputInterface $Output, $Pending, $Total, $Status) 
+    private function updateProgressBarr( OutputInterface $Output, $Pending, $Total, $Status, $Workers) 
     {
         //====================================================================//
         // delete current progress bar
@@ -114,20 +116,26 @@ class StatusCommand extends ContainerAwareCommand
         $this->progress = new ProgressBar($Output, $Total);
         $this->progress->setBarCharacter('<fg=cyan>=</>');
         $this->progress->setProgressCharacter('<fg=red>|</>');
-        $this->progress->setFormat('= Pending Tasks : [%bar%] %current%/%max% -- %message%');
-        $this->progress->setMessage($Status);
+        $this->progress->setFormat(">>%status% \n>> Tasks : [%bar%] %current%/%max% % \n>>%workers%");
+        $this->progress->setMessage($Status,    "status");
+        $this->progress->setMessage($Workers,   "workers");
         $this->progress->start();        
         $this->progress->setProgress($Pending);        
     }
     
-    protected function getTasksStatusStr( $Finished, $Total )
+    protected function getTasksStatusStr( $Finished, $Total, $Token )
     { 
+        $Message    =   "";
         if ( $Finished >= $Total ) {
-            return ' <info>' . 'All Done! ' . '</info>';
+            $Message .= ' <info>' . 'All Done! ' . '</info>';
         } else {
-            $Message    = ($Total - $Finished) . ' Tasks Pending... ';
-            return ' <comment>' . $Message . '</comment>';
+            $Message .= ' <comment>' . ($Total - $Finished) . ' Tasks Pending... ' . '</comment>';
         }
+        
+        if ( $Token > 0 ) {
+            $Message .= ' <comment>' . $Token . ' Tokens Used...' . '</comment>';
+        }
+        return $Message;
     }
         
     protected function getWorkersStatusStr()
