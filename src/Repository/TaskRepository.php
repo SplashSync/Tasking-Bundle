@@ -120,13 +120,23 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
         $this->setupIndexKeys($TotalQb, $IndexKey1, $IndexKey2);
 
         //====================================================================//
+        // Count Total of Locked Tokens
+        //====================================================================//
+        $TokenQb = $this->getEntityManager()
+                ->getRepository('SplashTaskingBundle:Token')
+                ->createQueryBuilder("T")
+                ->select('count(T.id)')
+                ->where("T.locked = 1");
+        
+        //====================================================================//
         // Compte Results Array
         //====================================================================//
         return array (
             "Waiting"   => $WaitingQb->getQuery()->getSingleScalarResult(),
             "Running"   => $RunningQb->getQuery()->getSingleScalarResult(),
             "Finished"  => $FinishedQb->getQuery()->getSingleScalarResult(),
-            "Total"     => $TotalQb->getQuery()->getSingleScalarResult()
+            "Total"     => $TotalQb->getQuery()->getSingleScalarResult(),
+            "Token"     => $TokenQb->getQuery()->getSingleScalarResult()
         );
     }
     
