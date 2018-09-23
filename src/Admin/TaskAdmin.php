@@ -74,11 +74,12 @@ class TaskAdmin extends Admin
     {
         $listMapper
             ->addIdentifier('name', null, array('route' => array('name' => 'show')))
+            ->add('jobToken')                
+            ->add('duration')                
             ->add('running', null, ['editable' => true])
             ->add('finished', null, ['editable' => true])
             ->add('jobIsStatic')
             ->add('try')
-            ->add('duration')                
             ->add('fault_str')
         ;
     }
