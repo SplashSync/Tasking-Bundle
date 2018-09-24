@@ -116,7 +116,7 @@ class StatusCommand extends ContainerAwareCommand
         $this->progress = new ProgressBar($Output, $Total);
         $this->progress->setBarCharacter('<fg=cyan>=</>');
         $this->progress->setProgressCharacter('<fg=red>|</>');
-        $this->progress->setFormat(">>%status% \n>> Tasks : [%bar%] %current%/%max% % \n>>%workers%");
+        $this->progress->setFormat(">>%status% \n>> Tasks : [%bar%] %current%/%max% %percent:3s%% \n>>%workers%");
         $this->progress->setMessage($Status,    "status");
         $this->progress->setMessage($Workers,   "workers");
         $this->progress->start();        
