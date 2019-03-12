@@ -48,3 +48,5 @@
 # Backup entities generated with doctrine:generate:entities command
 */Entity/*~
 /nbproject/
+/src/.php_cs.cache
+/.php_cs.cache
