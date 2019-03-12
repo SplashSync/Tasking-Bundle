@@ -1,195 +1,261 @@
 <?php
 
+/*
+ *  This file is part of SplashSync Project.
+ *
+ *  Copyright (C) 2015-2019 Splash Sync  <www.splashsync.com>
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
+ */
+
 namespace Splash\Tasking\Command;
 
+use Splash\Tasking\Entity\Worker;
+use Splash\Tasking\Repository\TaskRepository;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Helper\ProgressBar;
 
+/**
+ * Status Command - Render Live Status of Workers, Tokens & Tasks
+ */
 class StatusCommand extends ContainerAwareCommand
 {
     
+    /**
+     * @var ProgressBar
+     */
+    private $progress;
+    
+    /**
+     * {@inheritdoc}
+     */
     protected function configure()
     {
         $this
             ->setName('tasking:status')
             ->setDescription('Tasking Service : Check Status of Tasking Services')
         ;
-        
     }
 
-    protected function execute(InputInterface $Input, OutputInterface $Output)
-    {       
+    /**
+     * {@inheritdoc}
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
         //====================================================================//
-        // User Information        
-        if ($Output->isVerbose()) {
-            $this->showHead($Input, $Output);
-            $this->showWorkers($Input, $Output);
+        // User Information
+        if ($output->isVerbose()) {
+            $this->showHead($output);
+            $this->showWorkers($output);
         }
-        
         //====================================================================//
-        // Load Tasks Repository        
-        $Repo = $this->getContainer()
-                ->get("doctrine")->getManager()
-                ->getRepository('SplashTaskingBundle:Task');
-        
+        // Load Tasks Repository
+        /** @var TaskRepository $repo */
+        $repo = $this->getContainer()
+            ->get("doctrine")->getManager()
+            ->getRepository('SplashTaskingBundle:Task');
+
         while (1) {
             //====================================================================//
-            // Fetch Tasks Summary        
-            $Repo->clear();
-            $Status = $Repo->getTasksSummary();
+            // Fetch Tasks Summary
+            $repo->clear();
+            $status = $repo->getTasksSummary();
             //====================================================================//
-            // Update Tasking Progress Bar        
+            // Update Tasking Progress Bar
             $this->updateProgressBarr(
-                    $Output, 
-                    $Status['Finished'], 
-                    $Status['Total'], 
-                    $this->getTasksStatusStr($Status['Finished'], $Status['Total'], $Status['Token']),
-                    $this->getWorkersStatusStr()
-                    );
-            sleep(1);    
+                $output,
+                $status['Finished'],
+                $status['Total'],
+                $this->getTasksStatusStr($status['Finished'], $status['Total'], $status['Token']),
+                $this->getWorkersStatusStr()
+            );
+            sleep(1);
         }
-        
-        return;           
     }
 
-    
-    protected function showHead(InputInterface $Input, OutputInterface $Output)
-    {  
-        $Output->writeln('==============================================');
-        $Output->writeln('=          Tasking Bundle Status             =');
-        $Output->writeln('==============================================');
-        $Output->writeln('');
-    }   
+    /**
+     * Render Status Command Splash Screen
+     *
+     * @param OutputInterface $output
+     */
+    protected function showHead(OutputInterface $output): void
+    {
+        $output->writeln('==============================================');
+        $output->writeln('=          Tasking Bundle Status             =');
+        $output->writeln('==============================================');
+        $output->writeln('');
+    }
 
-    protected function showWorkers(InputInterface $Input, OutputInterface $Output)
-    {  
+    /**
+     * Render Workers Status
+     *
+     * @param OutputInterface $output
+     *
+     * @SuppressWarnings(PHPMD.ElseExpression)
+     */
+    protected function showWorkers(OutputInterface $output): void
+    {
         //====================================================================//
-        // Load Worker Repository        
-        $Workers = $this->getContainer()
-                ->get("doctrine")->getManager()
-                ->getRepository('SplashTaskingBundle:Worker')
-                ->findAll();
-
+        // Load Tasks Repository
+        /** @var TaskRepository $repo */
+        $repo = $this->getContainer()
+            ->get("doctrine")->getManager()
+            ->getRepository('SplashTaskingBundle:Task');
+        
         //====================================================================//
-        // List Workers Status       
-        $Output->writeln('==============================================');
-        $Output->writeln('= Workers : ');
-        $Disabled = 0;
-        foreach ($Workers as $Worker) {
-
+        // List Workers Status
+        $output->writeln('==============================================');
+        $output->writeln('= Workers : ');
+        $disabled = 0;
+        /** @var Worker $worker */         
+        foreach ($repo->findAll() as $worker) {
             //====================================================================//
-            // Workers is Disabled       
-            if ( !$Worker->getEnabled() ) {
-                $Disabled++;
-                $WorkerStatus = 'Disabled';
-            } else if ( $Worker->getRunning() ) {
-                $WorkerStatus = 'Running';
+            // Workers is Disabled
+            if (!$worker->isEnabled()) {
+                $disabled++;
+                $workerStatus = 'Disabled';
+            } elseif ($worker->isRunning()) {
+                $workerStatus = 'Running';
             } else {
-                $WorkerStatus = 'Sleeping';
+                $workerStatus = 'Sleeping';
             }
             //====================================================================//
-            // Workers is Enabled       
-            $Status = '===> ' . $Worker->getNodeName();
-            $Status.= ' (' . $Worker->getPID() . ':' . $WorkerStatus . ')';
-            if ( $Worker->getEnabled() ) {
-                $Status.= ' : ' . $Worker->getTask();
-            }            
-            $Output->writeln( $Status );
+            // Workers is Enabled
+            $status = '===> '.$worker->getNodeName();
+            $status .= ' ('.$worker->getPID().':'.$workerStatus.')';
+            if ($worker->isEnabled()) {
+                $status .= ' : '.$worker->getTask();
+            }
+            $output->writeln($status);
         }
-        $Output->writeln( '===> ' . $Disabled . ' Workers are Disabled' );
-        $Output->writeln('==============================================');
-        
-        $Output->writeln('');
-    }   
-    
-    private function updateProgressBarr( OutputInterface $Output, $Pending, $Total, $Status, $Workers) 
+        $output->writeln('===> '.$disabled.' Workers are Disabled');
+        $output->writeln('==============================================');
+
+        $output->writeln('');
+    }
+
+    /**
+     * Get Worker Status String
+     *
+     * @return string
+     *
+     * @SuppressWarnings(PHPMD.ElseExpression)
+     */
+    protected function getWorkersStatusStr()
+    {
+        //====================================================================//
+        // Load Worker Repository
+        $workers = $this->getContainer()
+            ->get("doctrine")->getManager()
+            ->getRepository('SplashTaskingBundle:Worker');
+        $workers->clear();
+
+        //====================================================================//
+        // Init Counters
+        $disabled = 0;
+        $sleeping = 0;
+        $running = 0;
+        $supervisor = 0;
+
+        //====================================================================//
+        // Update Workers Counters
+        /** @var Worker $worker */  
+        foreach ($workers->findAll() as $worker) {
+            //====================================================================//
+            // Workers is Supervisor
+            if ((0 == $worker->getProcess()) && $worker->isRunning()) {
+                $supervisor++;
+            }
+            if ((0 == $worker->getProcess())) {
+                continue;
+            }
+            //====================================================================//
+            // Workers is Disabled
+            if ($worker->isRunning()) {
+                $running++;
+            } elseif (!$worker->isEnabled()) {
+                $disabled++;
+            } else {
+                $sleeping++;
+            }
+        }
+        //====================================================================//
+        // IF No Worker is Running
+        if ($running < 1) {
+            return ' <error>No Worker Running!</error>';
+        }
+        //====================================================================//
+        // IF No Supervisor is Running
+        if ($supervisor < 1) {
+            return ' <error>No Supervisor Running!</error>';
+        }
+        //====================================================================//
+        // Generate Response String
+        $response = $running.'/'.($disabled + $sleeping + $running).' Workers ';
+        $response .= $supervisor.' Supervisors';
+
+        return ' <info>'.$response.'</info>';
+    }
+
+    /**
+     * Update Rendering of Progress Bar
+     *
+     * @param OutputInterface $output
+     * @param int             $pending
+     * @param int             $total
+     * @param string          $status
+     * @param string          $workers
+     */
+    private function updateProgressBarr(OutputInterface $output, int $pending, int $total, string $status, string $workers) : void
     {
         //====================================================================//
         // delete current progress bar
-        if (isset($this->progress) ) {
+        if (isset($this->progress)) {
             $this->progress->clear();
         }
         //====================================================================//
         // create a new progress bar
-        $this->progress = new ProgressBar($Output, $Total);
+        $this->progress = new ProgressBar($output, $total);
         $this->progress->setBarCharacter('<fg=cyan>=</>');
         $this->progress->setProgressCharacter('<fg=red>|</>');
         $this->progress->setFormat(">>%status% \n>> Tasks : [%bar%] %current%/%max% %percent:3s%% \n>>%workers%");
-        $this->progress->setMessage($Status,    "status");
-        $this->progress->setMessage($Workers,   "workers");
-        $this->progress->start();        
-        $this->progress->setProgress($Pending);        
+        $this->progress->setMessage($status, "status");
+        $this->progress->setMessage($workers, "workers");
+        $this->progress->start();
+        $this->progress->setProgress($pending);
     }
-    
-    protected function getTasksStatusStr( $Finished, $Total, $Token )
-    { 
-        $Message    =   "";
-        if ( $Finished >= $Total ) {
-            $Message .= ' <info>' . 'All Done! ' . '</info>';
+
+    /**
+     * Get Tasks Status String
+     *
+     * @param int $finished
+     * @param int $total
+     * @param int $token
+     *
+     * @return string
+     *
+     * @SuppressWarnings(PHPMD.ElseExpression)
+     */
+    private function getTasksStatusStr(int $finished, int $total, int $token): string
+    {
+        $message = "";
+        if ($finished >= $total) {
+            $message .= ' <info>'.'All Done! '.'</info>';
         } else {
-            $Message .= ' <comment>' . ($Total - $Finished) . ' Tasks Pending... ' . '</comment>';
+            $message .= ' <comment>'.($total - $finished).' Tasks Pending... '.'</comment>';
         }
-        
-        if ( $Token > 0 ) {
-            $Message .= ' <comment>' . $Token . ' Tokens Used...' . '</comment>';
+        if ($token > 0) {
+            $message .= ' <comment>'.$token.' Tokens Used...'.'</comment>';
         }
-        return $Message;
+
+        return $message;
     }
-        
-    protected function getWorkersStatusStr()
-    {  
-        //====================================================================//
-        // Load Worker Repository        
-        $Workers = $this->getContainer()
-                ->get("doctrine")->getManager()
-                ->getRepository('SplashTaskingBundle:Worker');
-        $Workers->clear();
-        
-        //====================================================================//
-        // Init Counters       
-        $Disabled = 0;
-        $Sleeping = 0;
-        $Running = 0;
-        $Supervisor = 0;
-
-        //====================================================================//
-        // Update Workers Counters
-        foreach ( $Workers->findAll() as $Worker) {
-
-            //====================================================================//
-            // Workers is Supervisor       
-            if ( ( $Worker->getProcess() == 0 ) && $Worker->getRunning() ) {
-                $Supervisor++;
-            } 
-            if ( ( $Worker->getProcess() == 0 ) ) {
-                continue;
-            } 
-            
-            //====================================================================//
-            // Workers is Disabled       
-            if ( $Worker->getRunning() ) {
-                $Running++;
-            } elseif ( !$Worker->getEnabled() ) {
-                $Disabled++;
-            } else {
-                $Sleeping++;
-            }
-        }
-        
-        if ( ( $Running < 1 ) || ( $Supervisor < 1 ) ) {
-            if ( $Running < 1 ) {
-                return ' <error>No Worker Running!</error>';
-            } 
-            if ( $Supervisor < 1 ) {
-                return ' <error>No Supervisor Running!</error>';
-            }         
-        }
-        $Response = $Running . '/' . ( $Disabled + $Sleeping + $Running ) . ' Workers ';
-        $Response.= $Supervisor . ' Supervisors';
-        return ' <info>' . $Response . '</info>';
-    }  
-    
 }
-    

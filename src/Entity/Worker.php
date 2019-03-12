@@ -1,5 +1,18 @@
 <?php
 
+/*
+ *  This file is part of SplashSync Project.
+ *
+ *  Copyright (C) 2015-2019 Splash Sync  <www.splashsync.com>
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
+ */
+
 namespace Splash\Tasking\Entity;
 
 use DateTime;
@@ -7,26 +20,20 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * System Task Worker Tracker
- * 
- * @ORM\Entity
+ *
+ * @ORM\Entity(repositoryClass="Splash\Tasking\Repository\WorkerRepository")
  * @ORM\Table(name="system__workers")
  * @ORM\HasLifecycleCallbacks
- * 
  */
-
 class Worker
 {
-    
-//==============================================================================
-//  Constants Definition           
-//==============================================================================
-    
-//==============================================================================
-//      Definition           
-//==============================================================================
-  
+    //==============================================================================
+    //      Definition
+    //==============================================================================
+
     /**
-     * @var integer
+     * @var int
+     *
      * @ORM\Id
      * @ORM\Column(type="integer")
      * @ORM\GeneratedValue(strategy="AUTO")
@@ -35,118 +42,128 @@ class Worker
 
     /**
      * @var string
+     *
      * @ORM\Column(name="Name", type="string", length=250)
      */
     private $nodeName;
 
     /**
      * @var string
+     *
      * @ORM\Column(name="Ip", type="string", length=250)
      */
     private $nodeIp;
-    
+
     /**
      * @var string
+     *
      * @ORM\Column(name="Infos", type="string", length=512)
      */
     private $nodeInfos;
 
     /**
      * @var string
+     *
      * @ORM\Column(name="Process", type="string", length=250)
      */
     private $process;
 
     /**
-     * @var integer
+     * @var int
+     *
      * @ORM\Column(name="PID", type="integer")
      */
     private $pID;
 
-
     /**
-     * @var boolean
+     * @var bool
+     *
      * @ORM\Column(name="Enabled", type="boolean", nullable=TRUE)
      */
-    private $enabled = True;
-    
+    private $enabled = true;
+
     /**
-     * @var boolean
+     * @var bool
+     *
      * @ORM\Column(name="Running", type="boolean", nullable=TRUE)
      */
     private $running;
 
     /**
      * @var \DateTime
+     *
      * @ORM\Column(name="SeenAt", type="datetime", nullable=TRUE)
      */
     private $lastSeen;
 
     /**
      * @var string
+     *
      * @ORM\Column(name="Task", type="string", length=250, nullable=TRUE)
      */
     private $task;
 
-    
-//==============================================================================
-//      Object Operations
-//==============================================================================
+    //==============================================================================
+    //      Object Operations
+    //==============================================================================
 
     /**
-     *      @abstract    Verify if a Worker Process is Action
-     */    
-    public function Ping() {        
+     * Verify if a Worker Process is Action
+     *
+     * @return bool
+     */
+    public function ping(): bool
+    {
         //==============================================================================
         // Check if Process is active
-        return posix_getpgid($this->getPID())?True:False;        
+        return posix_getpgid($this->getPID()) ? true : false;
     }
-        
+
     /**
      * Get running
      *
-     * @return boolean
+     * @return bool
      */
-    public function getRunning()
+    public function isRunning(): bool
     {
         //==============================================================================
         // Check if Worker is Flagged As Running
         if (!$this->running) {
-            return False;
-        } 
+            return false;
+        }
         //==============================================================================
         // Check if Worker WatchDog is Ok
-        $Limit = new \DateTime("-30 Seconds");
-        if ($this->getLastSeen() < $Limit) {
-            return False;
+        $limit = new DateTime("-30 Seconds");
+        if ($this->getLastSeen() < $limit) {
+            return false;
         }
         //====================================================================//
         // Load Current Server Infos
-        $System    = posix_uname();
+        $system = posix_uname();
         //==============================================================================
         // If We Are NOT on Worker Real Machine
-        if ( $System["nodename"] !== $this->getNodeName() ) {
-            return True;
+        if ($system["nodename"] !== $this->getNodeName()) {
+            return true;
         }
         //==============================================================================
         // Check if Worker Process is Ok
-        return $this->Ping();
-    }    
-    
-//==============================================================================
-//      Getters & Setters
-//==============================================================================
-  
+        return $this->ping();
+    }
+
+    //==============================================================================
+    //      Getters & Setters
+    //==============================================================================
+
     /**
      * Get Worker Name
-     * 
+     *
      * @return string
      */
-    public function _toString()
+    public function __toString(): string
     {
-        return $this->nodeName . " [" . $this->process . "]";
+        return $this->nodeName." [".$this->process."]";
     }
-    
+
     /**
      * Get id
      *
@@ -190,7 +207,7 @@ class Worker
      */
     public function setNodeIp($nodeIp)
     {
-        $this->nodeIp = $nodeIp?$nodeIp:"127.0.0.1";
+        $this->nodeIp = $nodeIp ? $nodeIp : "127.0.0.1";
 
         return $this;
     }
@@ -204,7 +221,7 @@ class Worker
     {
         return $this->nodeIp;
     }
-    
+
     /**
      * Set nodeInfos
      *
@@ -232,13 +249,13 @@ class Worker
     /**
      * Set process
      *
-     * @param string $process
+     * @param int $process
      *
-     * @return Worker
+     * @return $this
      */
-    public function setProcess($process)
+    public function setProcess(int $process): self
     {
-        $this->process = $process;
+        $this->process = (string) $process;
 
         return $this;
     }
@@ -246,11 +263,11 @@ class Worker
     /**
      * Get process
      *
-     * @return string
+     * @return int
      */
-    public function getProcess()
+    public function getProcess(): int
     {
-        return $this->process;
+        return (int) $this->process;
     }
 
     /**
@@ -260,7 +277,7 @@ class Worker
      *
      * @return Worker
      */
-    public function setPID($pID)
+    public function setPid(int $pID)
     {
         $this->pID = $pID;
 
@@ -272,7 +289,7 @@ class Worker
      *
      * @return integer
      */
-    public function getPID()
+    public function getPid(): int
     {
         return $this->pID;
     }
@@ -314,7 +331,7 @@ class Worker
     {
         return $this->lastSeen;
     }
-    
+
     /**
      * Set task
      *
@@ -337,8 +354,8 @@ class Worker
     public function getTask()
     {
         return $this->task;
-    }    
-    
+    }
+
     /**
      * Set Worker as Enabled
      *
@@ -349,6 +366,7 @@ class Worker
     public function setEnabled($enabled)
     {
         $this->enabled = $enabled;
+
         return $this;
     }
 
@@ -357,9 +375,8 @@ class Worker
      *
      * @return bool
      */
-    public function getEnabled()
+    public function isEnabled(): bool
     {
         return $this->enabled;
-    }    
+    }
 }
-

@@ -1,82 +1,75 @@
 <?php
 
+/*
+ *  This file is part of SplashSync Project.
+ *
+ *  Copyright (C) 2015-2019 Splash Sync  <www.splashsync.com>
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
+ */
+
 namespace Splash\Tasking\Command;
 
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Splash\Tasking\Services\WorkersManager;
+use Symfony\Component\Console\Command\Command;
 
-class StartCommand extends ContainerAwareCommand
+class StartCommand extends Command
 {
-    
-    private $Tasking;
-    private $Timeout;
-    
+    /**
+     * Workers Manager Service
+     *
+     * @var WorkersManager
+     */
+    private $manager;
+
+    /**
+     * Class Constructor
+     * 
+     * @param WorkersManager $workerManager
+     */
+    public function __construct(WorkersManager $workerManager)
+    {
+        parent::__construct('tasking:start');
+        //====================================================================//
+        // Link to Worker Manager Service
+        $this->manager = $workerManager;
+    }    
+
+    /**
+     * {@inheritdoc}
+     */
     protected function configure()
     {
         $this
             ->setName('tasking:start')
             ->setDescription('Tasking Service : Start All Supervisors & Workers Process on All Machines')
         ;
-        
     }
 
-    protected function execute(InputInterface $Input, OutputInterface $Output)
+    /**
+     * {@inheritdoc}
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    protected function execute(InputInterface $input, OutputInterface $output)
     {
         //====================================================================//
-        // Init Tasking Service        
-        $this->Tasking = $this->getContainer()->get("TaskingService");
-        //====================================================================//
-        // Init Outputs        
-        $this->output = $Output;
-        //====================================================================//
-        // User Information        
-        if ($Output->isVerbose()) {
-            $Output->writeln('<info> Start Supervisor & Workers Process on all found Machines. </info>');
+        // User Information
+        if ($output->isVerbose()) {
+            $output->writeln('<info> Start Supervisor & Workers Process on all found Machines. </info>');
         }
         //====================================================================//
         // Request All Active Workers to Start
-        $this->SetupAllWorkers(True);
+        $this->manager->setupAllWorkers(true);
         //====================================================================//
-        // Init Outputs        
-        $this->Tasking->setOutputInterface($Output);        
-        //====================================================================//
-        // Check Crontab is Setuped        
-        $this->Tasking->CrontabCheck();
-        //====================================================================//
-        // Check Supervisor Local is Running        
-        $this->Tasking->SupervisorCheckIsRunning();
+        // Check Supervisors & Crontab
+        $this->manager->checkSupervisor();
     }
-
-    private function SetupAllWorkers($Enabled = True) 
-    {
-        //====================================================================//
-        // Clear EntityManager
-        $this->getContainer()->get('doctrine')->getManager()->clear();
-        
-        //====================================================================//
-        // Load List of All Currently Setuped Workers
-        $Workers = $this->getContainer()->get('doctrine')
-                ->getRepository('SplashTaskingBundle:Worker')
-                ->findAll();
-        
-        //====================================================================//
-        // Set All Actives Workers as Disabled
-        foreach ($Workers as $Worker) {
-            //====================================================================//
-            // Safety Check - Worker doesn't exists        
-            if ($Worker == False)  {
-                continue;
-            }
-            //====================================================================//
-            // Worker Is Active => Set as Disabled
-            $Worker->setEnabled($Enabled);
-        }
-        
-        //====================================================================//
-        // Save Changes to Db
-        $this->getContainer()->get('doctrine')->getManager()->flush();
-    }
-
 }
-    

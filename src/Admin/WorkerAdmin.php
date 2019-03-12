@@ -16,6 +16,7 @@ use Sonata\AdminBundle\Show\ShowMapper;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
+
 //use Sonata\Bundle\DemoBundle\Entity\Inspection;
 
 /**
@@ -52,8 +53,8 @@ class WorkerAdmin extends Admin
         $listMapper
             ->addIdentifier('_toString', null, array('route' => array('name' => 'show')))
 //            ->add('nodeIp')
-            ->add('enabled', null , ['editable' => True])
-            ->add('pID')                
+            ->add('enabled', null, ['editable' => true])
+            ->add('pID')
             ->add('running')
             ->add('lastSeen')
             ->add('task')
@@ -70,5 +71,4 @@ class WorkerAdmin extends Admin
             ->add('running')
         ;
     }
-
 }

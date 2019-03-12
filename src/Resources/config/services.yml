@@ -1,98 +1,89 @@
+imports:
+    - { resource: services/admin.yml }
+    - { resource: services/commands.yml }
+    
 services:
+    
+    ########################################################################
+    #   TASKING BUNDLE LOW LEVEL SERVICES
+    ########################################################################
 
-########################################################################
-#   TASKING BUNDLE OPERATIONNAL SERVICES
-########################################################################
-
-########################################################################
-# Tasks Management Service
-    TaskingService:
-        class: Splash\Tasking\Services\TaskingService
-        arguments: ["@doctrine.orm.entity_manager", "@service_container"]   
-        public:     true
-        lazy:       true
-
-########################################################################
-# Tasks Management Event Listener
-# This Event is Triggered when User Log In to Start Workers if Needed
-    Tasking.EventListener:
-        class:      Splash\Tasking\EventListener\TaskingEventListener
-        arguments:  ["@TaskingService", "@logger"]
-        public:     true
+    ########################################################################
+    # Tasks Management Service
+    splash.tasking.runner:
+        class: Splash\Tasking\Services\Runner
+        public:     true        
+        arguments:
+            - "@service_container"
+            - "@logger"
+            - "@=service('doctrine.orm.entity_manager').getRepository('SplashTaskingBundle:Task')"
+            - "@splash.tasking.tokens"
+            - "%splash_tasking%"
+            
+    ########################################################################
+    # Tasks Management Service
+    splash.tasking.tasks:
+        class: Splash\Tasking\Services\TasksManager
+        public:     true        
+        arguments:
+            - "@doctrine.orm.entity_manager"
+            - "@event_dispatcher"
+            - "@logger"
+            - "@=service('doctrine.orm.entity_manager').getRepository('SplashTaskingBundle:Task')"
+            - "@splash.tasking.tokens"
+            - "%splash_tasking%"
         tags:
-#            - { name: kernel.event_listener, event: 'security.interactive_login', method: onSecurityInteractiveLogin }
             - { name: kernel.event_listener, event: tasking.add, method: onAddAction }
-            - { name: kernel.event_listener, event: tasking.insert, method: onInsertAction }
-            - { name: kernel.event_listener, event: console.exception }
+            - { name: kernel.event_listener, event: tasking.insert, method: onAddAction }
 
-########################################################################
-#   TASKING BUNDLE COMMANDS
-########################################################################
-
-    splash.tasking.command.check:
-        class: Splash\Tasking\Command\CheckCommand
-        tags:    [ console.command ]
-
-    splash.tasking.command.start:
-        class: Splash\Tasking\Command\StartCommand
-        tags:    [ console.command ]
-
-    splash.tasking.command.stop:
-        class: Splash\Tasking\Command\StopCommand
-        tags:    [ console.command ]
-
-    splash.tasking.command.status:
-        class: Splash\Tasking\Command\StatusCommand
-        tags:    [ console.command ]
-
-    splash.tasking.command.supervisor:
-        class: Splash\Tasking\Command\SupervisorCommand
-        tags:    [ console.command ]
-
-    splash.tasking.command.worker:
-        class: Splash\Tasking\Command\WorkerCommand
-        tags:    [ console.command ]
-        
-
-########################################################################
-#   TASKING BUNDLE SONATA ADMIN SERVICES
-########################################################################
-
-########################################################################
-# Tasks Sonata Admin Service
-    sonata.admin.tasks:
-        class: Splash\Tasking\Admin\TaskAdmin
-        tags:
-            - { name: sonata.admin, manager_type: orm, group: "System", label: "Tasks" }
+    ########################################################################
+    # Supervisor Management Service
+    splash.tasking.supervisors:
+        class: Splash\Tasking\Services\SupervisorsManager
+        public:     true        
         arguments:
-            - ~
-            - Splash\Tasking\Entity\Task
-            - ~
-        calls:
-            - [ setTranslationDomain, [TaskingBundle]]
-            
-########################################################################
-# Workers Sonata Admin Service
-    sonata.admin.workers:
-        class: Splash\Tasking\Admin\WorkerAdmin
+            - "@doctrine.orm.entity_manager"
+            - "@logger"
+            - "@=service('doctrine.orm.entity_manager').getRepository('SplashTaskingBundle:Worker')"
+            - "@splash.tasking.process"
+            - "%splash_tasking%"
         tags:
-            - { name: sonata.admin, manager_type: orm, group: "System", label: "Workers" }
+            - { name: kernel.event_listener, event: tasking.check, method: checkSupervisor }
+            - { name: kernel.event_listener, event: tasking.add, method: checkSupervisor }
+
+    ########################################################################
+    # Workers Management Service
+    splash.tasking.workers:
+        class: Splash\Tasking\Services\WorkersManager
+        public:     true        
         arguments:
-            - ~
-            - Splash\Tasking\Entity\Worker
-            - ~
-        calls:
-            - [ setTranslationDomain, [TaskingBundle]]            
-            
-########################################################################
-# Tokens Sonata Admin Service
-    sonata.admin.tokens:
-        class: Splash\Tasking\Admin\TokenAdmin
+            - "@doctrine.orm.entity_manager"
+            - "@logger"
+            - "@=service('doctrine.orm.entity_manager').getRepository('SplashTaskingBundle:Worker')"
+            - "@splash.tasking.process"
+            - "%splash_tasking%"
+
+    ########################################################################
+    # Tokens Management Service
+    splash.tasking.tokens:
+        class: Splash\Tasking\Services\TokenManager
+        public:     true        
+        arguments:
+            - "@doctrine.orm.entity_manager"
+            - "@logger"
+            - "@=service('doctrine.orm.entity_manager').getRepository('SplashTaskingBundle:Token')"
+            - "%splash_tasking%"
+
+    ########################################################################
+    # Process Management Service
+    splash.tasking.process:
+        class: Splash\Tasking\Services\ProcessManager
+        public:     true        
+        arguments:
+            - "@logger"
+            - "%kernel.root_dir%"
+            - "%splash_tasking%"
         tags:
-            - { name: sonata.admin, manager_type: orm, group: "System", label: "Token" }
-        arguments:
-            - ~
-            - Splash\Tasking\Entity\Token
-            - ~
-        calls:
-            - [ setTranslationDomain, [TaskingBundle]]  
+            - { name: kernel.event_listener, event: tasking.add, method: checkCrontab }
+         
+    

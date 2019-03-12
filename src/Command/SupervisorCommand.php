@@ -1,181 +1,123 @@
 <?php
 
+/*
+ *  This file is part of SplashSync Project.
+ *
+ *  Copyright (C) 2015-2019 Splash Sync  <www.splashsync.com>
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
+ */
+
 namespace Splash\Tasking\Command;
 
+use Splash\Tasking\Entity\Worker;
+use Splash\Tasking\Services\SupervisorsManager;
+use Splash\Tasking\Services\TasksManager;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Supervisor Command - Manager Workers
+ */
 class SupervisorCommand extends ContainerAwareCommand
 {
-    
-    use Traits\LexikMonologBridgeCommand;
-    
-    //====================================================================//
-    // Global Parameters Storage            
-    private $Config;
-    
-    //====================================================================//
-    // Time & Workers Counters            
-    private $WorkerCount    =   0;          // Number of Worker Started
-    private $EndDate        = Null;             // Script Max End Date    
-    
-    /*
-     *  Current System Worker Class
-     * @var         \Splash\Tasking\Entity\Worker
+    /**
+     * Supervisor Manager Service
+     *
+     * @var SupervisorsManager
      */
-    private $supervisor;
-    
-    /*
-     * @abstract    Supervisor Service
-     * @var         \Splash\Tasking\Services\TaskingService
-     */
-    private $Tasking    = Null;          
+    private $manager;
 
-    protected function execute(InputInterface $Input, OutputInterface $Output)
+    /**
+     * Tasks Manager Service
+     *
+     * @var TasksManager
+     */
+    private $tasks;
+
+    /**
+     * Class Constructor
+     *
+     * @param SupervisorsManager $supervisorsManager
+     * @param TasksManager       $tasksManager
+     */
+    public function __construct(SupervisorsManager $supervisorsManager, TasksManager $tasksManager)
     {
+        parent::__construct();
         //====================================================================//
-        // Initialize Supervisor Worker
-        $this->Initialize($Input, $Output);    
-        
+        // Link to Supervisor Manager Service
+        $this->manager = $supervisorsManager;
         //====================================================================//
-        // Run Supervisor Loop
-        while(!$this->Tasking->SupervisorIsToKill($this->supervisor, $this->EndDate)) {
-        
-            //====================================================================//
-            // Refresh Status of Each Worker
-            for( $Id = 1; $Id <= $this->WorkerCount ; $Id++ ) {
-                
-                //====================================================================//
-                // Check Status of this Worker in THIS Machine Name       
-                //====================================================================//
-                if ( $this->Tasking->WorkerCheckIsRunning($Id) ) {
-                    continue;
-                }
-                
-                //====================================================================//
-                // Start This Worker if Not Running
-                //====================================================================//
-                $this->Tasking->WorkerStartProcess($Id);
-                
-            }
-            //====================================================================//
-            // Clean All Old Tasks  
-            $this->Tasking->TasksCleanUp();            
-            //====================================================================//
-            // Refresh Supervisor Worker Status (WatchDog)
-            $this->Tasking->WorkerRefresh($this->supervisor);         
-            //====================================================================//
-            // Wait        
-            $this->Tasking->SupervisorDoPause();                  
-        }
-        
-        //==============================================================================
-        // Set Status as Stopped
-        $this->supervisor->setTask("Stopped");
-        $this->supervisor->setRunning(False);
-        $this->Tasking->em->flush();
-                
-        //====================================================================//
-        // User Information        
-        $this->Tasking->OutputVerbose('End of Supervisor Process', "info");
+        // Link to Tasks Manager
+        $this->tasks = $tasksManager;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function configure()
     {
         //====================================================================//
-        // Init Supervisor Command        
+        // Init Supervisor Command
         $this
             ->setName('tasking:supervisor')
             ->setDescription('Run a Supervisor Worker Process ')
-            ->addArgument(
-                'workers',
-                InputArgument::OPTIONAL,
-                'Override Number of Workers to Allocate'
-            )
         ;
-        
-        
     }
-    
-    protected function Initialize(InputInterface $Input, OutputInterface $Output)
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function execute(InputInterface $input, OutputInterface $output)
     {
         //====================================================================//
-        // Init Supervisor Configuration        
-        $this->InitializeConfiguration($Input,$Output);
-        
+        // Initialize Supervisor Worker
+        $this->initialize($input, $output);
+
         //====================================================================//
-        // Init Supervisor Worker        
-        $this->InitializeSupervisorWorker();
-        
+        // Run Supervisor Loop
+        while (!$this->manager->isToKill(null)) {
+            //====================================================================//
+            // Refresh Status of Each Worker
+            $this->manager->doSupervision();
+            //====================================================================//
+            // Clean All Old Tasks
+            $this->tasks->cleanUp();
+            //====================================================================//
+            // Refresh Worker Status (WatchDog)
+            $this->manager->refresh(false);
+            //====================================================================//
+            // Wait
+            $this->manager->doPause();
+        }
+        //==============================================================================
+        // Set Status as Stopped
+        $this->manager->stop();
+    }
+
+    /**
+     * Init Supervisor & Services
+     *
+     * @param InputInterface  $input
+     * @param OutputInterface $output
+     */
+    protected function initialize(InputInterface $input, OutputInterface $output): void
+    {
         //====================================================================//
-        // Setup Lexik Logged Compatibility
-        $this->overrideLexikMonologBridge();       
-        
+        // Init Worker
+        $this->manager->initialize(0);
+        $this->manager->getMaxWorkers();
         //====================================================================//
         // Init Static Tasks List
-        $this->Tasking->StaticTasksInit();
-    }      
-    
-
-    /**
-     *      @abstract    Initialize Current Worker Process 
-     */    
-    public function InitializeConfiguration(InputInterface $Input, OutputInterface $Output) {
+        $this->tasks->loadStaticTasks();
         //====================================================================//
-        // Load Tasking Service        
-        $this->Tasking      =   $this->getContainer()->get("TaskingService");
-        //====================================================================//
-        // Init Outputs        
-        $this->Tasking->setOutputInterface($Output);
-        //====================================================================//
-        // Init Script End DateTime
-        $this->EndDate      =   $this->Tasking->SupervisorMaxDate();     
-        //====================================================================//
-        // Load Input Parameters        
-        if (is_null($Input->getArgument('workers')) ) {
-            $this->WorkerCount  =   $this->Tasking->SupervisorMaxWorkers();     
-        } else {
-            $this->WorkerCount  =   $Input->getArgument('workers');
-        }
-    } 
-    
-    
-    /**
-     *      @abstract    Initialize Current Worker Process 
-     */    
-    public function InitializeSupervisorWorker() { 
-        //====================================================================//
-        // Identify Current Process Worker        
-        $this->supervisor     = $this->Tasking->ProcessIdentify();
-        //====================================================================//
-        // If Worker Not Found => Search By Supervisor Process Number
-        if ( !$this->supervisor ) {
-            //====================================================================//
-            // Search Worker By Supervisor Process Number
-            $this->supervisor   =    $this->Tasking->SupervisorIdentify();
-        }
-        //====================================================================//
-        // If Supervisor Worker Doesn't Exists
-        if ( !$this->supervisor ) {
-            //====================================================================//
-            // Create Supervisor Worker
-            $this->supervisor = $this->Tasking->WorkerCreate();
-        } else {
-            //====================================================================//
-            // Update pID 
-            $this->supervisor->setPID( getmypid() );
-            $this->supervisor->setTask("Supervising");
-            $this->Tasking->em->flush();  
-        }
-        //====================================================================//
-        // Refresh Worker
-        $this->Tasking->WorkerRefresh($this->supervisor , True);
-        //====================================================================//
-        // Setup PHP Error Reporting Level        
+        // Setup PHP Error Reporting Level
         error_reporting(E_ERROR);
-
-    }             
+    }
 }
-    

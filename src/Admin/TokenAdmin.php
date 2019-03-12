@@ -16,6 +16,7 @@ use Sonata\AdminBundle\Show\ShowMapper;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
+
 //use Sonata\Bundle\DemoBundle\Entity\Inspection;
 
 /**
@@ -72,5 +73,4 @@ class TokenAdmin extends Admin
             ->add('createdAt')
         ;
     }
-    
 }

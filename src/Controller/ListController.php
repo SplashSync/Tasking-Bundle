@@ -1,209 +1,213 @@
 <?php
 
+/*
+ *  This file is part of SplashSync Project.
+ *
+ *  Copyright (C) 2015-2019 Splash Sync  <www.splashsync.com>
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
+ */
+
 namespace Splash\Tasking\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Splash\Tasking\Repository\TaskRepository;
 
 /**
- * @author Bernard Paquier <eshop.bpaquier@gmail.com>
+ * Tasks Lists Displays Controller
  */
 class ListController extends Controller
 {
-    
     /**
      * Display List of All Tasks
-     * 
-     * @param   string      $Key1           Your Custom Index Key 1
-     * @param   string      $Key2           Your Custom Index Key 2
-     * @param   array       $OrderBy        List Ordering
-     * @param   int         $Limit          Limit Number of Items
-     * @param   int         $Offset         Page Offset
-     * 
-     * @return \Symfony\Component\HttpFoundation\Response
+     *
+     * @param string $key1    Your Custom Index Key 1
+     * @param string $key2    Your Custom Index Key 2
+     * @param array  $orderBy List Ordering
+     * @param int    $limit   Limit Number of Items
+     * @param int    $offset  Page Offset
+     *
+     * @return Response
      */
-    public function allAction( string $Key1 = Null, string $Key2 = Null, array $OrderBy = [], int $Limit = 10, int $Offset = 0 )
+    public function allAction(string $key1 = null, string $key2 = null, array $orderBy = array(), int $limit = 10, int $offset = 0): Response
     {
         //==============================================================================
         // Load Task Repository
-        $Repository =   $this->get('doctrine')
-                ->getManager()
-                ->getRepository('SplashTaskingBundle:Task');
+        /** @var TaskRepository $repository */
+        $repository = $this->get('doctrine')
+            ->getManager()
+            ->getRepository('SplashTaskingBundle:Task');
         //==============================================================================
         // Compute Filters
-        $Filters = $this->getIndexKeysFindBy($Key2, $Key1);
+        $filters = $this->getIndexKeysFindBy($key2, $key1);
         //==============================================================================
         // Render All Tasks List
         return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(
-            'tasks'         =>  $Repository->findBy($Filters,$OrderBy,$Limit,$Offset)
+            'tasks' => $repository->findBy($filters, $orderBy, $limit, $offset),
         ));
-        
-    }
-        
-        
-    /**
-     * Display List of All Waiting Tasks
-     * 
-     * @param   string      $Key1           Your Custom Index Key 1
-     * @param   string      $Key2           Your Custom Index Key 2
-     * @param   array       $OrderBy        List Ordering
-     * @param   int         $Limit          Limit Number of Items
-     * @param   int         $Offset         Page Offset
-     * 
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function waitingAction( string $Key1 = Null, string $Key2 = Null,array $OrderBy = [], int $Limit = 10, int $Offset = 0 )
-    {
-        //==============================================================================
-        // Load Task Repository
-        $Repository =   $this->get('doctrine')
-                ->getManager()
-                ->getRepository('SplashTaskingBundle:Task');
-        //==============================================================================
-        // Compute Filters
-        $Filters    =   $this->getIndexKeysFindBy($Key2, $Key1);
-        $Filters["running"]     =   0;
-        $Filters["finished"]    =   0;
-        //==============================================================================
-        // Render All Tasks List
-        return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(
-            'tasks'         =>  $Repository->findBy($Filters,$OrderBy,$Limit,$Offset)
-        ));
-        
-    }
-    
-    /**
-     * Display List of All Actives Tasks
-     * 
-     * @param   string      $Key1           Your Custom Index Key 1
-     * @param   string      $Key2           Your Custom Index Key 2
-     * @param   array       $OrderBy        List Ordering
-     * @param   int         $Limit          Limit Number of Items
-     * @param   int         $Offset         Page Offset
-     * 
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function activeAction( string $Key1 = Null, string $Key2 = Null,array $OrderBy = [], int $Limit = 10, int $Offset = 0 )
-    {
-        //==============================================================================
-        // Load Task Repository
-        $Repository =   $this->get('doctrine')
-                ->getManager()
-                ->getRepository('SplashTaskingBundle:Task');
-        //==============================================================================
-        // Compute Filters
-        $Filters    =   $this->getIndexKeysFindBy($Key2, $Key1);
-        $Filters["running"]     =   1;
-        //==============================================================================
-        // Render All Tasks List
-        return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(
-            'tasks'         =>  $Repository->findBy($Filters,$OrderBy,$Limit,$Offset)
-        ));
-        
     }
 
-         
     /**
      * Display List of All Waiting Tasks
-     * 
-     * @param   string      $Key1           Your Custom Index Key 1
-     * @param   string      $Key2           Your Custom Index Key 2
-     * @param   array       $OrderBy        List Ordering
-     * @param   int         $Limit          Limit Number of Items
-     * @param   int         $Offset         Page Offset
      *
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param string $key1    Your Custom Index Key 1
+     * @param string $key2    Your Custom Index Key 2
+     * @param array  $orderBy List Ordering
+     * @param int    $limit   Limit Number of Items
+     * @param int    $offset  Page Offset
+     *
+     * @return Response
      */
-    public function completedAction( string $Key1 = Null, string $Key2 = Null, array $OrderBy = [], int $Limit = 10, int $Offset = 0 )
+    public function waitingAction(string $key1 = null, string $key2 = null, array $orderBy = array(), int $limit = 10, int $offset = 0): Response
     {
         //==============================================================================
         // Load Task Repository
-        $Repository =   $this->get('doctrine')
-                ->getManager()
-                ->getRepository('SplashTaskingBundle:Task');
+        $repository = $this->get('doctrine')
+            ->getManager()
+            ->getRepository('SplashTaskingBundle:Task');
         //==============================================================================
         // Compute Filters
-        $Filters    =   $this->getIndexKeysFindBy($Key2, $Key1);
-        $Filters["running"]     =   0;
-        $Filters["finished"]    =   1;
+        $filters = $this->getIndexKeysFindBy($key2, $key1);
+        $filters["running"] = 0;
+        $filters["finished"] = 0;
         //==============================================================================
         // Render All Tasks List
         return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(
-            'tasks'         =>  $Repository->findBy($Filters,$OrderBy,$Limit,$Offset)
+            'tasks' => $repository->findBy($filters, $orderBy, $limit, $offset),
         ));
-        
     }
-    
-   /**
-     * Display Summary of All Tasks with Indexes Filters
-     * 
-     * @param   string      $Key1           Your Custom Index Key 1
-     * @param   string      $Key2           Your Custom Index Key 2
-     * 
-     * @return \Symfony\Component\HttpFoundation\Response
+
+    /**
+     * Display List of All Actives Tasks
+     *
+     * @param string $key1    Your Custom Index Key 1
+     * @param string $key2    Your Custom Index Key 2
+     * @param array  $orderBy List Ordering
+     * @param int    $limit   Limit Number of Items
+     * @param int    $offset  Page Offset
+     *
+     * @return Response
      */
-    public function summaryAction( string $Key1 = Null, string $Key2 = Null)
+    public function activeAction(string $key1 = null, string $key2 = null, array $orderBy = array(), int $limit = 10, int $offset = 0): Response
     {
         //==============================================================================
         // Load Task Repository
-        $Repository =   $this->get('doctrine')
-                ->getManager()
-                ->getRepository('SplashTaskingBundle:Task');
+        $repository = $this->get('doctrine')
+            ->getManager()
+            ->getRepository('SplashTaskingBundle:Task');
+        //==============================================================================
+        // Compute Filters
+        $filters = $this->getIndexKeysFindBy($key2, $key1);
+        $filters["running"] = 1;
+        //==============================================================================
+        // Render All Tasks List
+        return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(
+            'tasks' => $repository->findBy($filters, $orderBy, $limit, $offset),
+        ));
+    }
+
+    /**
+     * Display List of All Waiting Tasks
+     *
+     * @param string $key1    Your Custom Index Key 1
+     * @param string $key2    Your Custom Index Key 2
+     * @param array  $orderBy List Ordering
+     * @param int    $limit   Limit Number of Items
+     * @param int    $offset  Page Offset
+     *
+     * @return Response
+     */
+    public function completedAction(string $key1 = null, string $key2 = null, array $orderBy = array(), int $limit = 10, int $offset = 0): Response
+    {
+        //==============================================================================
+        // Compute Filters
+        $filters = $this->getIndexKeysFindBy($key2, $key1);
+        $filters["running"] = 0;
+        $filters["finished"] = 1;
+        //==============================================================================
+        // Render All Tasks List
+        return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(
+            'tasks' => $this->getTasksRepository()->findBy($filters, $orderBy, $limit, $offset),
+        ));
+    }
+
+    /**
+     * Display Summary of All Tasks with Indexes Filters
+     *
+     * @param string $key1 Your Custom Index Key 1
+     * @param string $key2 Your Custom Index Key 2
+     *
+     * @return Response
+     */
+    public function summaryAction(string $key1 = null, string $key2 = null): Response
+    {
         //==============================================================================
         // Render Tasks Sumary
         return $this->render('SplashTaskingBundle:List:summary.html.twig', array(
-            'summary'         =>  $Repository->getTasksSummary($Key1,$Key2)
+            'summary' => $this->getTasksRepository()->getTasksSummary($key1, $key2),
         ));
-    } 
-    
-   /**
+    }
+
+    /**
      * Display Tasks Status List
-     * 
-     * @param   string      $Key1           Your Custom Index Key 1
-     * @param   string      $Key2           Your Custom Index Key 2
-     * @param   array       $OrderBy        List Ordering
-     * @param   int         $Limit          Limit Number of Items
-     * @param   int         $Offset         Page Offset
-     * 
-     * @return \Symfony\Component\HttpFoundation\Response
+     *
+     * @param string $key1    Your Custom Index Key 1
+     * @param string $key2    Your Custom Index Key 2
+     * @param array  $orderBy List Ordering
+     * @param int    $limit   Limit Number of Items
+     * @param int    $offset  Page Offset
+     *
+     * @return Response
      */
-    public function statusAction( string $Key1 = Null, string $Key2 = Null, array $OrderBy = [], int $Limit = 10, int $Offset = 0 )
+    public function statusAction(string $key1 = null, string $key2 = null, array $orderBy = array(), int $limit = 10, int $offset = 0): Response
     {
-        //==============================================================================
-        // Load Task Repository
-        $Repository =   $this->get('doctrine')
-                ->getManager()
-                ->getRepository('SplashTaskingBundle:Task');
-        
         //==============================================================================
         // Render Tasks Sumary
         return $this->render('SplashTaskingBundle:List:status.html.twig', array(
-            'status'         =>  $Repository->getTasksStatus($Key1,$Key2,$OrderBy,$Limit,$Offset)
+            'status' => $this->getTasksRepository()->getTasksStatus($key1, $key2, $orderBy, $limit, $offset),
         ));
-    } 
-    
-    
+    }
+
+    /**
+     * Create Index Keys FindBy Array
+     *
+     * @param string $indexKey1 Your Custom Index Key 1
+     * @param string $indexKey2 Your Custom Index Key 2
+     */
+    private function getIndexKeysFindBy(string $indexKey1 = null, string $indexKey2 = null) : array
+    {
+        $filters = array();
+        if (!empty($indexKey1)) {
+            $filters["jobIndexKey1"] = $indexKey1;
+        }
+        if (!empty($indexKey2)) {
+            $filters["jobIndexKey2"] = $indexKey2;
+        }
+
+        return $filters;
+    }
     
     /**
-     * @abstract    Create Index Keys FindBy Array
-     *  
-     * @param   string      $IndexKey1          Your Custom Index Key 1
-     * @param   string      $IndexKey2          Your Custom Index Key 2
-     */        
-    private function getIndexKeysFindBy(string $IndexKey1 = Null , string $IndexKey2 = Null) {
+     * Safe Load Tasks Repository
+     *
+     * @return TaskRepository
+     */
+    private function getTasksRepository(): TaskRepository
+    {
+        $repository = $this->get('doctrine')->getManager()
+            ->getRepository('SplashTaskingBundle:Task');
         
-        $Filters = [];
-        
-        if ( !empty($IndexKey1) ) {
-            $Filters["jobIndexKey1"] = $IndexKey1;
+        if(!($repository instanceof TaskRepository)) {
+            throw new \Exception("Unable to Load Tasks Repository");
         }
         
-        if ( !empty($IndexKey2) ) {
-            $Filters["jobIndexKey2"] = $IndexKey2;
-        }
-        
-        return $Filters;
-    }        
+        return $repository;
+    }
     
 }

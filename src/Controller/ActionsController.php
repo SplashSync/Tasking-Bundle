@@ -15,42 +15,29 @@ use Splash\Tasking\Entity\Task;
 class ActionsController extends Controller
 {
     /**
-     * @abstract    Start Tasking Supervisor on This Machine
-     * 
-     * @return \Symfony\Component\HttpFoundation\Response
+     * Start Tasking Supervisor on This Machine
+     *
+     * @return Response
      */
-    public function startAction( Request $request)
+    public function startAction() : Response
     {
-        //====================================================================//
-        // Check Crontab is Setuped     
-        if ( $this->get("TaskingService")->CrontabCheck() == Task::CRONTAB_DISABLED) {
-            //====================================================================//
-            // Ensure Supervisor is Running
-            $Result = $this->get("TaskingService")->SupervisorCheckIsRunning();
-        } else {
-            $Result = True;
-        }
-        
         //==============================================================================
-        // Init Static Tasks 
-        $this->get("TaskingService")->StaticTasksInit();
-        
+        // Dispatch tasking Bundle Check Event
+        $this->get("event_dispatcher")->dispatch("tasking.check");
         //==============================================================================
         // Render response
-        return new Response(
-                ($Result ? "Ok" : "KO"),
-                Response::HTTP_OK,
-                array('content-type' => 'text/html')
-                );
-    } 
+        return new Response("Ok", Response::HTTP_OK, array('content-type' => 'text/html'));
+    }
     
     
     /**
-     * @abstract    Start Tasking Bundle Tests
-     * 
-     * @return \Symfony\Component\HttpFoundation\Response
+     * Start Tasking Bundle Tests
+     *
+     * @return Response
+     *
+     * @SuppressWarnings(PHPMD.ElseExpression)
      */
-    public function testAction()
+    public function testAction(): Response
     {
         //====================================================================//
         // Stop Output Buffering
@@ -58,18 +45,18 @@ class ActionsController extends Controller
 
         //====================================================================//
         // Prepare for Running Test
-        $Command = "phpunit ";
+        $command = "phpunit ";
 
         //====================================================================//
         // Execute Test
-        $process = new Process($Command);
+        $process = Process::fromShellCommandline($command);
         $process->setTimeout(360);
-        $process->setWorkingDirectory($process->getWorkingDirectory() . "/..");
+        $process->setWorkingDirectory($process->getWorkingDirectory()."/..");
         $process->run(function ($type, $buffer) {
             if (Process::ERR === $type) {
-                echo '! '.nl2br($buffer) . PHP_EOL . "</br>";
+                echo '! '.nl2br($buffer).PHP_EOL."</br>";
             } elseif ($buffer != ".") {
-                echo '> '.nl2br($buffer) . PHP_EOL . "</br>";
+                echo '> '.nl2br($buffer).PHP_EOL."</br>";
             } else {
                 echo nl2br($buffer);
             }
@@ -78,14 +65,11 @@ class ActionsController extends Controller
 
         //====================================================================//
         // Display result message
-        if ( !$process->isSuccessful() ) {
-            echo "</br></br>!!!!!! FAIL!";
-        } else {
-            echo "</br></br>>>>>>> PASS!";
-        }            
+        $response = $process->isSuccessful()
+                ? "</br></br>>>>>>> PASS!"
+                : "</br></br>!!!!!! FAIL!";
         ob_start();
                 
-        exit;
-    } 
-    
+        return new Response($response, Response::HTTP_OK);
+    }
 }

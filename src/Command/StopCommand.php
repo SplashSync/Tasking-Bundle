@@ -1,19 +1,64 @@
 <?php
 
+/*
+ *  This file is part of SplashSync Project.
+ *
+ *  Copyright (C) 2015-2019 Splash Sync  <www.splashsync.com>
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
+ */
+
 namespace Splash\Tasking\Command;
 
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Symfony\Component\Console\Input\InputArgument;
+use DateTime;
+use Splash\Tasking\Entity\Worker;
+use Splash\Tasking\Services\TaskingService;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Command\Command;
+use Splash\Tasking\Services\WorkersManager;
 
-class StopCommand extends ContainerAwareCommand
+/**
+ * Workers Stop Command - Ask All Workers to Stop
+ */
+class StopCommand extends Command
 {
-    
-    private $Tasking;
-    private $Timeout;
-    
+    /**
+     * Workers Manager Service
+     *
+     * @var WorkersManager
+     */
+    private $manager;
+
+    /**
+     * Class Constructor
+     * 
+     * @param WorkersManager $workerManager
+     */
+    public function __construct(WorkersManager $workerManager)
+    {
+        parent::__construct('tasking:stop');
+        //====================================================================//
+        // Link to Worker Manager Service
+        $this->manager = $workerManager;
+    } 
+
+    /**
+     * Timeout for Worker Stop
+     *
+     * @var DateTime
+     */
+    private $timeout;
+
+    /**
+     * {@inheritdoc}
+     */
     protected function configure()
     {
         $this
@@ -24,137 +69,65 @@ class StopCommand extends ContainerAwareCommand
         parent::configure();
     }
 
-    protected function execute(InputInterface $Input, OutputInterface $Output)
+    /**
+     * {@inheritdoc}
+     */
+    protected function execute(InputInterface $input, OutputInterface $output)
     {
         //====================================================================//
-        // Init Tasking Service        
-        $this->Tasking = $this->getContainer()->get("TaskingService");
-        
-        //====================================================================//
-        // Init Outputs        
-        $this->output = $Output;
-
-        //====================================================================//
-        // User Information        
-        if ($Output->isVerbose()) {
-            $Output->writeln('<info> Stop Supervisor & Workers Process on all found Machines. </info>');
+        // User Information
+        if ($output->isVerbose()) {
+            $output->writeln('<info> Stop Supervisor & Workers Process on all found Machines. </info>');
         }
-
         //====================================================================//
         // Request All Active Workers to Stop
-        $this->SetupAllWorkers(False);
-
+        $this->manager->setupAllWorkers(false);
         //====================================================================//
         // Setup TimeOut for this operation
-        $this->SetupTimeout();
-        
+        $this->setupTimeout();
         //====================================================================//
         // Count Total Number of Wrokers
-        $Total = count($this->getContainer()->get('doctrine')
-                ->getRepository('SplashTaskingBundle:Worker')
-                ->findAll());
-                
+        $total = $this->manager->countActiveWorkers();
         //====================================================================//
-        // Track Workers are Stopped       
-        while ( ($Count = $this->CountActiveWorkers()) && !$this->isInTimeout() ) {
-            
+        // Track Workers are Stopped
+        while (($count = $this->manager->countActiveWorkers()) && !$this->isInTimeout()) {
             //====================================================================//
-            // User Information        
-            $Output->writeln('<info> Still ' . $Count . ' Actives Workers Process... </info>');
-
+            // User Information
+            $output->writeln('<info> Still '.$count.' Actives Workers Process... </info>');
             //====================================================================//
             // Request All Active Workers to Stop
-            $this->SetupAllWorkers(False);
-
+            $this->manager->setupAllWorkers(false);
             //====================================================================//
-            // Pause        
+            // Pause
             sleep(1);
-            
-        } 
-        
-        if ( $Input->hasParameterOption('--no-restart') ) {
-            $Output->writeln('<question>' . $Total . ' Workers now Sleeping... </question>');
-            return;
         }
-                
         //====================================================================//
-        // Request All Active Workers to Stop
-        $this->SetupAllWorkers(True);
+        // Check if User Asked to Restart Workers or NOT
+        if ($input->hasParameterOption('--no-restart')) {
+            $output->writeln('<question>'.$total.' Workers now Sleeping... </question>');
 
-    }
-
-    private function SetupAllWorkers($Enabled = True) 
-    {
-        //====================================================================//
-        // Clear EntityManager
-        $this->getContainer()->get('doctrine')->getManager()->clear();
-        
-        //====================================================================//
-        // Load List of All Currently Setuped Workers
-        $Workers = $this->getContainer()->get('doctrine')
-                ->getRepository('SplashTaskingBundle:Worker')
-                ->findAll();
-        
-        //====================================================================//
-        // Set All Actives Workers as Disabled
-        foreach ($Workers as $Worker) {
-            //====================================================================//
-            // Safety Check - Worker doesn't exists        
-            if ($Worker == False)  {
-                continue;
-            }
-            //====================================================================//
-            // Worker Is Active => Set as Disabled
-            $Worker->setEnabled($Enabled);
+            return null;
         }
-        
         //====================================================================//
-        // Save Changes to Db
-        $this->getContainer()->get('doctrine')->getManager()->flush();
+        // Request All Active Workers to Restart
+        $this->manager->setupAllWorkers(true);
     }
-    
-    private function CountActiveWorkers() : int
-    {
 
-        //====================================================================//
-        // Clear EntityManager
-        $this->getContainer()->get('doctrine')->getManager()->clear();
-        
-        //====================================================================//
-        // Load List of All Currently Setuped Workers
-        $Workers = $this->getContainer()->get('doctrine')
-                ->getRepository('SplashTaskingBundle:Worker')
-                ->findAll();
-        
-        //====================================================================//
-        // Count Actives Workers
-        $ActivesWorkers = 0;
-        foreach ($Workers as $Worker) {
-            //====================================================================//
-            // Safety Check - Worker doesn't exists        
-            if ($Worker == False)  {
-                continue;
-            }
-            //====================================================================//
-            // Worker Is Inactive => Nothing to Do
-            if ($Worker->getRunning() == False)  {
-                continue;
-            }
-            $ActivesWorkers++;
-        }
-        
-        return $ActivesWorkers;
-    }
-    
-    private function SetupTimeout() 
+    /**
+     * Configure Commande Timeout
+     */
+    private function setupTimeout() : void
     {
-        $TimeOutDelay = $this->getContainer()->getParameter('splash_tasking')["watchdog_delay"];
-        $this->Timeout  = new \DateTime("- " . $TimeOutDelay . " Seconds");
+        $this->timeout = new DateTime("- 30 Seconds");
     }
-    
-    private function isInTimeout() : bool 
+
+    /**
+     * Check if Command Timeout is Exceded
+     *
+     * @return bool
+     */
+    private function isInTimeout() : bool
     {
-        return ( $this->Timeout->getTimestamp() > (new \DateTime)->getTimestamp() );
+        return ($this->timeout->getTimestamp() > (new DateTime())->getTimestamp());
     }
 }
-    

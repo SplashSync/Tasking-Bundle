@@ -1,97 +1,114 @@
 <?php
 
+/*
+ *  This file is part of SplashSync Project.
+ *
+ *  Copyright (C) 2015-2019 Splash Sync  <www.splashsync.com>
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
+ */
+
 namespace Splash\Tasking\Model;
 
-use Splash\Tasking\Model\AbstractJob;
+use Exception;
 
 /**
- * @abstract    Service Action for Background Jobs
- *
- * @author Bernard Paquier <eshop.bpaquier@gmail.com>
+ * Service Action for Background Jobs
  */
-abstract class AbstractServiceJob extends AbstractJob {
-    
+abstract class AbstractServiceJob extends AbstractJob
+{
     //==============================================================================
-    //  Constants Definition           
+    //  Constants Definition
     //==============================================================================
 
     /**
-     * @abstract    Job Inputs => Load here all inputs parameters for your task
-     *      
+     * Job Inputs => Load here all inputs parameters for your task
+     *
      * @var array
      */
-    protected $inputs      = array(
-        "Service"       =>  Null,
-        "Method"        =>  Null,
-        "Inputs"        =>  array()
-    );  
-    
-    /*
-     * @abstract Job Display Settings
-     */    
-    protected $settings   = array(
-        "label"                 =>      "Service Job",
-        "description"           =>      "Abstract Service Job Base",
-        "translation_domain"    =>      False,
-        "translation_params"    =>      array()
+    protected $inputs = array(
+        "Service" => null,
+        "Method" => null,
+        "Inputs" => array(),
     );
-    
-    
-//==============================================================================
-//      Service Job Execution
-//==============================================================================
 
-    /*
-     * @abstract    Overide this function to validate you Input parameters
-     */    
-    public function validate() : bool {
-        
+    /**
+     * Job Display Settings
+     *
+     * @var array
+     */
+    protected $settings = array(
+        "label" => "Service Job",
+        "description" => "Abstract Service Job Base",
+        "translation_domain" => false,
+        "translation_params" => array(),
+    );
+
+    //==============================================================================
+    //      Service Job Execution
+    //==============================================================================
+
+    /**
+     * Overide this function to validate you Input parameters
+     *
+     * @throws Exception
+     *
+     * @return bool
+     */
+    public function validate() : bool
+    {
         //====================================================================//
         // Check Inputs Are Not Empty
-        if( empty($this->getService()) || empty($this->getMethod())) {
-            return False;
+        if (empty($this->getService()) || empty($this->getMethod())) {
+            return false;
         }
-        
+
         //====================================================================//
         // Check Service & Method Exists
-        if( !$this->container->has($this->getService()) ) {
-            throw new \Exception("Service " . $this->getService() . " not found");            
+        if (!$this->container->has($this->getService())) {
+            throw new Exception(sprintf("Service %s not found", $this->getService()));
         }
-        if( !method_exists($this->container->get($this->getService()) , $this->getMethod()) ) {
-            throw new \Exception("Method " . $this->getMethod() . " not found");            
+        if (!method_exists($this->container->get($this->getService()), $this->getMethod())) {
+            throw new Exception(sprintf("Method %s not found", $this->getMethod()));
         }
-        return True;
-    }
-    
-    /*
-     * @abstract    Overide this function to perform your task
-     */    
-    public function execute() : bool {
-        
-        //====================================================================//
-        // Load Requested Service
-        $Service    =   $this->container->get($this->getService());
-        $Method     =   $this->getMethod();
-        $Inputs     =   $this->getInputs();
-        
-        //====================================================================//
-        // Execute Service Method
-        return $Service->{ $Method }($Inputs);
+
+        return true;
     }
 
-    
-//==============================================================================
-//      Specific Getters & Setters
-//==============================================================================
-        
+    /**
+     * Overide this function to perform your task
+     *
+     * @return bool
+     */
+    public function execute() : bool
+    {
+        //====================================================================//
+        // Load Requested Service
+        $service = $this->container->get($this->getService());
+        $method = $this->getMethod();
+        $inputs = $this->getInputs();
+        //====================================================================//
+        // Execute Service Method
+        return $service->{ $method }($inputs);
+    }
+
+    //==============================================================================
+    //      Specific Getters & Setters
+    //==============================================================================
+
     /**
      * Get Service Job Service Name
      *
      * @return string
      */
-    public function getService()
+    public function getService(): string
     {
-        return isset($this->inputs["Service"]) ? $this->inputs["Service"] : Null;
+        return isset($this->inputs["Service"]) ? $this->inputs["Service"] : "";
     }
 
     /**
@@ -99,12 +116,12 @@ abstract class AbstractServiceJob extends AbstractJob {
      *
      * @param string $service
      *
-     * @return string
+     * @return self
      */
-    public function setService($service)
+    public function setService(string $service): self
     {
         $this->inputs["Service"] = $service;
-        
+
         return $this;
     }
 
@@ -113,9 +130,9 @@ abstract class AbstractServiceJob extends AbstractJob {
      *
      * @return string
      */
-    public function getMethod()
+    public function getMethod(): string
     {
-        return isset($this->inputs["Method"]) ? $this->inputs["Method"] : Null;
+        return isset($this->inputs["Method"]) ? $this->inputs["Method"] : "";
     }
 
     /**
@@ -123,42 +140,40 @@ abstract class AbstractServiceJob extends AbstractJob {
      *
      * @param string $method
      *
-     * @return AbstractServiceJob
+     * @return $this
      */
-    public function setMethod($method)
+    public function setMethod(string $method): self
     {
         $this->inputs["Method"] = $method;
-        
+
         return $this;
     }
-    
+
     /**
      * Set Job Inputs
-     * 
+     *
      * @param array $inputs
      *
-     * @return AbstractServiceJob
+     * @return $this
      */
-    public function setInputs($inputs)
+    public function setInputs(array $inputs): AbstractJob
     {
         $this->inputs["Inputs"] = $inputs;
-        
+
         return $this;
-    }     
+    }
 
     /**
      * Get Job Inputs
      *
      * @return array
      */
-    public function getInputs()
+    public function getInputs(): array
     {
-        if ( isset($this->inputs["Inputs"]) ) {
+        if (isset($this->inputs["Inputs"])) {
             return $this->inputs["Inputs"];
         }
-        return Null;
-    }     
-    
 
-    
+        return array();
+    }
 }

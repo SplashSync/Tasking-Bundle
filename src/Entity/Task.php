@@ -1,692 +1,200 @@
 <?php
 
+/*
+ *  This file is part of SplashSync Project.
+ *
+ *  Copyright (C) 2015-2019 Splash Sync  <www.splashsync.com>
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
+ */
+
 namespace Splash\Tasking\Entity;
 
 use DateTime;
-
 use Doctrine\ORM\Mapping as ORM;
-
-use Symfony\Component\Console\Output\OutputInterface;
-
-// OptionResolver for Task Settings Management
-use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException;
+use Splash\Tasking\Model\AbstractTask;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
-
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-
-use Symfony\Component\Validator\Constraints as Assert;
-
+use Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * @abstract    Splash Task Storage Object
- * 
+ * Splash Task Storage Object
+ *
  * @ORM\Entity(repositoryClass="Splash\Tasking\Repository\TaskRepository")
  * @ORM\Table(name="system__tasks")
  * @ORM\HasLifecycleCallbacks
- * 
  */
-class Task
+class Task extends AbstractTask
 {
-    
-//==============================================================================
-//  Constants Definition           
-//==============================================================================
 
-    /*
-     *  Tasks Priority
-     */    
-    const DO_HIGHEST        = 10;
-    const DO_HIGH           = 7;
-    const DO_NORMAL         = 5;
-    const DO_LOW            = 3;
-    const DO_LOWEST         = 1;
+    //==============================================================================
+    //      Task Priority
+    //==============================================================================
 
-    /*
-     *  Crontab Status
-     */    
-    const CRONTAB_OK        = "Crontab Configuration Already Done";
-    const CRONTAB_DISABLED  = "Crontab Management is Disabled";
-    const CRONTAB_UPDATED   = "Crontab Configuration Updated";
-    
-    /*
-     *  Task Settings
-     */    
-    static $DEFAULT_SETTINGS  = array(
-        "label"                 =>      "Default Task Title",
-        "description"           =>      "Default Task Description",
-        "translation_domain"    =>      False,
-        "translation_params"    =>      array()
+    /** @var int */
+    const DO_HIGHEST = 10;
+    /** @var int */
+    const DO_HIGH = 7;
+    /** @var int */
+    const DO_NORMAL = 5;
+    /** @var int */
+    const DO_LOW = 3;
+    /** @var int */
+    const DO_LOWEST = 1;
+
+    //==============================================================================
+    //      Crontab Status
+    //==============================================================================
+
+    /** @var string */
+    const CRONTAB_OK = "Crontab Configuration Already Done";
+    /** @var string */
+    const CRONTAB_DISABLED = "Crontab Management is Disabled";
+    /** @var string */
+    const CRONTAB_UPDATED = "Crontab Configuration Updated";
+
+    // Task Settings
+    private static $defaultSettings = array(
+        "label" => "Default Task Title",
+        "description" => "Default Task Description",
+        "translation_domain" => false,
+        "translation_params" => array(),
     );
-    
-//==============================================================================
-//      Definition           
-//==============================================================================
-        
-    
-    /**
-     * @var integer
-     * @ORM\Id
-     * @ORM\Column(type="integer")
-     * @ORM\GeneratedValue(strategy="AUTO")
-     */
-    private $id;
 
     /**
-     * @abstract    Task Name (Unused in User HMI, Only for Admin)
-     * @var         string
-     * @ORM\Column(name="Name", type="string", length=250)
+     * Class Constructor
      */
-    private $name;
-    
-    //==============================================================================
-    //      Task Display Informations
-    //==============================================================================
-    
-    /**
-     * @abstract    Task Display Settings
-     * @var         array
-     * @ORM\Column(name="Settings", type="array")
-     */
-    private $settings = array();
-
-    //==============================================================================
-    //      Task User Parameters           
-    //==============================================================================
-    
-    /**
-     * @var string
-     * @ORM\Column(name="JobClass", type="string", length=250)
-     */
-    private $jobClass;
-
-    /**
-     * @var string
-     * @ORM\Column(name="JobAction", type="string", length=250)
-     */
-    private $jobAction;
-
-    /**
-     * @var string
-     * @ORM\Column(name="JobPriority", type="string", length=250)
-     */
-    private $jobPriority = self::DO_NORMAL;
-
-    /**
-     * @var array
-     * @ORM\Column(name="JobInputs", type="array", nullable=TRUE)
-     */
-    private $jobInputs = array();
-
-    /**
-     * @var string
-     * @ORM\Column(name="JobToken", type="string", length=250, nullable=TRUE)
-     */
-    private $jobToken;
-    
-    /**
-     * @var string
-     * @ORM\Column(name="JobIndexKey1", type="string", length=250, nullable=TRUE)
-     */
-    private $jobIndexKey1;    
-
-    /**
-     * @var string
-     * @ORM\Column(name="JobIndexKey2", type="string", length=250, nullable=TRUE)
-     */
-    private $jobIndexKey2;    
-
-    /**
-     * @abstract        Set if Job is A Static Job. Defined in configuration 
-     * 
-     * @var boolean
-     * @ORM\Column(name="JobIsStatic", type="boolean", nullable=TRUE)
-     */
-    private $jobIsStatic = False;
-
-    /**
-     * @abstract        Repeat Delay in Minutes 
-     * 
-     * @var integer
-     * @ORM\Column(name="JobFreq", type="integer", nullable=TRUE)
-     */
-    private $jobFrequency = Null;
-    
-    //==============================================================================
-    //      Status           
-    //==============================================================================
-    
-    /**
-     * Count Number of Task Execution Tentatives
-     * 
-     * @var integer
-     * @ORM\Column(name="NbTry", type="integer", nullable=TRUE)
-     * 
-     * @Assert\Range(
-     *      min = 0,
-     *      max = 10
-     * )
-     */
-    private $try = 0;
-
-    /**
-     * Task is Pending
-     * 
-     * @var boolean
-     * @ORM\Column(name="Running", type="boolean", nullable=TRUE)
-     */
-    private $running = False;
-
-    /**
-     * Task is Finished
-     * 
-     * @var boolean
-     * @ORM\Column(name="Finished", type="boolean", nullable=TRUE)
-     */
-    private $finished = False;
-
-    /**
-     * @var DateTime
-     * @ORM\Column(name="StartedAt", type="datetime", nullable=TRUE)
-     */
-    private $startedAt;
-
-    /**
-     * @var integer
-     * @ORM\Column(name="StartedAtTimeStamp", type="integer", nullable=TRUE)
-     */
-    private $startedAtTimeStamp;
-
-    /**
-     * @var integer
-     */
-    private $startedAtMicroTime;
-    
-    /**
-     * @var integer
-     * @ORM\Column(name="FinishedAt", type="datetime", nullable=TRUE)
-     */
-    private $finishedAt;
-
-    /**
-     * @var integer
-     * @ORM\Column(name="FinishedAtTimeStamp", type="integer", nullable=TRUE)
-     */
-    private $finishedAtTimeStamp;
-    
-    /**
-     * @var string
-     * @ORM\Column(name="StartedBy", type="string", length=250, nullable=TRUE)
-     */
-    private $startedBy;
-    
-    /**
-     * @var DateTime
-     * @ORM\Column(name="PlannedAt", type="datetime", nullable=TRUE)
-     */
-    private $plannedAt;
-    
-    /**
-     * @var integer
-     * @ORM\Column(name="PlannedAtTimeStamp", type="integer", nullable=TRUE)
-     */
-    private $plannedAtTimeStamp;
-
-    /**
-     * @abstract    Task Duration in Ms
-     * @var integer
-     * @ORM\Column(name="duration", type="integer", nullable=TRUE)
-     */
-    private $duration;
-    
-    //==============================================================================
-    //      Audit           
-    //==============================================================================
-    
-    /**
-     * @abstract        Task Discriminator - Unique Task Identification
-     * 
-     * @var integer
-     * @ORM\Column(name="Md5", type="string", length=250)
-     */
-    private $discriminator = Null;
-        
-    /**
-     * @var \DateTime
-     * @ORM\Column(name="CreatedAt", type="datetime")
-     */
-    private $createdAt;
-
-    /**
-     * @var string
-     * @ORM\Column(name="CreatedBy", type="string", length=250)
-     */
-    private $createdBy;
-
-    /**
-     * @var string
-     * @ORM\Column(name="Fault", type="text", nullable=TRUE)
-     */
-    private $fault_str;
-
-    /**
-     * @var string
-     * @ORM\Column(name="FaultTrace", type="text", nullable=TRUE)
-     */
-    private $fault_trace;
-    
-    /**
-     * @var string
-     * @ORM\Column(name="Outputs", type="text", nullable=TRUE)
-     */
-    private $outputs;
-    
-    function __construct() {
-        $this->setSettings(static::$DEFAULT_SETTINGS);
-    }
-
-
-//==============================================================================
-//      Task Execution Management
-//==============================================================================
-
-    /**
-     * @abstract    Main Function for Job Execution  
-     */    
-    public function Execute(OutputInterface $Output) {   
-        
-        //==============================================================================
-        // Init Task Execution
-        $Result = False;        // Task is Considered as Fail until returned Passed by JobInterface
-        ob_start();             // Turn On Output Buffering to Get Task Outputs Captured
-                    
-            
-        //==============================================================================
-        // Execute Requested Operation
-        //==============================================================================
-        try {
-            //==============================================================================
-            // Execute Job Self Validate & Prepare Methods
-            if ( $this->job->validate() && $this->job->prepare() ) {
-                
-                //==============================================================================
-                // Execute Job Action
-                $Result = $this->job->{$this->getJobAction()}();
-                if ( !$Result ) {
-                    $this->setFaultStr("An error occured when executing this Job.", $Output);
-                }
-            
-                //==============================================================================
-                // Execute Job Self Finalize & Close Methods
-                if ( !$this->job->finalize() || !$this->job->close() ) {
-                    $this->setFaultStr("An error occured when closing this Job.", $Output);
-                }
-            } elseif (empty($this->getFaultStr())) {
-                $this->setFaultStr("Unable to initiate this Job.", $Output);
-            }
-        }            
-        //==============================================================================
-        // Catch Any Exceptions that may occur during task execution
-        catch( \Exception $e) {
-            $this->setFaultStr($e->getMessage() . PHP_EOL . $e->getFile() . " Line " . $e->getLine(), $Output);
-            $this->setFaultTrace($e->getTraceAsString());
-        }
-        
-        //==============================================================================
-        // Flush Output Buffer
-        $this->appendOutputs(ob_get_contents());
-        ob_end_clean();
-        
-        //==============================================================================
-        // If Job is Successful => Store Status
-        if ( $Result ) {
-            $this->setFinished(True);
-        }
-        return $Result;
-        
-    } 
-    
-    
-    /**
-     * @abstract    Validate Job For Execution  
-     */    
-    public function Validate(OutputInterface $Output, $Container) {
-
-        //==============================================================================
-        // Load Requested Class
-        if ( empty($JobClass = $this->getJobClass()) || !class_exists($this->getJobClass()) ) {
-            $this->setFaultStr("Unable to find Requested Job Class : " . $JobClass, $Output);
-            return False;
-        }        
-        $this->job = new $JobClass();
-        
-        //====================================================================//
-        // Job Class is SubClass of Base Job Class
-        if ( !is_a($this->job, "Splash\Tasking\Model\AbstractJob")) {
-            return False;
-        } 
-        
-        //====================================================================//
-        // Job Class is Container Aware
-        if ($this->job instanceof ContainerAwareInterface) {
-            $this->job->setContainer($Container);
-        }
-
-        //==============================================================================
-        // Verify Requested Method Exists
-        if ( empty($this->getJobAction()) || !method_exists($this->job, $this->getJobAction()) ) {
-            $this->setFaultStr("Unable to find Requested Function", $Output);
-            return False;
-        }
-        
-        return True;
-    }
-
-    /**
-     * @abstract    Prepare Job For Execution  
-     */    
-    public function Prepare(OutputInterface $Output) {
-
-        //====================================================================//
-        // Init Task
-        $this->setRunning       (True);
-        $this->setFinished      (False);
-        $this->setStartedAt     ();
-        $this->setStartedBy     ($this->getCurrentServer());
-        $this->setTry           ($this->getTry() + 1 );
-        $this->setFaultStr      (Null);
-
-        //==============================================================================
-        // Check Task Parameters
-        if ( !is_array($this->getJobInputs()) && !is_a($this->getJobInputs(), "ArrayObject") ) {
-            $this->setFaultStr( "Wrong Inputs Format" , $Output);
-            return False;
-        }
-        
-        //====================================================================//
-        // Safety Check
-        if ( $this->getFinished() && !$this->getJobIsStatic() ) {
-            $this->setFaultStr( "Your try to Start an Already Finished Task!!" , $Output);
-            return False;
-        } 
-       
-        //====================================================================//
-        // Init User Job
-        $this->job->__set("inputs" , $this->getJobInputs());
-        
-        //====================================================================//
-        // User Information             
-        if ($Output->isVerbose()) {
-            $Output->writeln('<info> Execute : ' . $this->getJobClass() . " -> " . $this->getJobAction() . '  (' . $this->getId()  .  ')</info>');
-            $Output->writeln('<info> Parameters : ' . print_r($this->getJobInputs(),True) . '</info>');
-        } else {
-            $Output->write('<info>o</info>');
-        }    
-        
-        return True;
-
-    } 
-    
-    /**
-     * @abstract    End Task on Scheduler  
-     * 
-     * @param   int $MaxTry Max number of retry. Once reached, task is forced to finished.
-     */    
-    public function Close($MaxTry, OutputInterface $Output = null) {
-
-        
-        //==============================================================================
-        // End of Task Execution
-        $this->setRunning(False);
-        $this->setFinishedAt();
-        
-
-        //==============================================================================
-        // If Static Task => Set Next Planned Execution Date
-        if ( $this->getJobIsStatic()) {
-            $this->setTry(0);
-            $this->setPlannedAt( 
-                    new \DateTime( "+" . $this->getJobFrequency() . "Minutes ")
-                    );
-        }
-        
-        //==============================================================================
-        // Store Task Result
-        if ( $this->getTry() > $MaxTry ) {
-            $this->setFinished(True);
-            return;
-        }        
-              
-        if ( isset($this->job) && is_a($this->job, "Splash\Tasking\Model\AbstractBatchJob") ) {
-            //==============================================================================
-            // If Batch Task Not Completed => Setup For Next Execution
-            if ( !$this->job->getStateItem("isCompleted") ) {
-                $this->setTry(0);
-                $this->setFinished(False);
-            }
-            //==============================================================================
-            // Backup Inputs Parameters For Next Actions
-            $this->setJobInputs($this->job->__get("inputs"));
-        }    
-        
-        //====================================================================//
-        // User Information             
-        if ($Output && $Output->isVerbose()) {
-            $Output->writeln('<info> Delay : ' . $this->getDuration() . " Milliseconds </info>");
-        }         
-    }            
-    
-    /**
-     * Set faultStr
-     *
-     * @param string $faultStr
-     *
-     * @return Task
-     */
-    public function setFaultStr($faultStr, OutputInterface $Output = Null)
+    public function __construct()
     {
-        $this->fault_str = $faultStr;
-        
-        if ( $Output ) {
-            $Output->writeln('<error>' . $faultStr . '</error>');
-        }
+        $this->setSettings(static::$defaultSettings);
+    }
 
-        return $this;
-    }    
-    
+    //==============================================================================
+    //      LifeCycle Events
+    //==============================================================================
 
-    
-//==============================================================================
-//      LifeCycle Events
-//==============================================================================
-    
-    
-    /** @ORM\PrePersist() */    
+    /** @ORM\PrePersist() */
     public function prePersist()
     {
         //====================================================================//
         // Set Created Date
-        $this->setCreatedAt(new \DateTime);
-
+        $this->setCreatedAt(new DateTime);
         //====================================================================//
         // Set Created By
-        $this->setCreatedBy(  $this->getCurrentServer() );
-        
+        $this->setCreatedBy($this->getCurrentServer());
         //====================================================================//
         // Update Task Discriminator
         $this->updateDiscriminator();
     }
 
-    /** @ORM\PreUpdate() */    
+    /** @ORM\PreUpdate() */
     public function preUpdate()
     {
         //====================================================================//
         // Update Task Discriminator
         $this->updateDiscriminator();
     }
-    
-//==============================================================================
-//      Specific Getters & Setters
-//==============================================================================
-    
+
+    //==============================================================================
+    //      Specific Getters & Setters
+    //==============================================================================
+
     /**
      * Get Current Server Identifier
      *
      * @return string
      */
-    public function getCurrentServer()
+    public static function getCurrentServer(): string
     {
         //====================================================================//
         // Load Current Server Infos
-        $System    = posix_uname();
+        $system = posix_uname();
         //====================================================================//
         // Return machine Name
-        return $System["nodename"];
+        return $system["nodename"];
     }
-    
-    /**
-     * Set startedAt
-     *
-     * @param DateTime $startedAt
-     *
-     * @return Task
-     */
-    private function setStartedAt(DateTime $startedAt = null)
-    {
-        if (is_null($startedAt)) {
-            $startedAt  = new DateTime();
-        } 
-        //====================================================================//
-        // Store date as DateTime
-        $this->startedAt            = $startedAt;
-        //====================================================================//
-        // Store date as TimeStamp
-        $this->startedAtTimeStamp   = $startedAt->getTimestamp();
-        //====================================================================//
-        // Store date as MicroTime
-        $this->startedAtMicroTime   = microtime(true);
-        return $this;
-    }
-    
-    /**
-     * Set finishedAt
-     *
-     * @param DateTime $finishedAt
-     *
-     * @return Task
-     */
-    private function setFinishedAt(DateTime $finishedAt = null)
-    {
-        if (is_null($finishedAt)) {
-            $finishedAt  = new DateTime();
-        }         
-        //====================================================================//
-        // Store date as DateTime
-        $this->finishedAt           = $finishedAt;
-        //====================================================================//
-        // Store date as TimeStamp
-        $this->finishedAtTimeStamp  = $finishedAt->getTimestamp();
-        
-        //====================================================================//
-        // Store Task Duration
-        if ($this->startedAtMicroTime) {
-            $this->setDuration((int) 1E3 * (microtime(true) - $this->startedAtMicroTime));    
-        }
-        return $this;
-    }
-    
+
     /**
      * Get Task Delay in Seconds
      *
      * @return int
      */
-    public function getDelay()
+    public function getDelay(): int
     {
         if (empty($this->finishedAtTimeStamp) || empty($this->startedAtTimeStamp)) {
             return 0;
         }
+
         return ($this->finishedAtTimeStamp - $this->startedAtTimeStamp);
-    } 
-    
-    /**
-     * Set plannedAt
-     *
-     * @param \DateTime $plannedAt
-     *
-     * @return Task
-     */
-    private function setPlannedAt($plannedAt)
-    {
-        //====================================================================//
-        // Store date as DateTime
-        $this->plannedAt           = $plannedAt;
-        //====================================================================//
-        // Store date as TimeStamp
-        $this->plannedAtTimeStamp  = $plannedAt->getTimestamp();
-        
-        return $this;
     }
-    
+
     /**
      * Set setting
      *
-     * @param string    $Domain
-     * @param mixed     $Value
+     * @param string $domain
+     * @param mixed  $value
      *
-     * @return User
+     * @return $this
      */
-    public function setSetting($Domain,$Value)
+    public function setSetting(string $domain, $value): self
     {
         //==============================================================================
         // Read Full Settings Array
-        $Settings = $this->getSettings();
+        $settings = $this->getSettings();
         //==============================================================================
         // Update Domain Setting
-        $Settings[$Domain] = $Value;
+        $settings[$domain] = $value;
         //==============================================================================
         // Update Full Settings Array
-        $this->setSettings($Settings);
+        $this->setSettings($settings);
+
         return $this;
     }
-    
+
     /**
      * Set settings
      *
      * @param array $settings
      *
-     * @return User
+     * @return $this
      */
-    public function setSettings($settings)
+    public function setSettings(array $settings): self
     {
         $this->settings = $settings;
-        
         //==============================================================================
         //  Init Settings Array using OptionResolver
-        $resolver = (new OptionsResolver())->setDefaults(static::$DEFAULT_SETTINGS);
+        $resolver = (new OptionsResolver())->setDefaults(static::$defaultSettings);
         //==============================================================================
-        //  Update Settings Array using OptionResolver        
+        //  Update Settings Array using OptionResolver
         try {
             $this->settings = $resolver->resolve($settings);
-        //==============================================================================
-        //  Invalid Field Definition Array   
+            //==============================================================================
+        //  Invalid Field Definition Array
         } catch (UndefinedOptionsException $ex) {
-            $this->settings  =   static::$SETTINGS;
+            $this->settings = static::$defaultSettings;
         } catch (InvalidOptionsException $ex) {
-            $this->settings  =   static::$SETTINGS;
-        } 
-            
-        return $this;        
+            $this->settings = static::$defaultSettings;
+        }
+
+        return $this;
     }
-    
+
     /**
      * Append Task Outputs
      *
+     * @param string $text
+     *
      * @return string
      */
-    public function appendOutputs($Text)
+    public function appendOutputs(string $text): string
     {
-        return $this->outputs .= $Text . PHP_EOL;
-    }    
+        return $this->outputs .= $text.PHP_EOL;
+    }
 
     /**
      * Get jobInputs as a string
@@ -695,225 +203,29 @@ class Task
      */
     public function getJobInputsStr() : string
     {
-        return "<PRE>" . print_r($this->jobInputs , True) . "</PRE>";
+        return "<PRE>".print_r($this->jobInputs, true)."</PRE>";
     }
-    
+
     /**
      * Update Task Disciminator
      *
-     * @return Task
+     * @return $this
      */
-    public function updateDiscriminator()
+    public function updateDiscriminator(): self
     {
         //====================================================================//
         // Prepare Discrimination Array
-        $Array  =   array(
+        $array = array(
             $this->getJobClass(),
             $this->getJobAction(),
             $this->getJobInputs(),
             $this->getSettings(),
         );
-        
         //====================================================================//
         // Setup Discriminator
-        $this->discriminator    =   md5(serialize($Array));
-        
-        return $this;
-    }    
-    
-
-    
-//==============================================================================
-//      Getters & Setters
-//==============================================================================
-
-
-    /**
-     * Get id
-     *
-     * @return integer
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-     * Set name
-     *
-     * @param string $name
-     *
-     * @return Task
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
+        $this->discriminator = md5(serialize($array));
 
         return $this;
-    }
-
-    /**
-     * Get name
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * Get settings
-     *
-     * @return array
-     */
-    public function getSettings()
-    {
-        return $this->settings;
-    }
-
-    /**
-     * Set jobClass
-     *
-     * @param string $jobClass
-     *
-     * @return Task
-     */
-    public function setJobClass($jobClass)
-    {
-        $this->jobClass = $jobClass;
-
-        return $this;
-    }
-
-    /**
-     * Get jobClass
-     *
-     * @return string
-     */
-    public function getJobClass()
-    {
-        return $this->jobClass;
-    }
-
-    /**
-     * Set jobAction
-     *
-     * @param string $jobAction
-     *
-     * @return Task
-     */
-    public function setJobAction($jobAction)
-    {
-        $this->jobAction = $jobAction;
-
-        return $this;
-    }
-
-    /**
-     * Get jobAction
-     *
-     * @return string
-     */
-    public function getJobAction()
-    {
-        return $this->jobAction;
-    }
-
-    /**
-     * Set jobPriority
-     *
-     * @param string $jobPriority
-     *
-     * @return Task
-     */
-    public function setJobPriority($jobPriority)
-    {
-        $this->jobPriority = $jobPriority;
-
-        return $this;
-    }
-
-    /**
-     * Get jobPriority
-     *
-     * @return string
-     */
-    public function getJobPriority()
-    {
-        return $this->jobPriority;
-    }
-
-    /**
-     * Set jobInputs
-     *
-     * @param array $jobInputs
-     *
-     * @return Task
-     */
-    public function setJobInputs($jobInputs)
-    {
-        $this->jobInputs = $jobInputs;
-
-        return $this;
-    }
-
-    /**
-     * Get jobInputs
-     *
-     * @return array
-     */
-    public function getJobInputs()
-    {
-        return $this->jobInputs;
-    }
-
-    /**
-     * Set jobToken
-     *
-     * @param string $jobToken
-     *
-     * @return Task
-     */
-    public function setJobToken($jobToken)
-    {
-        $this->jobToken = $jobToken;
-
-        return $this;
-    }
-
-    /**
-     * Get jobToken
-     *
-     * @return string
-     */
-    public function getJobToken()
-    {
-        return $this->jobToken;
-    }
-
-    /**
-     * Set jobIsStatic
-     *
-     * @param boolean $jobIsStatic
-     *
-     * @return Task
-     */
-    public function setJobIsStatic($jobIsStatic)
-    {
-        $this->jobIsStatic = $jobIsStatic;
-
-        return $this;
-    }
-
-    /**
-     * Get jobIsStatic
-     *
-     * @return boolean
-     */
-    public function getJobIsStatic()
-    {
-        return $this->jobIsStatic;
     }
 
     /**
@@ -921,387 +233,93 @@ class Task
      *
      * @param integer $jobFrequency
      *
-     * @return Task
+     * @return $this
      */
-    public function setJobFrequency($jobFrequency)
+    public function setJobFrequency(int $jobFrequency): self
     {
+        //====================================================================//
+        // Update Job Frequency
         $this->jobFrequency = $jobFrequency;
+        //====================================================================//
+        // Setup Next Planned Start
+        $nextStart = $this->isFinished()
+                ? new DateTime("+".$this->getJobFrequency()."Minutes ")
+                : new DateTime();
+        $this->setPlannedAt($nextStart);
 
-        if ( $this->getFinished() ) {
-            $this->setPlannedAt( 
-                new \DateTime( "+" . $this->getJobFrequency() . "Minutes ")
-                );
-        } else {
-            $this->setPlannedAt(new \DateTime());
+        return $this;
+    }
+    
+    /**
+     * Set startedAt
+     *
+     * @param DateTime $startedAt
+     *
+     * @return $this
+     */
+    public function setStartedAt(DateTime $startedAt = null): self
+    {
+        if (is_null($startedAt)) {
+            $startedAt = new DateTime();
         }
-        return $this;
-    }
-
-    /**
-     * Get jobFrequency
-     *
-     * @return integer
-     */
-    public function getJobFrequency()
-    {
-        return $this->jobFrequency;
-    }
-
-    /**
-     * Set jobIndexKey1
-     *
-     * @param string $jobIndexKey1
-     *
-     * @return Task
-     */
-    public function setJobIndexKey1($jobIndexKey1)
-    {
-        $this->jobIndexKey1 = $jobIndexKey1;
+        //====================================================================//
+        // Store date as DateTime
+        $this->startedAt = $startedAt;
+        //====================================================================//
+        // Store date as TimeStamp
+        $this->startedAtTimeStamp = $startedAt->getTimestamp();
+        //====================================================================//
+        // Store date as MicroTime
+        $this->startedAtMicroTime = microtime(true);
 
         return $this;
-    }
-
-    /**
-     * Get jobIndexKey1
-     *
-     * @return string
-     */
-    public function getJobIndexKey1()
-    {
-        return $this->jobIndexKey1;
-    }
-
-    /**
-     * Set jobIndexKey2
-     *
-     * @param string $jobIndexKey2
-     *
-     * @return Task
-     */
-    public function setJobIndexKey2($jobIndexKey2)
-    {
-        $this->jobIndexKey2 = $jobIndexKey2;
-
-        return $this;
-    }
-
-    /**
-     * Get jobIndexKey2
-     *
-     * @return string
-     */
-    public function getJobIndexKey2()
-    {
-        return $this->jobIndexKey2;
-    }
-    
-    /**
-     * Set try
-     *
-     * @param integer $try
-     *
-     * @return Task
-     */
-    public function setTry($try)
-    {
-        $this->try = $try;
-
-        return $this;
-    }
-
-    /**
-     * Get try
-     *
-     * @return integer
-     */
-    public function getTry()
-    {
-        return $this->try;
-    }
-
-    /**
-     * Set running
-     *
-     * @param boolean $running
-     *
-     * @return Task
-     */
-    public function setRunning($running)
-    {
-        $this->running = $running;
-
-        return $this;
-    }
-
-    /**
-     * Get running
-     *
-     * @return boolean
-     */
-    public function getRunning()
-    {
-        return $this->running;
-    }
-
-    /**
-     * Set finished
-     *
-     * @param boolean $finished
-     *
-     * @return Task
-     */
-    public function setFinished($finished)
-    {
-        $this->finished = $finished;
-
-        return $this;
-    }
-
-    /**
-     * Get finished
-     *
-     * @return boolean
-     */
-    public function getFinished()
-    {
-        return $this->finished;
-    }
-
-    /**
-     * Get startedAt
-     *
-     * @return \DateTime
-     */
-    public function getStartedAt()
-    {
-        return $this->startedAt;
-    }
-
-    /**
-     * Set startedAtTimeStamp
-     *
-     * @param integer $startedAtTimeStamp
-     *
-     * @return Task
-     */
-    public function setStartedAtTimeStamp($startedAtTimeStamp)
-    {
-        $this->startedAtTimeStamp = $startedAtTimeStamp;
-
-        return $this;
-    }
-
-    /**
-     * Get startedAtTimeStamp
-     *
-     * @return integer
-     */
-    public function getStartedAtTimeStamp()
-    {
-        return $this->startedAtTimeStamp;
-    }
-
-    /**
-     * Get finishedAt
-     *
-     * @return \DateTime
-     */
-    public function getFinishedAt()
-    {
-        return $this->finishedAt;
-    }
-
-    /**
-     * Set finishedAtTimeStamp
-     *
-     * @param integer $finishedAtTimeStamp
-     *
-     * @return Task
-     */
-    public function setFinishedAtTimeStamp($finishedAtTimeStamp)
-    {
-        $this->finishedAtTimeStamp = $finishedAtTimeStamp;
-
-        return $this;
-    }
-
-    /**
-     * Get finishedAtTimeStamp
-     *
-     * @return integer
-     */
-    public function getFinishedAtTimeStamp()
-    {
-        return $this->finishedAtTimeStamp;
-    }
-
-    /**
-     * Set startedBy
-     *
-     * @param string $startedBy
-     *
-     * @return Task
-     */
-    public function setStartedBy($startedBy)
-    {
-        $this->startedBy = $startedBy;
-
-        return $this;
-    }
-
-    /**
-     * Get startedBy
-     *
-     * @return string
-     */
-    public function getStartedBy()
-    {
-        return $this->startedBy;
-    }
-
-    /**
-     * Get plannedAt
-     *
-     * @return \DateTime
-     */
-    public function getPlannedAt()
-    {
-        return $this->plannedAt;
-    }
-
-    /**
-     * Get plannedAtTimeStamp
-     *
-     * @return integer
-     */
-    public function getPlannedAtTimeStamp()
-    {
-        return $this->plannedAtTimeStamp;
-    }
-    
-    /**
-     * Set createdAt
-     *
-     * @param \DateTime $createdAt
-     *
-     * @return Task
-     */
-    public function setCreatedAt($createdAt)
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    /**
-     * Get createdAt
-     *
-     * @return \DateTime
-     */
-    public function getCreatedAt()
-    {
-        return $this->createdAt;
-    }
-
-    /**
-     * Set createdBy
-     *
-     * @param string $createdBy
-     *
-     * @return Task
-     */
-    public function setCreatedBy($createdBy)
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    /**
-     * Get createdBy
-     *
-     * @return string
-     */
-    public function getCreatedBy()
-    {
-        return $this->createdBy;
-    }
-
-    /**
-     * Get faultStr
-     *
-     * @return string
-     */
-    public function getFaultStr()
-    {
-        return $this->fault_str;
-    }
-    
-    /**
-     * Set fault Trace
-     *
-     * @param string $faultTrace
-     *
-     * @return Task
-     */
-    public function setFaultTrace($faultTrace)
-    {
-        $this->fault_trace = $faultTrace;
-        return $this;
-    } 
-    
-    /**
-     * Get fault Trace
-     *
-     * @return string
-     */
-    public function getFaultTrace()
-    {
-        return $this->fault_trace;
     }    
     
     /**
-     * Get Task Outputs
+     * Set finishedAt
      *
-     * @return string
+     * @param DateTime $finishedAt
+     *
+     * @return $this
      */
-    public function getOutputs()
+    public function setFinishedAt(DateTime $finishedAt = null): self
     {
-        return $this->outputs;
-    }
-    
-    /**
-     * Get Task Disciminator
-     *
-     * @return string
-     */
-    public function getDiscriminator()
-    {
-        return $this->discriminator;
-    }    
-    
-    /**
-     * Set duration
-     *
-     * @param integer $duration
-     *
-     * @return Task
-     */
-    public function setDuration($duration)
-    {
-        $this->duration = $duration;
+        if (is_null($finishedAt)) {
+            $finishedAt = new DateTime();
+        }
+        //====================================================================//
+        // Store date as DateTime
+        $this->finishedAt = $finishedAt;
+        //====================================================================//
+        // Store date as TimeStamp
+        $this->finishedAtTimeStamp = $finishedAt->getTimestamp();
+
+        //====================================================================//
+        // Store Task Duration
+        if ($this->startedAtMicroTime) {
+            $this->setDuration((int) (1E3 * (microtime(true) - $this->startedAtMicroTime)));
+        }
 
         return $this;
     }
-
+    
     /**
-     * Get duration
+     * Set plannedAt
      *
-     * @return integer
+     * @param DateTime $plannedAt
+     *
+     * @return $this
      */
-    public function getDuration()
+    private function setPlannedAt(DateTime $plannedAt): self
     {
-        return $this->duration;
+        //====================================================================//
+        // Store date as DateTime
+        $this->plannedAt = $plannedAt;
+        //====================================================================//
+        // Store date as TimeStamp
+        $this->plannedAtTimeStamp = $plannedAt->getTimestamp();
+
+        return $this;
     }
     
 }

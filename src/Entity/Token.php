@@ -1,97 +1,127 @@
 <?php
 
+/*
+ *  This file is part of SplashSync Project.
+ *
+ *  Copyright (C) 2015-2019 Splash Sync  <www.splashsync.com>
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
+ */
+
 namespace Splash\Tasking\Entity;
 
 use DateTime;
-use DateInterval;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * System Global DBAL Task Token
- * Used to prevent task collisions  
- * 
+ * Used to prevent task collisions
+ *
  * @ORM\Entity(repositoryClass="Splash\Tasking\Repository\TokenRepository")
  * @ORM\Table(name="system__tokens")
  * @ORM\HasLifecycleCallbacks
- * 
  */
-
 class Token
 {
-    
-//==============================================================================
-//  Constants Definition           
-//==============================================================================
- 
-    /*
-     *  Token Parameters
-     */    
-    const SELFRELEASE_DELAY     = 360;      // Token Validity Delay in Seconds
-    const DB_LOCKED_DELAY       = 1;        // Delay Between two DB Write Tentatives in Milliseconds
-    const DELETE_DELAY          = 200;      // Token Maximum Inactivity Time in Hours
-    
-//==============================================================================
-//      Definition           
-//==============================================================================
-      
+    //==============================================================================
+    //  Constants Definition
+    //==============================================================================
+
     /**
-     * @var integer
+     * Token Validity Delay in Seconds
+     *
+     * @var int
+     */
+    const SELFRELEASE_DELAY = 360;
+
+    /**
+     * Delay Between two DB Write Tentatives in Milliseconds
+     *
+     * @var int
+     */
+    const DB_LOCKED_DELAY = 1;
+
+    /**
+     * Token Maximum Inactivity Time in Hours
+     *
+     * @var int
+     */
+    const DELETE_DELAY = 200;
+
+    //==============================================================================
+    //      Definition
+    //==============================================================================
+
+    /**
+     * @var int
+     *
      * @ORM\Id
      * @ORM\Column(type="integer")
      * @ORM\GeneratedValue(strategy="AUTO")
      */
     private $id;
 
-//==============================================================================
-//      Token Informations           
+    //==============================================================================
+    //      Token Informations
 
     /**
      * Token identifier name
-     * 
+     *
      * @var string
+     *
      * @ORM\Column(name="Name", type="string", length=250)
      */
     private $name;
 
     /**
      * Is This Token in Use
-     * 
-     * @var boolean
+     *
+     * @var bool
+     *
      * @ORM\Column(name="Locked", type="boolean")
      */
-    private $locked = False;
+    private $locked = false;
 
     /**
      * When this token was taken
-     * 
+     *
      * @var \DateTime
+     *
      * @ORM\Column(name="LockedAt", type="datetime", nullable=TRUE)
      */
-    private $lockedAt = NUll;
+    private $lockedAt;
 
     /**
      * When this token was taken as TimeStamp
-     * 
-     * @var integer
+     *
+     * @var int
+     *
      * @ORM\Column(name="LockedAtTimeStamp", type="integer", nullable=TRUE)
      */
-    private $lockedAtTimeStamp = Null;    
+    private $lockedAtTimeStamp;
 
     /**
      * @var string
+     *
      * @ORM\Column(name="LockedBy", type="string", length=250, nullable=TRUE)
      */
     private $lockedBy;
 
-//==============================================================================
-//      Audit           
-    
+    //==============================================================================
+    //      Audit
+
     /**
      * @var \DateTime
+     *
      * @ORM\Column(name="CreatedAt", type="datetime")
      */
     private $createdAt;
-    
+
     /**
      * @ORM\Version
      * @ORM\Column(type="integer")
@@ -102,19 +132,21 @@ class Token
      * @var string
      */
     private $condition;
-    
-//==============================================================================
-//      Object Operations
-//==============================================================================
+
+    //==============================================================================
+    //      Object Operations
+    //==============================================================================
 
     /**
      * Token Constructor
-     * 
+     *
+     * @param string $name
      */
-    function __construct($Name) {
-        $this->setName($Name);
+    public function __construct(string $name)
+    {
+        $this->setName($name);
     }
-    
+
     /**
      * Get Token Availability
      *
@@ -124,7 +156,7 @@ class Token
     {
         return !$this->isLocked();
     }
-    
+
     /**
      * Get Token Availability
      *
@@ -134,98 +166,99 @@ class Token
     {
         //====================================================================//
         // Verify if Token already in use
-        if ($this->locked == False) {
-            return False;
+        if (false == $this->locked) {
+            return false;
         }
-        
+
         //====================================================================//
         // Verify if Token Validity
-        $MaxAge = new \DateTime("-" . self::SELFRELEASE_DELAY . " Seconds");
-        return ($this->lockedAt > $MaxAge)?True:False;
+        $maxAge = new DateTime("-".self::SELFRELEASE_DELAY." Seconds");
+
+        return ($this->lockedAt > $maxAge)?true:false;
     }
-    
+
     /**
      * Lock Token
      *
-     * @return string
+     * @param string $lockedBy Name of the Machine who Lock
+     *
+     * @return bool
      */
-    public function Acquire($LockedBy = Null)
+    public function acquire(string $lockedBy = null): bool
     {
         //====================================================================//
         // If Token already in use, exit
         if ($this->isLocked()) {
-            return False;
+            return false;
         }
         //====================================================================//
         // If LockedBy is Null, Use Machine Name
-        if (!$LockedBy) {
-            $MachineInfos   =   posix_uname(); 
-            $LockedBy       =   $MachineInfos['nodename'];
+        if (!$lockedBy) {
+            $machineInfos = posix_uname();
+            $lockedBy = $machineInfos['nodename'];
         }
         //====================================================================//
         // Set This Token as Used
-        $this->setLocked(True);
+        $this->setLocked(true);
         $this->setLockedAt(new \DateTime);
-        $this->setLockedBy($LockedBy);
-        
-        return True;
+        $this->setLockedBy($lockedBy);
+
+        return true;
     }
-    
+
     /**
      * Lock Token
      *
-     * @return string
+     * @return bool
      */
-    public function Release()
+    public function release() : bool
     {
         //====================================================================//
         // If Token not in use, exit
         if (!$this->locked) {
-            return True;
+            return true;
         }
-        
+
         //====================================================================//
         // Set This Token as NOT Used
-        $this->setLocked(False);
-        
-        return True;
-    }    
-    
-    /**
-     *      @abstract    Build Token Key Name from an Array of Parameters
-     * 
-     *      @param       array    $TokenArray     Token Parameters Given As Array 
-     */    
-    public static function Build($TokenArray = Null) {
+        $this->setLocked(false);
 
+        return true;
+    }
+
+    /**
+     * Build Token Key Name from an Array of Parameters
+     *
+     * @param array $tokenArray Token Parameters Given As Array
+     */
+    public static function build(?array $tokenArray): string
+    {
         //==============================================================================
         // If No Token Arrray Given => Exit
-        if ( is_null($TokenArray) || !is_array($TokenArray) ) {
+        if (is_null($tokenArray)) {
             return "None";
         }
-        
+
         //==============================================================================
         // Build Token Key Name
-        return implode(":", $TokenArray);
-    }      
-    
-//==============================================================================
-//      LifeCycle Events
-//==============================================================================
-    
-    
-    /** @ORM\PrePersist() */    
+        return implode(":", $tokenArray);
+    }
+
+    //==============================================================================
+    //      LifeCycle Events
+    //==============================================================================
+
+    /** @ORM\PrePersist() */
     public function prePersist()
     {
         //====================================================================//
         // Set Created Date
         $this->setCreatedAt(new \DateTime);
-    } 
-    
-//==============================================================================
-//      Getters & Setters
-//==============================================================================
-    
+    }
+
+    //==============================================================================
+    //      Generic Getters & Setters
+    //==============================================================================
 
     /**
      * Get id
@@ -242,9 +275,9 @@ class Token
      *
      * @param boolean $locked
      *
-     * @return Token
+     * @return $this
      */
-    public function setLocked($locked)
+    public function setLocked($locked): self
     {
         $this->locked = $locked;
 
@@ -252,30 +285,20 @@ class Token
     }
 
     /**
-     * Get locked
-     *
-     * @return boolean
-     */
-    public function getLocked()
-    {
-        return $this->locked;
-    }
-
-    /**
      * Set lockedAt
      *
-     * @param \DateTime $lockedAt
+     * @param DateTime $lockedAt
      *
-     * @return Token
+     * @return $this
      */
-    public function setLockedAt($lockedAt)
+    public function setLockedAt(DateTime $lockedAt): self
     {
         //====================================================================//
         // Store date as DateTime
-        $this->lockedAt             = $lockedAt;
+        $this->lockedAt = $lockedAt;
         //====================================================================//
         // Store date as TimeStamp
-        $this->lockedAtTimeStamp    = $lockedAt->getTimestamp();
+        $this->lockedAtTimeStamp = $lockedAt->getTimestamp();
 
         return $this;
     }
@@ -283,9 +306,9 @@ class Token
     /**
      * Get lockedAt
      *
-     * @return \DateTime
+     * @return DateTime
      */
-    public function getLockedAt()
+    public function getLockedAt(): DateTime
     {
         return $this->lockedAt;
     }
@@ -295,9 +318,9 @@ class Token
      *
      * @param string $lockedBy
      *
-     * @return Token
+     * @return $this
      */
-    public function setLockedBy($lockedBy)
+    public function setLockedBy(string $lockedBy): self
     {
         $this->lockedBy = $lockedBy;
 
@@ -309,7 +332,7 @@ class Token
      *
      * @return string
      */
-    public function getLockedBy()
+    public function getLockedBy(): string
     {
         return $this->lockedBy;
     }
@@ -317,11 +340,11 @@ class Token
     /**
      * Set createdAt
      *
-     * @param \DateTime $createdAt
+     * @param DateTime $createdAt
      *
-     * @return Token
+     * @return $this
      */
-    public function setCreatedAt($createdAt)
+    public function setCreatedAt(DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
 
@@ -331,9 +354,9 @@ class Token
     /**
      * Get createdAt
      *
-     * @return \DateTime
+     * @return DateTime
      */
-    public function getCreatedAt()
+    public function getCreatedAt(): DateTime
     {
         return $this->createdAt;
     }
@@ -343,9 +366,9 @@ class Token
      *
      * @param string $name
      *
-     * @return Token
+     * @return $this
      */
-    public function setName($name)
+    public function setName(string $name): self
     {
         $this->name = $name;
 
@@ -357,7 +380,7 @@ class Token
      *
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -367,9 +390,9 @@ class Token
      *
      * @param integer $lockedAtTimeStamp
      *
-     * @return Token
+     * @return $this
      */
-    public function setLockedAtTimeStamp($lockedAtTimeStamp)
+    public function setLockedAtTimeStamp(int $lockedAtTimeStamp)
     {
         $this->lockedAtTimeStamp = $lockedAtTimeStamp;
 
@@ -381,7 +404,7 @@ class Token
      *
      * @return integer
      */
-    public function getLockedAtTimeStamp()
+    public function getLockedAtTimeStamp(): int
     {
         return $this->lockedAtTimeStamp;
     }
@@ -391,9 +414,9 @@ class Token
      *
      * @param integer $version
      *
-     * @return Token
+     * @return $this
      */
-    public function setVersion($version)
+    public function setVersion(int $version): self
     {
         $this->version = $version;
 
@@ -405,7 +428,7 @@ class Token
      *
      * @return integer
      */
-    public function getVersion()
+    public function getVersion(): int
     {
         return $this->version;
     }

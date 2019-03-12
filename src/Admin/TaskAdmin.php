@@ -16,6 +16,7 @@ use Sonata\AdminBundle\Show\ShowMapper;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
+
 //use Sonata\Bundle\DemoBundle\Entity\Inspection;
 
 /**
@@ -44,12 +45,12 @@ class TaskAdmin extends Admin
                 ->add('jobIsStatic')
                 ->add('jobFrequency')
                 ->add('plannedAt')
-            ->end()                
+            ->end()
             ->with('Indexes', array('class' => 'col-md-6'))
-                ->add('discriminator' )
-                ->add('jobIndexKey1' )
-                ->add('jobIndexKey2' )
-            ->end()   
+                ->add('discriminator')
+                ->add('jobIndexKey1')
+                ->add('jobIndexKey2')
+            ->end()
             ->with('Timing', array('class' => 'col-md-6'))
                 ->add('createdAt')
                 ->add('createdBy')
@@ -59,11 +60,11 @@ class TaskAdmin extends Admin
                 ->add('duration')
             ->end()
             ->with('Inputs', array('class' => 'col-md-6'))
-                ->add('jobInputsStr', null, array('safe' => true) )
-            ->end()   
+                ->add('jobInputsStr', null, array('safe' => true))
+            ->end()
             ->with('Outputs', array('class' => 'col-md-6'))
-                ->add('outputs', null, array('safe' => true) )
-            ->end() 
+                ->add('outputs', null, array('safe' => true))
+            ->end()
         ;
     }
 
@@ -74,8 +75,8 @@ class TaskAdmin extends Admin
     {
         $listMapper
             ->addIdentifier('name', null, array('route' => array('name' => 'show')))
-            ->add('jobToken')                
-            ->add('duration')                
+            ->add('jobToken')
+            ->add('duration')
             ->add('running', null, ['editable' => true])
             ->add('finished', null, ['editable' => true])
             ->add('jobIsStatic')
@@ -116,19 +117,19 @@ class TaskAdmin extends Admin
                 ->add('jobClass')
                 ->add('jobAction')
                 ->add('jobToken')
-            ->end()                
+            ->end()
             ->with('Parameters', array('class' => 'col-md-6'))
                 ->add('jobInputs')
-            ->end()                
+            ->end()
             ->with('Static Tasks', array('class' => 'col-md-6'))
                 ->add('jobIsStatic')
                 ->add('jobFrequency')
 //                ->add('plannedAt', "datetime", [ "required" => False ])
-            ->end()                
+            ->end()
             ->with('Indexes', array('class' => 'col-md-6'))
-                ->add('jobIndexKey1' )
-                ->add('jobIndexKey2' )
-            ->end()   
+                ->add('jobIndexKey1')
+                ->add('jobIndexKey2')
+            ->end()
                 
         ;
     }

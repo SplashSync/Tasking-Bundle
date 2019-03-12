@@ -1,0 +1,44 @@
+########################################################################
+#   TASKING BUNDLE SONATA ADMIN SERVICES
+########################################################################
+
+services:
+
+    ########################################################################
+    # Tasks Sonata Admin Service
+    splash.tasking.admin.tasks:
+        class: Splash\Tasking\Admin\TaskAdmin
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: "System", label: "Tasks" }
+        arguments:
+            - ~
+            - Splash\Tasking\Entity\Task
+            - ~
+        calls:
+            - [ setTranslationDomain, [TaskingBundle]]
+            
+    ########################################################################
+    # Workers Sonata Admin Service
+    splash.tasking.admin.workers:
+        class: Splash\Tasking\Admin\WorkerAdmin
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: "System", label: "Workers" }
+        arguments:
+            - ~
+            - Splash\Tasking\Entity\Worker
+            - ~
+        calls:
+            - [ setTranslationDomain, [TaskingBundle]]            
+            
+    ########################################################################
+    # Tokens Sonata Admin Service
+    splash.tasking.admin.tokens:
+        class: Splash\Tasking\Admin\TokenAdmin
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: "System", label: "Token" }
+        arguments:
+            - ~
+            - Splash\Tasking\Entity\Token
+            - ~
+        calls:
+            - [ setTranslationDomain, [TaskingBundle]]  
