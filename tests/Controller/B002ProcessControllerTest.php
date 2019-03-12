@@ -146,7 +146,6 @@ class B002ProcessControllerTest extends AbstractTestController
             $refreshedWorker = $this->workersRepository->find($worker->getId());
             Assert::assertInstanceOf(Worker::class, $refreshedWorker);
             $this->entityManager->refresh($refreshedWorker);
-            Assert::assertInstanceOf(Worker::class, $refreshedWorker);
             Assert::assertTrue($refreshedWorker->isRunning());
             Assert::assertNotEmpty($refreshedWorker->getLastSeen());
             Assert::assertTrue($this->worker->isRunning($refreshedWorker->getProcess()));
