@@ -13,6 +13,8 @@
  *  file that was distributed with this source code.
  */
 
+// phpcs:disable PSR1.Classes.ClassDeclaration.MissingNamespace
+
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\HttpKernel\Kernel;
 
