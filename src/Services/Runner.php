@@ -16,20 +16,20 @@
 namespace Splash\Tasking\Services;
 
 use ArrayObject;
+use DateTime;
 use Exception;
-use Splash\Tasking\Services\TasksManager;
 use Psr\Log\LoggerInterface;
-use Splash\Tasking\Services\TokenManager;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Splash\Tasking\Tools\Timer;
 use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Repository\TaskRepository;
+use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
+use Splash\Tasking\Repository\TaskRepository;
+use Splash\Tasking\Tools\Timer;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Tasks Runner
- * 
+ *
  * Load Available Tasks from database, Acquire Token & Execute
  * Look so simple... but!
  */
@@ -41,34 +41,34 @@ class Runner
      *
      * @var ContainerInterface
      */
-    private $container;    
-    
+    private $container;
+
     /**
      * @var LoggerInterface
      */
     private $logger;
-    
+
     /**
      * Tasks Repository
      *
      * @var TaskRepository
      */
     private $taskRepository;
-    
+
     /**
      * Token Manager Service
      *
      * @var TokenManager
      */
-    private $token;    
-    
+    private $token;
+
     /**
      * Tasking Service Configuration Array
      *
      * @var ArrayObject
      */
     private $config;
-    
+
     /**
      * Tasks Max Try Count
      *
@@ -81,7 +81,7 @@ class Runner
      *
      * @var null|Task
      */
-    private $task;    
+    private $task;
 
     /**
      * @var AbstractJob
@@ -90,21 +90,21 @@ class Runner
 
     /**
      * Service Constructor
-     * 
+     *
      * @param ContainerInterface $container
-     * @param LoggerInterface $logger
-     * @param TaskRepository $tasks
-     * @param TokenManager $token
-     * @param array $config
+     * @param LoggerInterface    $logger
+     * @param TaskRepository     $tasks
+     * @param TokenManager       $token
+     * @param array              $config
      */
     public function __construct(ContainerInterface $container, LoggerInterface $logger, TaskRepository $tasks, TokenManager $token, array $config)
     {
         //====================================================================//
         // Link to Service Container
-        $this->container            =   $container;  
+        $this->container = $container;
         //====================================================================//
         // Link to Symfony Logger
-        $this->logger = $logger;        
+        $this->logger = $logger;
         //====================================================================//
         // Link to Tasks Repository
         $this->taskRepository = $tasks;
@@ -120,10 +120,10 @@ class Runner
     //==============================================================================
     //      PUBLIC - Task Execution Management
     //==============================================================================
-    
+
     /**
      * Ask Runner to Execute Next Available Task
-     * 
+     *
      * @return bool True if A Task was Executed
      */
     public function run(): bool
@@ -152,28 +152,29 @@ class Runner
         //====================================================================//
         // Wait
         Timer::idleStandBy();
-        
+
         return false;
     }
-    
+
     /**
      * Ensure We released The Current Tokan
-     * 
+     *
      * @return bool
      */
     public function ensureTokenRelease(): bool
     {
         return $this->token->release();
-    }    
-    
+    }
+
+
     //==============================================================================
     //      PRIVATE - Task Execution Management
     //==============================================================================
-    
+
     /**
      * Execute Next Available Task
      *
-     * @param bool            $staticMode Execute Static Tasks
+     * @param bool $staticMode Execute Static Tasks
      *
      * @return boolean
      */
@@ -203,16 +204,19 @@ class Runner
         //==============================================================================
         // Validate & Prepare User Job Execution
         //==============================================================================
-        if (!$this->validateJob($this->task) || !$this->prepareJob($this->task)) 
-        {
+        if (!$this->validateJob($this->task) || !$this->prepareJob($this->task)) {
             $this->task->setTry($this->task->getTry() + 1);
             //==============================================================================
             // Save Status in Db
             $this->taskRepository->flush($this->task);
-            
+
             return true;
         }
 
+        //==============================================================================
+        // Save Status in Db
+        $this->taskRepository->flush($this->task);
+        
         //====================================================================//
         // Exectue Task
         //====================================================================//
@@ -221,7 +225,7 @@ class Runner
         //==============================================================================
         // Do Post Execution Actions
         $this->closeJob($this->task, $this->maxTry);
-        
+
         //==============================================================================
         // Save Status in Db
         $this->taskRepository->flush($this->task);
@@ -234,16 +238,16 @@ class Runner
     /**
      * Load Next Available Tasks with Potential Existing Token
      *
-     * @param bool            $staticMode Execute Static Tasks
+     * @param bool $staticMode Execute Static Tasks
      */
     private function loadNextTask(bool $staticMode) : void
     {
         //====================================================================//
         // Use Current Task Token or Null
-        $currentToken = $this->task 
-                ? $this->task->getJobToken() 
+        $currentToken = isset($this->task)
+                ? $this->task->getJobToken()
                 : null;
-        
+
         //====================================================================//
         // Load Next Task To Run with Current Token
         $this->task = $this->taskRepository->getNextTask(
@@ -252,16 +256,16 @@ class Runner
             $staticMode
         );
     }
-    
+
     //==============================================================================
     //      PRIVATE - Job Execution Management
     //==============================================================================
 
     /**
      * Validate Job Before Execution
-     * 
+     *
      * @param Task $task
-     * 
+     *
      * @return bool
      */
     private function validateJob(Task &$task): bool
@@ -269,7 +273,7 @@ class Runner
         //==============================================================================
         // Load Requested Class
         $jobClass = $task->getJobClass();
-        if (empty($jobClass) || !class_exists($jobClass)) {
+        if (!class_exists($jobClass)) {
             $task->setFaultStr("Unable to find Requested Job Class : ".$jobClass);
 
             return false;
@@ -279,18 +283,16 @@ class Runner
         // Job Class is SubClass of Base Job Class
         if (!is_subclass_of($this->job, AbstractJob::class)) {
             $task->setFaultStr("Job Class is Invalid: ".$jobClass);
-            
+
             return false;
         }
         //====================================================================//
-        // Job Class is Container Aware
-        if ($this->job instanceof ContainerAwareInterface) {
-            $this->job->setContainer($this->container);
-        }
+        // Inject Container to Job Class
+        $this->job->setContainer($this->container);
         //==============================================================================
         // Verify Requested Method Exists
         $jobAction = $task->getJobAction();
-        if (empty($jobAction) || !method_exists($this->job, $jobAction)) {
+        if (!method_exists($this->job, $jobAction)) {
             $task->setFaultStr("Unable to find Requested Job Function");
 
             return false;
@@ -303,7 +305,7 @@ class Runner
      * Prepare Job For Execution
      *
      * @param Task $task
-     * 
+     *
      * @return bool
      */
     private function prepareJob(Task &$task): bool
@@ -334,12 +336,12 @@ class Runner
 
         return true;
     }
-    
+
     /**
      * Main Function for Job Execution
      *
      * @param Task $task
-     * 
+     *
      * @return bool
      */
     private function executeJob(Task &$task): bool
@@ -372,7 +374,7 @@ class Runner
 
         return $result;
     }
-    
+
     /**
      * Main Function for Job Execution
      *
@@ -383,36 +385,36 @@ class Runner
         //==============================================================================
         // Execute Job Self Validate & Prepare Methods
         if (!$this->job->validate() || !$this->job->prepare()) {
-            if (empty($task->getFaultStr())) {
+            if (null == $task->getFaultStr()) {
                 $task->setFaultStr("Unable to initiate this Job.");
             }
+
             return false;
         }
         //==============================================================================
         // Execute Job Action
         $result = (bool) $this->job->{$task->getJobAction()}();
-        if ((false === $result) && empty($task->getFaultStr())) {
+        if ((false === $result) && (null == $task->getFaultStr())) {
             $task->setFaultStr("An error occured when executing this Job.");
         }
         //==============================================================================
         // Execute Job Self Finalize & Close Methods
         if (!$this->job->finalize() || !$this->job->close()) {
-            if (empty($task->getFaultStr())) {
+            if (null == $task->getFaultStr()) {
                 $task->setFaultStr("An error occured when closing this Job.");
             }
         }
 
         return $result;
     }
-    
 
     /**
      * End Task on Scheduler
      *
      * @param Task $task
-     * @param int             $maxTry Max number of retry. Once reached, task is forced to finished.
+     * @param int  $maxTry Max number of retry. Once reached, task is forced to finished.
      */
-    public function closeJob(Task &$task, int $maxTry): void
+    private function closeJob(Task &$task, int $maxTry): void
     {
         //==============================================================================
         // End of Task Execution
@@ -438,7 +440,7 @@ class Runner
         if (isset($this->job) && is_a($this->job, AbstractBatchJob::class)) {
             //==============================================================================
             // If Batch Task Not Completed => Setup For Next Execution
-            if (!$this->job->getStateItem("isCompleted")) {
+            if (false == $this->job->getStateItem("isCompleted")) {
                 $task->setTry(0);
                 $task->setFinished(false);
             }
@@ -449,5 +451,5 @@ class Runner
         //====================================================================//
         // User Information
         $this->logger->info('Runner: Task Delay = '.$task->getDuration()." Milliseconds </info>");
-    }
+    }    
 }

@@ -49,7 +49,7 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
     /**
      * Job Display Settings
      *
-     * @array
+     * @var array
      */
     protected $settings = array(
         "label" => "Unknown Job Title",
@@ -84,7 +84,7 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
      * You can set it directly by overriding this constant
      * or by writing an array of parameters to setJobToken()
      *
-     * @var string
+     * @var null|string
      */
     protected $token;
 
@@ -184,7 +184,7 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
      *
      * @return int
      */
-    public function getPriority()
+    public function getPriority(): int
     {
         return static::$priority;
     }
@@ -192,7 +192,7 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
     /**
      * Set Job Token
      *
-     * @param array|string $token
+     * @param array|string|null $token
      *
      * @return $this
      */
@@ -239,7 +239,7 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
      *
      * @return string
      */
-    public function getToken(): string
+    public function getToken(): ?string
     {
         return $this->token;
     }

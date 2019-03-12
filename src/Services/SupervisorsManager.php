@@ -47,12 +47,12 @@ class SupervisorsManager extends WorkersManager
         $maxWorkers = $this->config->supervisor['max_workers'];
         //====================================================================//
         // Safety Checks
-        if (empty($maxWorkers) || !is_numeric($maxWorkers)) {
+        if (!is_int($maxWorkers) || ($maxWorkers <= 0)) {
             throw new Exception("Invalid Number of Configured Workers");
         }
         //====================================================================//
         // Store Value
-        $this->maxWorkers = (int) $maxWorkers;
+        $this->maxWorkers = $maxWorkers;
         //====================================================================//
         // Debug Output
         $this->logger->info("Supervisor Manager: This Supervisor will manage ".$this->maxWorkers." Workers");

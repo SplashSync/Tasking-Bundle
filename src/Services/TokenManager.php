@@ -116,9 +116,9 @@ class TokenManager
         }
 
         //==============================================================================
-        // Ckeck Token is not Emppty => Skip
+        // Ckeck Token is not Empty => Skip
         $jobToken = $task->getJobToken();
-        if (empty($jobToken)) {
+        if (null == $jobToken) {
             return true;
         }
         //==============================================================================
@@ -193,10 +193,11 @@ class TokenManager
      */
     public function validate(Task $task): bool
     {
-        if (empty($task->getJobToken())) {
+        $token = $task->getJobToken();
+        if (null === $token) {
             return true;
         }
 
-        return $this->tokenRepository->validate($task->getJobToken());
+        return $this->tokenRepository->validate($token);
     }
 }

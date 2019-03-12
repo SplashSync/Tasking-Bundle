@@ -18,15 +18,14 @@ namespace Splash\Tasking\Services;
 use ArrayObject;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use Splash\Tasking\Entity\Task;
+use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
 use Splash\Tasking\Model\AbstractStaticJob;
-use Splash\Tasking\Model\AbstractBatchJob;
-use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Repository\TaskRepository;
 use Splash\Tasking\Tools\Timer;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
-use Splash\Tasking\Services\TokenManager;
 
 /**
  * Tasks Management Service
@@ -64,7 +63,7 @@ class TasksManager
      * @var TokenManager
      */
     private $token;
-    
+
     /**
      * @var LoggerInterface
      */
@@ -164,7 +163,7 @@ class TasksManager
         $cleanCounter = $this->taskRepository->clean($this->config->tasks['max_age']);
         //====================================================================//
         // User Information
-        if ($cleanCounter) {
+        if ($cleanCounter > 0) {
             $this->logger->info('Task Manager: Cleaned '.$cleanCounter.' Tasks');
         }
         //====================================================================//
@@ -336,12 +335,17 @@ class TasksManager
     {
         //====================================================================//
         // Job Class and Action are not empty
-        if (empty($job) || empty(get_class($job)) || !method_exists($job, "getAction") || empty($job->getAction())) {
+        if (strlen($job->getAction()) < 3) {
             return false;
         }
         //====================================================================//
-        // Validate Generic Job Options
-        if (!$this->validateGenericJob($job)) {
+        // Job Action Method Exists
+        if (!method_exists($job, $job->getAction())) {
+            return false;
+        }
+        //====================================================================//
+        // Job Priority is Valid
+        if ($job->getPriority() < 0) {
             return false;
         }
         //====================================================================//
@@ -405,44 +409,6 @@ class TasksManager
     }
 
     /**
-     * Verify given Genric Job before being added to scheduler
-     *
-     * @param AbstractJob $job An Object Extending Base Job Object
-     *
-     * @return bool
-     */
-    private function validateGenericJob(AbstractJob $job): bool
-    {
-        //====================================================================//
-        // Job Class is SubClass of Base Job Class
-        if (!is_subclass_of($job, AbstractJob::class)) {
-            return false;
-        }
-        //====================================================================//
-        // Job Action Method Exists
-        if (!method_exists($job, $job->getAction())) {
-            return false;
-        }
-        //====================================================================//
-        // Job Priority is Valid
-        if (empty($job->getPriority()) || !is_integer($job->getPriority())) {
-            return false;
-        }
-        //====================================================================//
-        // If defined, Job Inputs must be an Array
-        if (!empty($job->getInputs()) && !is_array($job->getInputs())) {
-            return false;
-        }
-        //====================================================================//
-        // If defined, Job Token is a string
-        if (!empty($job->getToken()) && !is_string($job->getToken())) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * Verify given Static Job before being added to scheduler
      *
      * @param AbstractJob $job An Object Extending Base Job Object
@@ -455,7 +421,7 @@ class TasksManager
         // If is a Static Job
         //====================================================================//
         if (is_subclass_of($job, AbstractStaticJob::class)) {
-            if (empty($job->getFrequency()) || !is_numeric($job->getFrequency())) {
+            if ($job->getFrequency() <= 0) {
                 return false;
             }
         }

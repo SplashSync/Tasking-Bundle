@@ -150,7 +150,7 @@ class WorkersManager
         //====================================================================//
         // Update pID
         $this->worker = $worker;
-        $this->worker->setPID(getmypid());
+        $this->worker->setPid(getmypid());
         $this->worker->setTask("Boot...");
         $this->entityManager->flush();
         //====================================================================//
@@ -197,7 +197,7 @@ class WorkersManager
         $worker->setRunning(true);
         //==============================================================================
         // Set As Running
-        $worker->setPID(getmypid());
+        $worker->setPid(getmypid());
         //==============================================================================
         // Set Last Seen DateTime to NOW
         $worker->setLastSeen(new DateTime());
@@ -434,7 +434,7 @@ class WorkersManager
         $result = $this->checkLocalSupervisorIsRunning();
         //====================================================================//
         // Check if MultiServer Mode is Enabled
-        if (!$this->config["multiserver"]) {
+        if (true !== $this->config["multiserver"]) {
             return $result;
         }
         //====================================================================//
@@ -530,7 +530,7 @@ class WorkersManager
         $worker = new Worker();
         //====================================================================//
         // Populate Worker Object
-        $worker->setPID(getmypid());
+        $worker->setPid(getmypid());
         $worker->setProcess($processId);
         $worker->setNodeName($system["nodename"]);
         $worker->setNodeIp(filter_input(INPUT_SERVER, "SERVER_ADDR"));

@@ -58,7 +58,11 @@ class Task extends AbstractTask
     /** @var string */
     const CRONTAB_UPDATED = "Crontab Configuration Updated";
 
-    // Task Settings
+    /**
+     * Task Settings
+     *  
+     * @var array
+     */
     private static $defaultSettings = array(
         "label" => "Default Task Title",
         "description" => "Default Task Description",
@@ -79,7 +83,7 @@ class Task extends AbstractTask
     //==============================================================================
 
     /** @ORM\PrePersist() */
-    public function prePersist()
+    public function prePersist(): void
     {
         //====================================================================//
         // Set Created Date
@@ -93,7 +97,7 @@ class Task extends AbstractTask
     }
 
     /** @ORM\PreUpdate() */
-    public function preUpdate()
+    public function preUpdate(): void
     {
         //====================================================================//
         // Update Task Discriminator
@@ -109,7 +113,7 @@ class Task extends AbstractTask
      *
      * @return string
      */
-    public static function getCurrentServer(): string
+    public function getCurrentServer(): string
     {
         //====================================================================//
         // Load Current Server Infos
@@ -126,7 +130,10 @@ class Task extends AbstractTask
      */
     public function getDelay(): int
     {
-        if (empty($this->finishedAtTimeStamp) || empty($this->startedAtTimeStamp)) {
+        if (($this->finishedAtTimeStamp <= 0) || ($this->startedAtTimeStamp <= 0)) {
+            return 0;
+        }
+        if ($this->finishedAtTimeStamp <= $this->startedAtTimeStamp) {
             return 0;
         }
 
@@ -296,7 +303,7 @@ class Task extends AbstractTask
 
         //====================================================================//
         // Store Task Duration
-        if ($this->startedAtMicroTime) {
+        if ($this->startedAtMicroTime > 0) {
             $this->setDuration((int) (1E3 * (microtime(true) - $this->startedAtMicroTime)));
         }
 
@@ -310,7 +317,7 @@ class Task extends AbstractTask
      *
      * @return $this
      */
-    private function setPlannedAt(DateTime $plannedAt): self
+    public function setPlannedAt(DateTime $plannedAt): self
     {
         //====================================================================//
         // Store date as DateTime

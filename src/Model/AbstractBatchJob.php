@@ -153,7 +153,7 @@ abstract class AbstractBatchJob extends AbstractJob
     {
         //====================================================================//
         // If Batch Actions Names are Empty
-        if (empty(static::$batchList) || empty(static::$batchAction)) {
+        if ((null == static::$batchList) || (null == static::$batchAction)) {
             return false;
         }
         if (!method_exists(self::class, static::$batchList) || !method_exists(self::class, static::$batchAction)) {
@@ -179,7 +179,7 @@ abstract class AbstractBatchJob extends AbstractJob
     {
         //==============================================================================
         //      Check Batch Job List is Loaded (Or Try to Load It)
-        if (!$this->getStateItem("isListLoaded") && !$this->batchLoadJobsList()) {
+        if ((false == $this->getStateItem("isListLoaded")) && !$this->batchLoadJobsList()) {
             return false;
         }
         //==============================================================================
@@ -202,7 +202,7 @@ abstract class AbstractBatchJob extends AbstractJob
         // Init Task Planification Counters
         $taskStart = $state["currentJob"];
         $taskMax = $state["jobsCount"];
-        $taskEnd = static::$paginate    ?   ($taskStart + static::$paginate) : $taskMax;
+        $taskEnd = (static::$paginate > 0) ? ($taskStart + static::$paginate) : $taskMax;
         if ($taskEnd > $taskMax) {
             $taskEnd = $taskMax;
         }
@@ -269,7 +269,7 @@ abstract class AbstractBatchJob extends AbstractJob
 
         //==============================================================================
         //      Check List is not Empty
-        if (empty($jobsInputs)) {
+        if (count($jobsInputs) > 0) {
             $this->setStateItem("isCompleted", true);
 
             return true;

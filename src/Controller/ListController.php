@@ -40,8 +40,7 @@ class ListController extends Controller
         //==============================================================================
         // Load Task Repository
         /** @var TaskRepository $repository */
-        $repository = $this->get('doctrine')
-            ->getManager()
+        $repository = $this->get('doctrine')->getManager()
             ->getRepository('SplashTaskingBundle:Task');
         //==============================================================================
         // Compute Filters
@@ -68,8 +67,7 @@ class ListController extends Controller
     {
         //==============================================================================
         // Load Task Repository
-        $repository = $this->get('doctrine')
-            ->getManager()
+        $repository = $this->get('doctrine')->getManager()
             ->getRepository('SplashTaskingBundle:Task');
         //==============================================================================
         // Compute Filters
@@ -98,8 +96,7 @@ class ListController extends Controller
     {
         //==============================================================================
         // Load Task Repository
-        $repository = $this->get('doctrine')
-            ->getManager()
+        $repository = $this->get('doctrine')->getManager()
             ->getRepository('SplashTaskingBundle:Task');
         //==============================================================================
         // Compute Filters
@@ -183,10 +180,10 @@ class ListController extends Controller
     private function getIndexKeysFindBy(string $indexKey1 = null, string $indexKey2 = null) : array
     {
         $filters = array();
-        if (!empty($indexKey1)) {
+        if (null != $indexKey1) {
             $filters["jobIndexKey1"] = $indexKey1;
         }
-        if (!empty($indexKey2)) {
+        if (null != $indexKey2) {
             $filters["jobIndexKey2"] = $indexKey2;
         }
 

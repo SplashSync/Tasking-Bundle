@@ -49,10 +49,10 @@ class TaskRepository extends EntityRepository
 
         //====================================================================//
         // Setup Task Filters
-        if (!$static) {
-            $this->setupNormalTasksFilter();
-        } else {
+        if (true == $static) {
             $this->setupStaticTasksFilter();
+        } else {
+            $this->setupNormalTasksFilter();
         }
 
         //====================================================================//
@@ -65,10 +65,10 @@ class TaskRepository extends EntityRepository
 
         //====================================================================//
         // Setup Query Token Parameters
-        if ($tokenName) {
-            $this->builder->setParameter('TokenName', $tokenName);
-        } else {
+        if (null == $tokenName) {
             $this->builder->setParameter('TokenExpireDate', ($nowTimeStamp - Token::SELFRELEASE_DELAY));
+        } else {
+            $this->builder->setParameter('TokenName', $tokenName);
         }
 
         //====================================================================//
@@ -77,7 +77,7 @@ class TaskRepository extends EntityRepository
 
         //====================================================================//
         // Setup Query Time Parameters
-        if ($static) {
+        if (true == $static) {
             $this->builder->setParameter('Now', $nowTimeStamp);
         }
 
@@ -106,7 +106,7 @@ class TaskRepository extends EntityRepository
         $waitingQb = $this->createQueryBuilder("T")
             ->select('count(T.id)')
             ->where("T.running = 0")
-            ->andwhere("T.finished = 0");
+            ->andWhere("T.finished = 0");
         $this->setupIndexKeys($waitingQb, $indexKey1, $indexKey2);
 
         //====================================================================//
@@ -123,7 +123,7 @@ class TaskRepository extends EntityRepository
         $finishedQb = $this->createQueryBuilder("T")
             ->select('count(T.id)')
             ->where("T.running = 0")
-            ->andwhere("T.finished = 1");
+            ->andWhere("T.finished = 1");
         $this->setupIndexKeys($finishedQb, $indexKey1, $indexKey2);
 
         //====================================================================//
@@ -172,13 +172,13 @@ class TaskRepository extends EntityRepository
 
         //====================================================================//
         // Filter On IndexKeys
-        if ($indexKey1 || $indexKey2) {
+        if ((null != $indexKey1) || (null != $indexKey2)) {
             $this->setupIndexKeys($this->builder, $indexKey1, $indexKey2);
         }
 
         //====================================================================//
         // Filter On Token
-        if ($tokenName) {
+        if (null != $tokenName) {
             $this->setupTokenFilter($tokenName);
         }
 
@@ -244,7 +244,7 @@ class TaskRepository extends EntityRepository
         $builder = $this->createQueryBuilder("T")
             ->select('count(T.id)')
             ->where("T.running = 1")
-            ->andwhere("T.finished = 0");
+            ->andWhere("T.finished = 0");
 
         //====================================================================//
         // Filter Tasks
@@ -275,7 +275,7 @@ class TaskRepository extends EntityRepository
         $builder = $this->createQueryBuilder("T")
             ->select('count(T.id)')
             ->where("T.running = 0")
-            ->andwhere("T.finished = 0");
+            ->andWhere("T.finished = 0");
 
         //====================================================================//
         // Filter Tasks
@@ -337,8 +337,8 @@ class TaskRepository extends EntityRepository
         $finished = $this->createQueryBuilder("t")
             ->delete()
             ->where("t.finished = 1")
-            ->andwhere("t.finishedAtTimeStamp < :maxage")
-            ->andwhere("t.jobIsStatic != 1")
+            ->andWhere("t.finishedAtTimeStamp < :maxage")
+            ->andWhere("t.jobIsStatic != 1")
             ->setParameter(":maxage", $maxDate)
             ->getQuery()
             ->execute();
@@ -349,8 +349,8 @@ class TaskRepository extends EntityRepository
             ->delete()
             ->where("t.running = 1")
             ->where("t.finished = 0")
-            ->andwhere("t.startedAtTimeStamp < :maxage")
-            ->andwhere("t.jobIsStatic != 1")
+            ->andWhere("t.startedAtTimeStamp < :maxage")
+            ->andWhere("t.jobIsStatic != 1")
             ->setParameter(":maxage", $maxErrorDate)
             ->getQuery()
             ->execute();
@@ -375,14 +375,12 @@ class TaskRepository extends EntityRepository
      * Flushes Entity Manager
      *
      * @param Task $task Task Item to Save
-     * 
-     * @return void
      */
     public function flush(Task $task): void
     {
         $this->_em->flush($task);
     }
-    
+
     //====================================================================//
     // *******************************************************************//
     //  Low Level Functions
@@ -400,7 +398,7 @@ class TaskRepository extends EntityRepository
             ->select('tokens.name')
             ->from('Splash\Tasking\Entity\Token', 'tokens')
             ->where("tokens.locked = 1")                                    // Token is Locked
-            ->andwhere("tokens.lockedAtTimeStamp > :TokenExpireDate")       // Token Started before Error Date
+            ->andWhere("tokens.lockedAtTimeStamp > :TokenExpireDate")       // Token Started before Error Date
             ->getDQL();
     }
 
@@ -415,13 +413,13 @@ class TaskRepository extends EntityRepository
     {
         //====================================================================//
         // Filter Task with Given Token
-        if ($token) {
-            $this->builder->andwhere('task.jobToken = :TokenName');
+        if (null != $token) {
+            $this->builder->andWhere('task.jobToken = :TokenName');
 
             return $this;
         }
 
-        $this->builder->andwhere($this->builder->expr()->notIn('task.jobToken', $this->getActiveTokensDQL()));
+        $this->builder->andWhere($this->builder->expr()->notIn('task.jobToken', $this->getActiveTokensDQL()));
 
         return $this;
     }
@@ -446,10 +444,10 @@ class TaskRepository extends EntityRepository
             ))
             //====================================================================//
             // Select Tasks That Are Not Static
-            ->andwhere('task.finished != 1')
+            ->andWhere('task.finished != 1')
             //====================================================================//
             // Select Tasks That Are Not Static
-            ->andwhere('task.jobIsStatic != 1')
+            ->andWhere('task.jobIsStatic != 1')
         ;
 
         return $this;
@@ -477,7 +475,7 @@ class TaskRepository extends EntityRepository
             ))
             //====================================================================//
             // Select Tasks That Are Not Static
-            ->andwhere('task.jobIsStatic != 0')
+            ->andWhere('task.jobIsStatic != 0')
         ;
 
         return $this;
@@ -494,11 +492,11 @@ class TaskRepository extends EntityRepository
      */
     private function setupIndexKeys(&$builder, string $indexKey1 = null, string $indexKey2 = null): self
     {
-        if (!empty($indexKey1)) {
-            $builder->andwhere("T.jobIndexKey1 = '".$indexKey1."'");
+        if (null != $indexKey1) {
+            $builder->andWhere("T.jobIndexKey1 = '".$indexKey1."'");
         }
-        if (!empty($indexKey2)) {
-            $builder->andwhere("T.jobIndexKey2 = '".$indexKey2."'");
+        if (null != $indexKey2) {
+            $builder->andWhere("T.jobIndexKey2 = '".$indexKey2."'");
         }
 
         return $this;
@@ -514,7 +512,7 @@ class TaskRepository extends EntityRepository
      */
     private function setupOrderBy(&$builder, array $orderBy = array()): self
     {
-        if (empty($orderBy)) {
+        if (count($orderBy) == 0) {
             return $this;
         }
 
@@ -535,7 +533,7 @@ class TaskRepository extends EntityRepository
      */
     private function setupLimit(&$builder, int $limit = null): self
     {
-        if (!empty($limit)) {
+        if ($limit > 0) {
             $builder->setMaxResults($limit);
         }
 
@@ -552,7 +550,7 @@ class TaskRepository extends EntityRepository
      */
     private function setupOffset(&$builder, int $offset = null) : self
     {
-        if (!empty($offset)) {
+        if (!is_null($offset) && ($offset > 0)) {
             $builder->setFirstResult($offset);
         }
 
@@ -569,9 +567,9 @@ class TaskRepository extends EntityRepository
      */
     private function setupToken(&$builder, string $tokenName = null) : self
     {
-        if (!empty($tokenName)) {
+        if (null != $tokenName) {
             $builder
-                ->andwhere("T.jobToken = :Token")
+                ->andWhere("T.jobToken = :Token")
                 ->setParameter('Token', $tokenName)
             ;
         }
@@ -589,9 +587,9 @@ class TaskRepository extends EntityRepository
      */
     private function setupDiscriminator(&$builder, string $md5 = null) : self
     {
-        if (!empty($md5)) {
+        if (null != $md5) {
             $builder
-                ->andwhere("T.discriminator = :Md5")
+                ->andWhere("T.discriminator = :Md5")
                 ->setParameter('Md5', $md5)
             ;
         }

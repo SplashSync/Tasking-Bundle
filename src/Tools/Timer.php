@@ -86,7 +86,7 @@ class Timer
      *   => When a task is executed, StandByUs is cleared
      * 
      */
-    public static function idleStandBy()
+    public static function idleStandBy(): void
     {
         //====================================================================//
         // Do The Pause
@@ -105,6 +105,8 @@ class Timer
 
     /**
      * Check if Worker is IDLE (Waiting for more than 500Ms).
+     * 
+     * @return bool
      */
     public static function isIdle(): bool
     {

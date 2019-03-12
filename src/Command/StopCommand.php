@@ -16,13 +16,11 @@
 namespace Splash\Tasking\Command;
 
 use DateTime;
-use Splash\Tasking\Entity\Worker;
-use Splash\Tasking\Services\TaskingService;
+use Splash\Tasking\Services\WorkersManager;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Command\Command;
-use Splash\Tasking\Services\WorkersManager;
 
 /**
  * Workers Stop Command - Ask All Workers to Stop
@@ -37,8 +35,15 @@ class StopCommand extends Command
     private $manager;
 
     /**
+     * Timeout for Worker Stop
+     *
+     * @var DateTime
+     */
+    private $timeout;
+
+    /**
      * Class Constructor
-     * 
+     *
      * @param WorkersManager $workerManager
      */
     public function __construct(WorkersManager $workerManager)
@@ -47,19 +52,12 @@ class StopCommand extends Command
         //====================================================================//
         // Link to Worker Manager Service
         $this->manager = $workerManager;
-    } 
-
-    /**
-     * Timeout for Worker Stop
-     *
-     * @var DateTime
-     */
-    private $timeout;
+    }
 
     /**
      * {@inheritdoc}
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('tasking:stop')
@@ -90,7 +88,8 @@ class StopCommand extends Command
         $total = $this->manager->countActiveWorkers();
         //====================================================================//
         // Track Workers are Stopped
-        while (($count = $this->manager->countActiveWorkers()) && !$this->isInTimeout()) {
+        $count = $total;
+        while (($count  > 0) && !$this->isInTimeout()) {
             //====================================================================//
             // User Information
             $output->writeln('<info> Still '.$count.' Actives Workers Process... </info>');
@@ -100,6 +99,7 @@ class StopCommand extends Command
             //====================================================================//
             // Pause
             sleep(1);
+            $count = $this->manager->countActiveWorkers();
         }
         //====================================================================//
         // Check if User Asked to Restart Workers or NOT

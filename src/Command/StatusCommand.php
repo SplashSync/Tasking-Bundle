@@ -36,7 +36,7 @@ class StatusCommand extends ContainerAwareCommand
     /**
      * {@inheritdoc}
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('tasking:status')
@@ -130,7 +130,7 @@ class StatusCommand extends ContainerAwareCommand
             //====================================================================//
             // Workers is Enabled
             $status = '===> '.$worker->getNodeName();
-            $status .= ' ('.$worker->getPID().':'.$workerStatus.')';
+            $status .= ' ('.$worker->getPid().':'.$workerStatus.')';
             if ($worker->isEnabled()) {
                 $status .= ' : '.$worker->getTask();
             }

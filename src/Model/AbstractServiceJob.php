@@ -64,7 +64,7 @@ abstract class AbstractServiceJob extends AbstractJob
     {
         //====================================================================//
         // Check Inputs Are Not Empty
-        if (empty($this->getService()) || empty($this->getMethod())) {
+        if ((null == $this->getService()) || (null == $this->getMethod())) {
             return false;
         }
 

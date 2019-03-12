@@ -68,16 +68,6 @@ class WorkerRepository extends EntityRepository
     }
 
     /**
-     * {@inheritdoc}
-     *
-     * @return Worker[]
-     */
-    public function findAll(): array
-    {
-        return parent::findAll();
-    }
-
-    /**
      * Count Number of Active Workers
      *
      * @return int
@@ -96,15 +86,11 @@ class WorkerRepository extends EntityRepository
         /** @var Worker $worker */
         foreach ($workers as $worker) {
             //====================================================================//
-            // Safety Check - Worker doesn't exists
-            if ($worker instanceof Worker) {
-                //====================================================================//
-                // Worker Is Inactive => Nothing to Do
-                if (false == $worker->isRunning()) {
-                    continue;
-                }
-                $activesWorkers++;
+            // Worker Is Inactive => Nothing to Do
+            if (false == $worker->isRunning()) {
+                continue;
             }
+            $activesWorkers++;
         }
 
         return $activesWorkers;

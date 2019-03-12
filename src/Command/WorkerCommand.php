@@ -75,7 +75,7 @@ class WorkerCommand extends ContainerAwareCommand
     /**
      * {@inheritdoc}
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('tasking:worker')
@@ -128,7 +128,7 @@ class WorkerCommand extends ContainerAwareCommand
         $processId = $input->getArgument('id');
         //====================================================================//
         // Safety Checks
-        if (empty($processId) || !is_scalar($processId)) {
+        if (!is_scalar($processId) || ($processId <= 0)) {
             $output->writeln('You must provide a proccess Id Number');
             exit;
         }

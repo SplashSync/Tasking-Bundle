@@ -27,7 +27,7 @@ class WorkerAdmin extends Admin
     /**
      * {@inheritdoc}
      */
-    protected function configureShowFields(ShowMapper $showMapper)
+    protected function configureShowFields(ShowMapper $showMapper): void
     {
         $showMapper
             ->with('Worker', array('class' => 'col-lg-3 col-md-5 col-sm-12'))
@@ -48,7 +48,7 @@ class WorkerAdmin extends Admin
     /**
      * {@inheritdoc}
      */
-    protected function configureListFields(ListMapper $listMapper)
+    protected function configureListFields(ListMapper $listMapper): void
     {
         $listMapper
             ->addIdentifier('_toString', null, array('route' => array('name' => 'show')))
@@ -64,7 +64,7 @@ class WorkerAdmin extends Admin
     /**
      * {@inheritdoc}
      */
-    protected function configureDatagridFilters(DatagridMapper $datagridMapper)
+    protected function configureDatagridFilters(DatagridMapper $datagridMapper): void
     {
         $datagridMapper
             ->add('nodeName')

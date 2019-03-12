@@ -90,7 +90,7 @@ class Token
     /**
      * When this token was taken
      *
-     * @var \DateTime
+     * @var DateTime
      *
      * @ORM\Column(name="LockedAt", type="datetime", nullable=TRUE)
      */
@@ -116,7 +116,7 @@ class Token
     //      Audit
 
     /**
-     * @var \DateTime
+     * @var DateTime
      *
      * @ORM\Column(name="CreatedAt", type="datetime")
      */
@@ -125,6 +125,8 @@ class Token
     /**
      * @ORM\Version
      * @ORM\Column(type="integer")
+     *
+     * @var int
      */
     private $version;
 
@@ -193,14 +195,14 @@ class Token
         }
         //====================================================================//
         // If LockedBy is Null, Use Machine Name
-        if (!$lockedBy) {
+        if (null == $lockedBy) {
             $machineInfos = posix_uname();
             $lockedBy = $machineInfos['nodename'];
         }
         //====================================================================//
         // Set This Token as Used
         $this->setLocked(true);
-        $this->setLockedAt(new \DateTime);
+        $this->setLockedAt(new DateTime);
         $this->setLockedBy($lockedBy);
 
         return true;
@@ -249,11 +251,11 @@ class Token
     //==============================================================================
 
     /** @ORM\PrePersist() */
-    public function prePersist()
+    public function prePersist(): void
     {
         //====================================================================//
         // Set Created Date
-        $this->setCreatedAt(new \DateTime);
+        $this->setCreatedAt(new DateTime);
     }
 
     //==============================================================================

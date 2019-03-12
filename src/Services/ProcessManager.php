@@ -135,7 +135,7 @@ class ProcessManager
     {
         //====================================================================//
         // Select Environement
-        $env = $environement ? $environement : $this->config["environement"];
+        $env = is_null($environement) ? $this->config["environement"] : $environement;
 
         //====================================================================//
         // Finalize Command
@@ -175,7 +175,7 @@ class ProcessManager
     {
         //====================================================================//
         // Select Environement
-        $env = $environement ? $environement : $this->config["environement"];
+        $env = is_null($environement) ? $this->config["environement"] : $environement;
 
         //====================================================================//
         // Find Command

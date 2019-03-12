@@ -156,7 +156,7 @@ abstract class AbstractTask
     protected $jobInputs = array();
 
     /**
-     * @var string
+     * @var null|string
      *
      * @ORM\Column(name="JobToken", type="string", length=250, nullable=TRUE)
      */
@@ -436,7 +436,7 @@ abstract class AbstractTask
      *
      * @return $this
      */
-    public function setJobToken($jobToken)
+    public function setJobToken(?string $jobToken): self
     {
         $this->jobToken = $jobToken;
 
@@ -446,9 +446,9 @@ abstract class AbstractTask
     /**
      * Get jobToken
      *
-     * @return string
+     * @return null|string
      */
-    public function getJobToken()
+    public function getJobToken(): ?string
     {
         return $this->jobToken;
     }

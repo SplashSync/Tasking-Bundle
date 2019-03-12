@@ -61,7 +61,7 @@ class SupervisorCommand extends ContainerAwareCommand
     /**
      * {@inheritdoc}
      */
-    protected function configure()
+    protected function configure(): void
     {
         //====================================================================//
         // Init Supervisor Command

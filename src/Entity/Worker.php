@@ -115,8 +115,11 @@ class Worker
     public function ping(): bool
     {
         //==============================================================================
-        // Check if Process is active
-        return posix_getpgid($this->getPID()) ? true : false;
+        // Ask for Process Group Id
+        $groupId = posix_getpgid($this->getPid());
+        //==============================================================================
+        // Check if Process Group was Found
+        return ($groupId > 0) ? true : false;
     }
 
     /**
@@ -201,13 +204,13 @@ class Worker
     /**
      * Set nodeIp
      *
-     * @param string $nodeIp
+     * @param null|string $nodeIp
      *
      * @return Worker
      */
-    public function setNodeIp($nodeIp)
+    public function setNodeIp(?string $nodeIp)
     {
-        $this->nodeIp = $nodeIp ? $nodeIp : "127.0.0.1";
+        $this->nodeIp = (null == $nodeIp) ? "127.0.0.1" : $nodeIp;
 
         return $this;
     }

@@ -60,9 +60,9 @@ class TokenRepository extends EntityRepository
     {
         switch ($this->mode) {
             case self::MODE_NORMAL:
-                return $this->AcquireNormal($tokenName);
+                return $this->acquireNormal($tokenName);
             case self::MODE_OPTIMISTIC:
-                return $this->AcquireOptimistic($tokenName);
+                return $this->acquireOptimistic($tokenName);
         }
 
         return null;
@@ -79,9 +79,9 @@ class TokenRepository extends EntityRepository
     {
         switch ($this->mode) {
             case self::MODE_NORMAL:
-                return $this->ReleaseNormal($tokenName);
+                return $this->releaseNormal($tokenName);
             case self::MODE_OPTIMISTIC:
-                return $this->ReleaseOptimistic($tokenName);
+                return $this->releaseOptimistic($tokenName);
         }
 
         return false;
@@ -108,7 +108,7 @@ class TokenRepository extends EntityRepository
             $this->_em->flush();
         }
 
-        return !empty($token);
+        return ($token->getId() > 0);
     }
 
     /**
@@ -155,7 +155,7 @@ class TokenRepository extends EntityRepository
         return $this->createQueryBuilder("t")
             ->delete()
             ->where("t.locked != 1")
-            ->andwhere("t.lockedAt < :maxage OR t.lockedAt IS NULL")
+            ->andWhere("t.lockedAt < :maxage OR t.lockedAt IS NULL")
             ->setParameter(":maxage", $maxDate)
             ->getQuery()
             ->execute();
