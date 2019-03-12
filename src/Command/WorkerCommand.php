@@ -15,9 +15,7 @@
 
 namespace Splash\Tasking\Command;
 
-use DateTime;
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Entity\Worker;
+use Exception;
 use Splash\Tasking\Services\Runner;
 use Splash\Tasking\Services\WorkersManager;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
@@ -95,18 +93,17 @@ class WorkerCommand extends ContainerAwareCommand
 
         //====================================================================//
         // Worker Tasks Execution Loop
-        while (!$this->manager->isToKill($this->taskTotal)) 
-        {
+        while (!$this->manager->isToKill($this->taskTotal)) {
             //====================================================================//
             // Run Next Normal or Static Tasks
-            if(true === $this->runner->run()) {
+            if (true === $this->runner->run()) {
                 $this->taskTotal++;
             }
             //====================================================================//
             // Refresh Worker Status (WatchDog)
             $this->manager->refresh(false);
         }
-        
+
         //==============================================================================
         // Set Status as Stopped
         $this->manager->stop();
@@ -130,7 +127,8 @@ class WorkerCommand extends ContainerAwareCommand
         // Safety Checks
         if (!is_scalar($processId) || ($processId <= 0)) {
             $output->writeln('You must provide a proccess Id Number');
-            exit;
+
+            throw new Exception('You must provide a proccess Id Number');
         }
         //====================================================================//
         // Init Worker

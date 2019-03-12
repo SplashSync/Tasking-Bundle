@@ -29,6 +29,8 @@ use Symfony\Component\EventDispatcher\GenericEvent;
 
 /**
  * Tasks Management Service
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class TasksManager
 {
@@ -87,6 +89,7 @@ class TasksManager
      * @param EventDispatcherInterface $dispatcher
      * @param LoggerInterface          $logger
      * @param TaskRepository           $tasks
+     * @param TokenManager             $token
      * @param array                    $config
      */
     public function __construct(EntityManagerInterface $doctrine, EventDispatcherInterface $dispatcher, LoggerInterface $logger, TaskRepository $tasks, TokenManager $token, array $config)
@@ -141,8 +144,13 @@ class TasksManager
 
     /**
      * Retrieve Next Available Task from database
+     *
+     * @param null|string $currentToken
+     * @param bool        $staticMode
+     *
+     * @return null|Task
      */
-    public function next(?string $currentToken, bool $staticMode = false): ?Task
+    public function next(?string $currentToken, bool $staticMode): ?Task
     {
         return  $this->taskRepository->getNextTask(
             $this->config->tasks,
@@ -217,12 +225,12 @@ class TasksManager
                 return true;
             }
             //==============================================================================
-            // Increment WatchDogs
-            if ($pending != $lastPending) {
-                $watchdog = 0;
-            } else {
-                $watchdog += $msSteps;
-            }
+            // Increment Tasks Execution WatchDogs
+            $watchdog = ($pending == $lastPending)
+                ? $watchdog + $msSteps
+                : 0;
+            //==============================================================================
+            // Increment Absolute WatchDogs
             $absWatchdog += $msSteps;
             //==============================================================================
             // Store Last Pending Task Count
@@ -456,6 +464,8 @@ class TasksManager
      * Return List of Static Tasks
      *  => Tasks are Loaded from Parameters
      *  => Or Added by registering Event dispatcher
+     *
+     * @return array
      */
     private function getStaticTasks(): array
     {
@@ -475,6 +485,9 @@ class TasksManager
 
     /**
      * Identify Static Task in Parameters
+     *
+     * @param array $staticTask
+     * @param Task  $task
      *
      * @return bool true if Static Tasks are Similar
      */

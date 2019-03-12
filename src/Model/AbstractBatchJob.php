@@ -133,6 +133,10 @@ abstract class AbstractBatchJob extends AbstractJob
 
     /**
      * Overide this function to perform your task
+     *
+     * @param array $inputs
+     *
+     * @return bool
      */
     public function execute(array $inputs = array()) : bool
     {
@@ -159,10 +163,10 @@ abstract class AbstractBatchJob extends AbstractJob
         if (!method_exists(self::class, static::$batchList) || !method_exists(self::class, static::$batchAction)) {
             return false;
         }
-        
+
         return true;
     }
-    
+
     //==============================================================================
     //      Batch Job Execution Management
     //==============================================================================
@@ -192,7 +196,7 @@ abstract class AbstractBatchJob extends AbstractJob
         //====================================================================//
         // Load Current Batch State
         $state = $this->getState();
-        $state["tasksCount"]++;
+        ++$state["tasksCount"];
 
         //==============================================================================
         //      Execute Batch Tasks
@@ -212,7 +216,7 @@ abstract class AbstractBatchJob extends AbstractJob
         for ($index = $taskStart; $index < $taskEnd; $index++) {
             //==============================================================================
             //      Update State
-            $state["currentJob"]++;
+            ++$state["currentJob"];
 
             //==============================================================================
             //      Safety Ckeck - Ensure Input Array Exists
@@ -228,8 +232,10 @@ abstract class AbstractBatchJob extends AbstractJob
 
             //==============================================================================
             //      Update State
-            $state["jobsCompleted"]++;
-            $jobsResult ? $state["jobsSuccess"]++ : $state["jobsError"]++;
+            ++$state["jobsCompleted"];
+            $jobsResult
+                    ? ++$state["jobsSuccess"]
+                    : ++$state["jobsError"];
             $this->setState($state);
 
             //==============================================================================

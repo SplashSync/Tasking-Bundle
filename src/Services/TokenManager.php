@@ -17,10 +17,10 @@ namespace Splash\Tasking\Services;
 
 use ArrayObject;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Token;
 use Splash\Tasking\Repository\TokenRepository;
-use Psr\Log\LoggerInterface;
 
 /**
  * Token Management Service

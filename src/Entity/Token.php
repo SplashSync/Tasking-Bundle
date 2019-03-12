@@ -202,7 +202,7 @@ class Token
         //====================================================================//
         // Set This Token as Used
         $this->setLocked(true);
-        $this->setLockedAt(new DateTime);
+        $this->setLockedAt(new DateTime());
         $this->setLockedBy($lockedBy);
 
         return true;
@@ -232,6 +232,8 @@ class Token
      * Build Token Key Name from an Array of Parameters
      *
      * @param array $tokenArray Token Parameters Given As Array
+     *
+     * @return string
      */
     public static function build(?array $tokenArray): string
     {
@@ -255,7 +257,7 @@ class Token
     {
         //====================================================================//
         // Set Created Date
-        $this->setCreatedAt(new DateTime);
+        $this->setCreatedAt(new DateTime());
     }
 
     //==============================================================================

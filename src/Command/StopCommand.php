@@ -89,7 +89,7 @@ class StopCommand extends Command
         //====================================================================//
         // Track Workers are Stopped
         $count = $total;
-        while (($count  > 0) && !$this->isInTimeout()) {
+        while (($count > 0) && !$this->isInTimeout()) {
             //====================================================================//
             // User Information
             $output->writeln('<info> Still '.$count.' Actives Workers Process... </info>');

@@ -15,9 +15,9 @@
 
 namespace Splash\Tasking\Controller;
 
+use Splash\Tasking\Repository\TaskRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
-use Splash\Tasking\Repository\TaskRepository;
 
 /**
  * Tasks Lists Displays Controller
@@ -176,6 +176,8 @@ class ListController extends Controller
      *
      * @param string $indexKey1 Your Custom Index Key 1
      * @param string $indexKey2 Your Custom Index Key 2
+     *
+     * @return array
      */
     private function getIndexKeysFindBy(string $indexKey1 = null, string $indexKey2 = null) : array
     {
@@ -189,7 +191,7 @@ class ListController extends Controller
 
         return $filters;
     }
-    
+
     /**
      * Safe Load Tasks Repository
      *
@@ -199,12 +201,11 @@ class ListController extends Controller
     {
         $repository = $this->get('doctrine')->getManager()
             ->getRepository('SplashTaskingBundle:Task');
-        
-        if(!($repository instanceof TaskRepository)) {
+
+        if (!($repository instanceof TaskRepository)) {
             throw new \Exception("Unable to Load Tasks Repository");
         }
-        
+
         return $repository;
     }
-    
 }

@@ -15,11 +15,14 @@
 
 namespace Splash\Tasking\Command;
 
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Splash\Tasking\Services\WorkersManager;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Console Command to Start All tasking Worker Background Process
+ */
 class StartCommand extends Command
 {
     /**
@@ -31,7 +34,7 @@ class StartCommand extends Command
 
     /**
      * Class Constructor
-     * 
+     *
      * @param WorkersManager $workerManager
      */
     public function __construct(WorkersManager $workerManager)
@@ -40,7 +43,7 @@ class StartCommand extends Command
         //====================================================================//
         // Link to Worker Manager Service
         $this->manager = $workerManager;
-    }    
+    }
 
     /**
      * {@inheritdoc}

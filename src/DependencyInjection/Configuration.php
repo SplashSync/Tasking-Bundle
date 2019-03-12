@@ -49,6 +49,8 @@ class Configuration implements ConfigurationInterface
 
     /**
      * Add Common Parameters To Configuration
+     *
+     * @return $this
      */
     private function configureCommonParameters(): self
     {
@@ -84,6 +86,8 @@ class Configuration implements ConfigurationInterface
 
     /**
      * Add Server Parameters To Configuration
+     *
+     * @return $this
      */
     private function configureServerParameters(): self
     {
@@ -111,6 +115,8 @@ class Configuration implements ConfigurationInterface
 
     /**
      * Add Supervisor Parameters To Configuration
+     *
+     * @return $this
      */
     private function configureSupervisorParameters(): self
     {
@@ -132,7 +138,6 @@ class Configuration implements ConfigurationInterface
             ->integerNode('max_workers')
             ->info('Number of active worker on same machine.')
             ->defaultValue(3)
-//            ->defaultValue(1)
             ->end()
             ->integerNode('max_memory')
             ->info('Maximum Memory usage for Supervisor. Exit when reached.')
@@ -147,6 +152,8 @@ class Configuration implements ConfigurationInterface
 
     /**
      * Add Workers Parameters To Configuration
+     *
+     * @return $this
      */
     private function configureWorkersParameters(): self
     {
@@ -178,6 +185,8 @@ class Configuration implements ConfigurationInterface
 
     /**
      * Add Tasks Parameters To Configuration
+     *
+     * @return $this
      */
     private function configureTasksParameters(): self
     {
@@ -213,6 +222,8 @@ class Configuration implements ConfigurationInterface
 
     /**
      * Add Static Tasks Parameters To Configuration
+     *
+     * @return $this
      */
     private function configureStaticTasksParameters(): self
     {

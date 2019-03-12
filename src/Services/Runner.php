@@ -24,7 +24,6 @@ use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
 use Splash\Tasking\Repository\TaskRepository;
 use Splash\Tasking\Tools\Timer;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -166,7 +165,6 @@ class Runner
         return $this->token->release();
     }
 
-
     //==============================================================================
     //      PRIVATE - Task Execution Management
     //==============================================================================
@@ -216,7 +214,7 @@ class Runner
         //==============================================================================
         // Save Status in Db
         $this->taskRepository->flush($this->task);
-        
+
         //====================================================================//
         // Exectue Task
         //====================================================================//
@@ -354,10 +352,9 @@ class Runner
         //==============================================================================
         try {
             $result = $this->executeJobAction($task);
-        }
-        //==============================================================================
-        // Catch Any Exceptions that may occur during task execution
-        catch (Exception $e) {
+        } catch (Exception $e) {
+            //==============================================================================
+            // Catch Any Exceptions that may occur during task execution
             $result = false;
             $task->setFaultStr($e->getMessage().PHP_EOL.$e->getFile()." Line ".$e->getLine());
             $task->setFaultTrace($e->getTraceAsString());
@@ -377,6 +374,8 @@ class Runner
 
     /**
      * Main Function for Job Execution
+     *
+     * @param Task $task
      *
      * @return bool
      */
@@ -451,5 +450,5 @@ class Runner
         //====================================================================//
         // User Information
         $this->logger->info('Runner: Task Delay = '.$task->getDuration()." Milliseconds </info>");
-    }    
+    }
 }

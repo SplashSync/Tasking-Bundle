@@ -15,11 +15,14 @@
 
 namespace Splash\Tasking\Command;
 
+use Splash\Tasking\Services\WorkersManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Splash\Tasking\Services\WorkersManager;
 
+/**
+ * Console Command to Check if Background Supervisor Process is Running
+ */
 class CheckCommand extends Command
 {
     /**
@@ -31,7 +34,7 @@ class CheckCommand extends Command
 
     /**
      * Class Constructor
-     * 
+     *
      * @param WorkersManager $workerManager
      */
     public function __construct(WorkersManager $workerManager)
@@ -40,8 +43,8 @@ class CheckCommand extends Command
         //====================================================================//
         // Link to Worker Manager Service
         $this->manager = $workerManager;
-    }    
-    
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -55,6 +58,7 @@ class CheckCommand extends Command
 
     /**
      * {@inheritdoc}
+     *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function execute(InputInterface $input, OutputInterface $output)

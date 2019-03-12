@@ -27,12 +27,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class StatusCommand extends ContainerAwareCommand
 {
-    
     /**
      * @var ProgressBar
      */
     private $progress;
-    
+
     /**
      * {@inheritdoc}
      */
@@ -46,6 +45,7 @@ class StatusCommand extends ContainerAwareCommand
 
     /**
      * {@inheritdoc}
+     *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -109,13 +109,13 @@ class StatusCommand extends ContainerAwareCommand
         $repo = $this->getContainer()
             ->get("doctrine")->getManager()
             ->getRepository('SplashTaskingBundle:Task');
-        
+
         //====================================================================//
         // List Workers Status
         $output->writeln('==============================================');
         $output->writeln('= Workers : ');
         $disabled = 0;
-        /** @var Worker $worker */         
+        /** @var Worker $worker */
         foreach ($repo->findAll() as $worker) {
             //====================================================================//
             // Workers is Disabled
@@ -167,7 +167,7 @@ class StatusCommand extends ContainerAwareCommand
 
         //====================================================================//
         // Update Workers Counters
-        /** @var Worker $worker */  
+        /** @var Worker $worker */
         foreach ($workers->findAll() as $worker) {
             //====================================================================//
             // Workers is Supervisor

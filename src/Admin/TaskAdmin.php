@@ -1,21 +1,25 @@
 <?php
 
 /*
- * This file is part of the Sonata package.
+ *  This file is part of SplashSync Project.
  *
- * (c) Thomas Rabaix <thomas.rabaix@sonata-project.org>
+ *  Copyright (C) 2015-2019 Splash Sync  <www.splashsync.com>
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
  */
 
 namespace Splash\Tasking\Admin;
 
 use Sonata\AdminBundle\Admin\Admin;
-use Sonata\AdminBundle\Show\ShowMapper;
-use Sonata\AdminBundle\Form\FormMapper;
-use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
+use Sonata\AdminBundle\Datagrid\ListMapper;
+use Sonata\AdminBundle\Form\FormMapper;
+use Sonata\AdminBundle\Show\ShowMapper;
 
 //use Sonata\Bundle\DemoBundle\Entity\Inspection;
 
@@ -31,39 +35,39 @@ class TaskAdmin extends Admin
     {
         $showMapper
             ->with('Status', array('class' => 'col-md-12'))
-                ->add('running')
-                ->add('finished')
-                ->add('try')
-                ->add('fault_str')
-                ->add('fault_trace')
+            ->add('running')
+            ->add('finished')
+            ->add('try')
+            ->add('fault_str')
+            ->add('fault_trace')
             ->end()
             ->with('General', array('class' => 'col-md-6'))
-                ->add('name')
-                ->add('jobClass')
-                ->add('jobName')
-                ->add('jobToken')
-                ->add('jobIsStatic')
-                ->add('jobFrequency')
-                ->add('plannedAt')
+            ->add('name')
+            ->add('jobClass')
+            ->add('jobName')
+            ->add('jobToken')
+            ->add('jobIsStatic')
+            ->add('jobFrequency')
+            ->add('plannedAt')
             ->end()
             ->with('Indexes', array('class' => 'col-md-6'))
-                ->add('discriminator')
-                ->add('jobIndexKey1')
-                ->add('jobIndexKey2')
+            ->add('discriminator')
+            ->add('jobIndexKey1')
+            ->add('jobIndexKey2')
             ->end()
             ->with('Timing', array('class' => 'col-md-6'))
-                ->add('createdAt')
-                ->add('createdBy')
-                ->add('startedAt')
-                ->add('startedBy')
-                ->add('finishedAt')
-                ->add('duration')
+            ->add('createdAt')
+            ->add('createdBy')
+            ->add('startedAt')
+            ->add('startedBy')
+            ->add('finishedAt')
+            ->add('duration')
             ->end()
             ->with('Inputs', array('class' => 'col-md-6'))
-                ->add('jobInputsStr', null, array('safe' => true))
+            ->add('jobInputsStr', null, array('safe' => true))
             ->end()
             ->with('Outputs', array('class' => 'col-md-6'))
-                ->add('outputs', null, array('safe' => true))
+            ->add('outputs', null, array('safe' => true))
             ->end()
         ;
     }
@@ -77,8 +81,8 @@ class TaskAdmin extends Admin
             ->addIdentifier('name', null, array('route' => array('name' => 'show')))
             ->add('jobToken')
             ->add('duration')
-            ->add('running', null, ['editable' => true])
-            ->add('finished', null, ['editable' => true])
+            ->add('running', null, array('editable' => true))
+            ->add('finished', null, array('editable' => true))
             ->add('jobIsStatic')
             ->add('try')
             ->add('fault_str')
@@ -107,30 +111,30 @@ class TaskAdmin extends Admin
     {
         $formMapper
             ->with('General', array('class' => 'col-md-6'))
-                ->add('name')
+            ->add('name')
 //                ->add('user', 'sonata_type_model_list')
-                ->add('running')
-                ->add('finished')
-                ->add('try')
+            ->add('running')
+            ->add('finished')
+            ->add('try')
             ->end()
             ->with('Action', array('class' => 'col-md-6'))
-                ->add('jobClass')
-                ->add('jobAction')
-                ->add('jobToken')
+            ->add('jobClass')
+            ->add('jobAction')
+            ->add('jobToken')
             ->end()
             ->with('Parameters', array('class' => 'col-md-6'))
-                ->add('jobInputs')
+            ->add('jobInputs')
             ->end()
             ->with('Static Tasks', array('class' => 'col-md-6'))
-                ->add('jobIsStatic')
-                ->add('jobFrequency')
+            ->add('jobIsStatic')
+            ->add('jobFrequency')
 //                ->add('plannedAt', "datetime", [ "required" => False ])
             ->end()
             ->with('Indexes', array('class' => 'col-md-6'))
-                ->add('jobIndexKey1')
-                ->add('jobIndexKey2')
+            ->add('jobIndexKey1')
+            ->add('jobIndexKey2')
             ->end()
-                
+
         ;
     }
 }

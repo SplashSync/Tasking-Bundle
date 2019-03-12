@@ -16,9 +16,9 @@
 namespace Splash\Tasking\Services;
 
 use ArrayObject;
+use Psr\Log\LoggerInterface;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Worker;
-use Psr\Log\LoggerInterface;
 use Splash\Tasking\Tools\Timer;
 
 /**
@@ -49,7 +49,7 @@ class ProcessManager
      * @var LoggerInterface
      */
     private $logger;
-    
+
     /**
      * Tasking Service Configuration Array
      *
@@ -70,12 +70,16 @@ class ProcessManager
 
     /**
      * Class Constructor
+     *
+     * @param LoggerInterface $logger
+     * @param string          $rootDir
+     * @param array           $configuration
      */
     public function __construct(LoggerInterface $logger, string $rootDir, array $configuration)
     {
         //====================================================================//
         // Link to Symfony Logger
-        $this->logger = $logger;        
+        $this->logger = $logger;
         //====================================================================//
         // Init Parameters
         $this->projectDir = dirname($rootDir);
@@ -97,6 +101,7 @@ class ProcessManager
         // Check Crontab Management is ACtivated
         if (!$this->config["server"]["force_crontab"]) {
             $this->logger->debug("Process Manager: Crontab is Disabled.");
+
             return Task::CRONTAB_DISABLED;
         }
         //====================================================================//
@@ -116,10 +121,12 @@ class ProcessManager
             exec("crontab crontab.conf");
 
             $this->logger->warning("Process Manager: Crontab Updated.");
+
             return Task::CRONTAB_UPDATED;
         }
 
         $this->logger->debug("Process Manager: Crontab is Already Ok.");
+
         return Task::CRONTAB_OK;
     }
 
@@ -155,7 +162,7 @@ class ProcessManager
         exec($rawCmd);
         //====================================================================//
         // Wait for Script Startup
-        Timer::msSleep(200); 
+        Timer::msSleep(200);
         //====================================================================//
         // User Info
         $this->logger->notice("Process Manager: Process Started (".$rawCmd.")");
@@ -186,7 +193,7 @@ class ProcessManager
         //====================================================================//
         // Verify This Command Not Already Running
         $list = null;
-        
+
         return (int) exec("pgrep '".$listCommand."' -xfc ", $list);
     }
 }

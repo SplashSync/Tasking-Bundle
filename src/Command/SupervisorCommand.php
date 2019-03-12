@@ -73,12 +73,14 @@ class SupervisorCommand extends ContainerAwareCommand
 
     /**
      * {@inheritdoc}
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         //====================================================================//
         // Initialize Supervisor Worker
-        $this->initialize($input, $output);
+        $this->initialize();
 
         //====================================================================//
         // Run Supervisor Loop
@@ -104,10 +106,9 @@ class SupervisorCommand extends ContainerAwareCommand
     /**
      * Init Supervisor & Services
      *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
+     * @SuppressWarnings(PHPMD.ExitExpression)
      */
-    protected function initialize(InputInterface $input, OutputInterface $output): void
+    protected function initialize(): void
     {
         //====================================================================//
         // Init Worker

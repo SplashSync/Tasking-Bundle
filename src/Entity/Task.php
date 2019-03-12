@@ -31,7 +31,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class Task extends AbstractTask
 {
-
     //==============================================================================
     //      Task Priority
     //==============================================================================
@@ -60,7 +59,7 @@ class Task extends AbstractTask
 
     /**
      * Task Settings
-     *  
+     *
      * @var array
      */
     private static $defaultSettings = array(
@@ -87,7 +86,7 @@ class Task extends AbstractTask
     {
         //====================================================================//
         // Set Created Date
-        $this->setCreatedAt(new DateTime);
+        $this->setCreatedAt(new DateTime());
         //====================================================================//
         // Set Created By
         $this->setCreatedBy($this->getCurrentServer());
@@ -256,7 +255,7 @@ class Task extends AbstractTask
 
         return $this;
     }
-    
+
     /**
      * Set startedAt
      *
@@ -280,8 +279,8 @@ class Task extends AbstractTask
         $this->startedAtMicroTime = microtime(true);
 
         return $this;
-    }    
-    
+    }
+
     /**
      * Set finishedAt
      *
@@ -309,7 +308,7 @@ class Task extends AbstractTask
 
         return $this;
     }
-    
+
     /**
      * Set plannedAt
      *
@@ -328,5 +327,4 @@ class Task extends AbstractTask
 
         return $this;
     }
-    
 }

@@ -1,21 +1,24 @@
 <?php
 
 /*
- * This file is part of the Sonata package.
+ *  This file is part of SplashSync Project.
  *
- * (c) Thomas Rabaix <thomas.rabaix@sonata-project.org>
+ *  Copyright (C) 2015-2019 Splash Sync  <www.splashsync.com>
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
  */
 
 namespace Splash\Tasking\Admin;
 
 use Sonata\AdminBundle\Admin\Admin;
-use Sonata\AdminBundle\Show\ShowMapper;
-use Sonata\AdminBundle\Form\FormMapper;
-use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
+use Sonata\AdminBundle\Datagrid\ListMapper;
+use Sonata\AdminBundle\Show\ShowMapper;
 
 //use Sonata\Bundle\DemoBundle\Entity\Inspection;
 
@@ -31,16 +34,16 @@ class WorkerAdmin extends Admin
     {
         $showMapper
             ->with('Worker', array('class' => 'col-lg-3 col-md-5 col-sm-12'))
-                ->add('nodeName')
-                ->add('nodeIp')
-                ->add('process')
-                ->add('pID')
+            ->add('nodeName')
+            ->add('nodeIp')
+            ->add('process')
+            ->add('pID')
             ->end()
             ->with('Status', array('class' => 'col-lg-9 col-md-7 col-sm-12'))
-                ->add('running')
-                ->add('enabled')
-                ->add('lastSeen')
-                ->add('task')
+            ->add('running')
+            ->add('enabled')
+            ->add('lastSeen')
+            ->add('task')
             ->end()
         ;
     }
@@ -53,7 +56,7 @@ class WorkerAdmin extends Admin
         $listMapper
             ->addIdentifier('_toString', null, array('route' => array('name' => 'show')))
 //            ->add('nodeIp')
-            ->add('enabled', null, ['editable' => true])
+            ->add('enabled', null, array('editable' => true))
             ->add('pID')
             ->add('running')
             ->add('lastSeen')

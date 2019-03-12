@@ -17,7 +17,6 @@ namespace Splash\Tasking\Model;
 
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
-
 use Symfony\Component\Validator\Constraints as ASSERT;
 
 /**
@@ -31,7 +30,6 @@ use Symfony\Component\Validator\Constraints as ASSERT;
  */
 abstract class AbstractTask
 {
-    
     //==============================================================================
     //      Task Display Informations
     //==============================================================================
@@ -100,7 +98,7 @@ abstract class AbstractTask
      * @ORM\Column(name="PlannedAtTimeStamp", type="integer", nullable=TRUE)
      */
     protected $plannedAtTimeStamp;
-    
+
     //==============================================================================
     //      Definition
     //==============================================================================
@@ -770,7 +768,7 @@ abstract class AbstractTask
     /**
      * Set faultStr
      *
-     * @param null|string          $faultStr
+     * @param null|string $faultStr
      *
      * @return $this
      */
@@ -780,7 +778,7 @@ abstract class AbstractTask
 
         return $this;
     }
-    
+
     /**
      * Get faultStr
      *

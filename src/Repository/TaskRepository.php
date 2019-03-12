@@ -512,7 +512,7 @@ class TaskRepository extends EntityRepository
      */
     private function setupOrderBy(&$builder, array $orderBy = array()): self
     {
-        if (count($orderBy) == 0) {
+        if (0 == count($orderBy)) {
             return $this;
         }
 

@@ -19,15 +19,16 @@ use ArrayObject;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Psr\Log\LoggerInterface;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Worker;
 use Splash\Tasking\Repository\WorkerRepository;
-use Psr\Log\LoggerInterface;
-use Splash\Tasking\Services\ProcessManager;
 use Splash\Tasking\Tools\Timer;
 
 /**
  * Workers Management Service
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class WorkersManager
 {
@@ -55,6 +56,11 @@ class WorkersManager
     protected $config;
 
     /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
      * Worker Object
      *
      * @var Worker
@@ -73,24 +79,18 @@ class WorkersManager
      */
     private $workerRepository;
 
-    /**
-     * @var LoggerInterface
-     */
-    protected $logger;
-    
     //====================================================================//
     //  CONSTRUCTOR
     //====================================================================//
 
     /**
      * Class Constructor
-     * 
+     *
      * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $logger
-     * @param WorkerRepository $workerRepository
-     * @param ProcessManager $processManager
-     * 
-     * @param array $config
+     * @param LoggerInterface        $logger
+     * @param WorkerRepository       $workerRepository
+     * @param ProcessManager         $processManager
+     * @param array                  $config
      */
     public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger, WorkerRepository $workerRepository, ProcessManager $processManager, array $config)
     {
@@ -99,7 +99,7 @@ class WorkersManager
         $this->entityManager = $entityManager;
         //====================================================================//
         // Link to Symfony Logger
-        $this->logger = $logger;        
+        $this->logger = $logger;
         //====================================================================//
         // Link to Workers Repository
         $this->workerRepository = $workerRepository;
@@ -146,7 +146,7 @@ class WorkersManager
         }
         //====================================================================//
         // Setup End Of Life Date
-        $this->endDate = $this->getWorkerMaxDate();        
+        $this->endDate = $this->getWorkerMaxDate();
         //====================================================================//
         // Update pID
         $this->worker = $worker;
@@ -161,14 +161,13 @@ class WorkersManager
     /**
      * Refresh Status of a Supervisor Process
      *
-     *
      * @param bool $force
      *
      * @throws Exception
      *
      * @return Worker
      */
-    public function refresh(bool $force = false) : Worker
+    public function refresh(bool $force) : Worker
     {
         //====================================================================//
         // Safety Check
@@ -210,7 +209,7 @@ class WorkersManager
         //==============================================================================
         // Flush Database
         $this->entityManager->flush();
-        $this->entityManager->clear();        
+        $this->entityManager->clear();
         //====================================================================//
         // Output Refresh Sign
         $this->logger->info("Worker Manager: Worker ".$worker->getProcess()." Refreshed in Database");
@@ -305,9 +304,9 @@ class WorkersManager
         }
         //====================================================================//
         // User Information
-        $this->logger->info('End of Worker Process... See you later babe!');        
+        $this->logger->info('End of Worker Process... See you later babe!');
     }
-    
+
     /**
      * Update Enable Flag of All Available Workers
      *
@@ -333,7 +332,7 @@ class WorkersManager
         //====================================================================//
         // Save Changes to Db
         $this->entityManager->flush();
-    }    
+    }
 
     /**
      * Count Number of Active Workers
@@ -343,8 +342,8 @@ class WorkersManager
     public function countActiveWorkers() : int
     {
         return $this->workerRepository->countActiveWorkers();
-    }   
-    
+    }
+
     /**
      * Check if Worker Needs To Be Restarted
      *
@@ -585,6 +584,8 @@ class WorkersManager
     /**
      * Check All Available Supervisor are Running on All machines
      *
+     * @param Worker $supervisor
+     *
      * @return bool
      */
     private function checkRemoteSupervisorsAreRunning(Worker $supervisor): bool
@@ -602,15 +603,15 @@ class WorkersManager
         $url = "http://".$supervisor->getNodeIp().$this->config["multiserver_path"];
         //====================================================================//
         // Send REST Request to Start
-        $ch = curl_init($url);
-        if (false === $ch) {
+        $request = curl_init($url);
+        if (false === $request) {
             return false;
         }
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
-        curl_exec($ch);
-        curl_close($ch);
+        curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($request, CURLOPT_HEADER, 0);
+        curl_setopt($request, CURLOPT_CONNECTTIMEOUT, 1);
+        curl_exec($request);
+        curl_close($request);
 
         return true;
     }

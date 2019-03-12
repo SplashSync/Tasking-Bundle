@@ -127,6 +127,8 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
 
     /**
      * Overide this function to validate you Input parameters
+     *
+     * @return bool
      */
     public function validate() : bool
     {
@@ -135,6 +137,8 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
 
     /**
      * Overide this function to prepare your class for it's execution
+     *
+     * @return bool
      */
     public function prepare() : bool
     {
@@ -143,6 +147,8 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
 
     /**
      * Overide this function to perform your task
+     *
+     * @return bool
      */
     public function execute() : bool
     {
@@ -151,6 +157,8 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
 
     /**
      * Overide this function to validate results of your task or perform post-actions
+     *
+     * @return bool
      */
     public function finalize() : bool
     {
@@ -159,6 +167,8 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
 
     /**
      * Overide this function to close your task
+     *
+     * @return bool
      */
     public function close() : bool
     {
@@ -192,7 +202,7 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
     /**
      * Set Job Token
      *
-     * @param array|string|null $token
+     * @param null|array|string $token
      *
      * @return $this
      */
