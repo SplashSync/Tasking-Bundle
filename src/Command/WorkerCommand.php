@@ -89,7 +89,7 @@ class WorkerCommand extends ContainerAwareCommand
     {
         //====================================================================//
         // Init Console Command & Worker
-        $this->initialize($input, $output);
+        $this->boot($input);
 
         //====================================================================//
         // Worker Tasks Execution Loop
@@ -115,10 +115,9 @@ class WorkerCommand extends ContainerAwareCommand
     /**
      * Initialize Worker Process
      *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
+     * @param InputInterface $input
      */
-    protected function initialize(InputInterface $input, OutputInterface $output): void
+    private function boot(InputInterface $input): void
     {
         //====================================================================//
         // Load Input Parameters
@@ -126,8 +125,6 @@ class WorkerCommand extends ContainerAwareCommand
         //====================================================================//
         // Safety Checks
         if (!is_scalar($processId) || ($processId <= 0)) {
-            $output->writeln('You must provide a proccess Id Number');
-
             throw new Exception('You must provide a proccess Id Number');
         }
         //====================================================================//

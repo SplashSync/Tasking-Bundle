@@ -80,7 +80,7 @@ class SupervisorCommand extends ContainerAwareCommand
     {
         //====================================================================//
         // Initialize Supervisor Worker
-        $this->initialize();
+        $this->boot();
 
         //====================================================================//
         // Run Supervisor Loop
@@ -105,10 +105,8 @@ class SupervisorCommand extends ContainerAwareCommand
 
     /**
      * Init Supervisor & Services
-     *
-     * @SuppressWarnings(PHPMD.ExitExpression)
      */
-    protected function initialize(): void
+    private function boot(): void
     {
         //====================================================================//
         // Init Worker
