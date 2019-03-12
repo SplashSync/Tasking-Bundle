@@ -46,8 +46,8 @@ install:
     # Install Symfony
     - curl -s https://raw.githubusercontent.com/SplashSync/Php-Bundle/master/src/Resources/travis/install.sh  | bash
     
-    - echo "Start Web Server"
-    - php bin/console server:start -d web
+#    - echo "Start Web Server"
+#    - php bin/console server:start -d web
 
 # Run script
 script:
