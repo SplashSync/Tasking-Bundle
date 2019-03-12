@@ -1,67 +1,78 @@
 <?php
 
+/*
+ *  This file is part of SplashSync Project.
+ *
+ *  Copyright (C) 2015-2019 Splash Sync  <www.splashsync.com>
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
+ */
+
 namespace Splash\Tasking\Tests\Controller;
 
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Process\Process;
 
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-
+/**
+ * Test sequence Initialisation
+ */
 class A001InitialisationControllerTest extends KernelTestCase
 {
     /**
      * {@inheritDoc}
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         self::bootKernel();
-    }        
+    }
 
     /**
-     * @abstract    Stop All Supervisor & Worker Process
-     */    
+     * Stop All Supervisor & Worker Process
+     */
     public function testDisplayLogo()
     {
         echo PHP_EOL;
-        echo " ______     ______   __         ______     ______     __  __    " . PHP_EOL;
-        echo "/\  ___\   /\  == \ /\ \       /\  __ \   /\  ___\   /\ \_\ \   " . PHP_EOL;
-        echo "\ \___  \  \ \  _-/ \ \ \____  \ \  __ \  \ \___  \  \ \  __ \  " . PHP_EOL;
-        echo " \/\_____\  \ \_\    \ \_____\  \ \_\ \_\  \/\_____\  \ \_\ \_\ " . PHP_EOL;
-        echo "  \/_____/   \/_/     \/_____/   \/_/\/_/   \/_____/   \/_/\/_/ " . PHP_EOL;
-        echo "                                                                " . PHP_EOL;
-        $this->assertTrue(True);
+        echo " ______     ______   __         ______     ______     __  __    ".PHP_EOL;
+        echo "/\\  ___\\   /\\  == \\ /\\ \\       /\\  __ \\   /\\  ___\\   /\\ \\_\\ \\   ".PHP_EOL;
+        echo "\\ \\___  \\  \\ \\  _-/ \\ \\ \\____  \\ \\  __ \\  \\ \\___  \\  \\ \\  __ \\  ".PHP_EOL;
+        echo " \\/\\_____\\  \\ \\_\\    \\ \\_____\\  \\ \\_\\ \\_\\  \\/\\_____\\  \\ \\_\\ \\_\\ ".PHP_EOL;
+        echo "  \\/_____/   \\/_/     \\/_____/   \\/_/\\/_/   \\/_____/   \\/_/\\/_/ ".PHP_EOL;
+        echo "                                                                ".PHP_EOL;
+        $this->assertTrue(true);
     }
-    
+
     /**
-     * @abstract    Stop All Supervisor & Worker Process
-     */    
+     * Stop All Supervisor & Worker Process
+     */
     public function testStopWorkers()
     {
         //====================================================================//
         // Create Process
-        $process = new Process("php bin/console tasking:stop --no-restart");
-        
+        $process = Process::fromShellCommandline("php bin/console tasking:stop --no-restart");
+
         //====================================================================//
         // Clean Working Dir
-        $WorkingDirectory   =   $process->getWorkingDirectory();
-        if (strrpos($WorkingDirectory, "/app") == (strlen($WorkingDirectory) - 4) ){
-            $process->setWorkingDirectory(substr($WorkingDirectory, 0, strlen($WorkingDirectory) - 4));
-        }     
-        
+        $workingDirectory = (string) $process->getWorkingDirectory();
+        if (strrpos($workingDirectory, "/app") == (strlen($workingDirectory) - 4)) {
+            $process->setWorkingDirectory(substr($workingDirectory, 0, strlen($workingDirectory) - 4));
+        }
+
         //====================================================================//
         // Run Process
         $process->run();
-        
+
         //====================================================================//
         // Fail => Display Process Outputs
-        if ( !$process->isSuccessful() ) {
-            echo PHP_EOL . "Executed : " . $process->getCommandLine();
-            echo PHP_EOL . $process->getOutput();
+        if (!$process->isSuccessful()) {
+            echo PHP_EOL."Executed : ".$process->getCommandLine();
+            echo PHP_EOL.$process->getOutput();
         }
-        
+
         $this->assertTrue($process->isSuccessful());
-        
-    }      
-    
-    
-    
+    }
 }

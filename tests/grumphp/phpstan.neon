@@ -1,0 +1,16 @@
+includes:
+	- ../../vendor/phpstan/phpstan-phpunit/extension.neon
+	- ../../vendor/phpstan/phpstan-doctrine/extension.neon
+	- ../../vendor/phpstan/phpstan-symfony/extension.neon
+parameters:
+        bootstrap: "./vendor/splash/phpcore/Resources/grumphp/phpstan.php"
+        universalObjectCratesClasses:
+                - ArrayObject
+        symfony:
+#                container_xml_path: %currentWorkingDirectory%/var/cache/dev/testContainer.xml # or srcDevDebugProjectContainer.xml for Symfony 4+
+                container_xml_path: %currentWorkingDirectory%/var/cache/test/appAppKernelTestDebugContainer.xml # or srcDevDebugProjectContainer.xml for Symfony 4+
+#        ignoreErrors:
+#                # Splash Widgets Blocks Methods 
+#                - '#Call to an undefined method [a-zA-Z0-9\\_]+BaseBlock::[a-zA-Z0-9\\_]+().#'
+#                - '#Call to an undefined method [a-zA-Z0-9\\_]+FactoryService::[a-zA-Z0-9\\_]+().#'
+

@@ -1,90 +1,32 @@
 <?php
 
-namespace Splash\Tasking\Tests\Controller;
+/*
+ *  This file is part of SplashSync Project.
+ *
+ *  Copyright (C) 2015-2019 Splash Sync  <www.splashsync.com>
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
+ */
 
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\Console\Output\NullOutput;
+namespace Splash\Tasking\Tests\Controller;
 
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Worker;
-use Splash\Tasking\Tests\Jobs\TestJob;
-
 use Symfony\Component\Process\Process;
 
-class Z001ProcessCloseControllerTest extends WebTestCase
+/**
+ * Test Closing Processes
+ */
+class Z001ProcessCloseControllerTest extends AbstractTestController
 {
     /**
-     * @var \Doctrine\ORM\EntityManager
+     * Test of Task Inputs
      */
-    private $_em;    
-    
-    /**
-     * @var \Splash\Tasking\Repository\TasksRepository
-     */
-    private $TasksRepository;
-    
-    /**
-     * @var \Splash\Tasking\Repository\TokenRepository
-     */
-    private $TokenRepository;
-
-    /**
-     * @var \Splash\Tasking\Services\TaskingService
-     */
-    private $Tasking;    
-    
-    /**
-     * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
-     */
-    private $Dispatcher;    
-    
-    
-    /**
-     * @var string
-     */
-    private $RandomStr;
-    
-    /**
-     * @var \Symfony\Component\Console\Output\NullOutput
-     */
-    private $Output;
-    
-    /**
-     * {@inheritDoc}
-     */
-    protected function setUp()
-    {
-        self::bootKernel();
-
-        //====================================================================//
-        // Link to entity manager Services
-        $this->_em              = static::$kernel->getContainer()->get('doctrine')->getManager();
-        
-        //====================================================================//
-        // Link to Entity Repository Services
-        $this->TasksRepository  = $this->_em->getRepository('SplashTaskingBundle:Task');         
-        $this->TokenRepository  = $this->_em->getRepository('SplashTaskingBundle:Token');   
-        
-        //====================================================================//
-        // Link to Tasking manager Services
-        $this->Dispatcher       = static::$kernel->getContainer()->get('event_dispatcher');
-        
-        //====================================================================//
-        // Link to Event Dispatecher Services
-        $this->Tasking          = static::$kernel->getContainer()->get('TaskingService');
-
-        //====================================================================//
-        // Generate a Random Token Name
-        $this->RandomStr        = base64_encode(rand(1E5, 1E10));
-        
-        //====================================================================//
-        // Generate a Fake Output
-        $this->Output           = new NullOutput();
-    }  
-    
-    /**
-     * @abstract    Test of Task Inputs
-     */    
     public function testStopCommand()
     {
         //====================================================================//
@@ -92,67 +34,72 @@ class Z001ProcessCloseControllerTest extends WebTestCase
         //====================================================================//
 
         $this->doStopCommand();
-        
+
         //====================================================================//
         // VERIFY ALL PROCESS ARE STOPPED
         //====================================================================//
 
         //====================================================================//
         // Load Worker Reprository
-        $Workers    = $this->_em
-                ->getRepository('SplashTaskingBundle:Worker')
-                ->findAll();
-        
+        $workers = $this->entityManager
+            ->getRepository('SplashTaskingBundle:Worker')
+            ->findAll();
+
         //====================================================================//
         // Workers List Shall not be Empty at this Step of Tests
-        $this->assertNotEmpty($Workers);
-        
-        
+        $this->assertNotEmpty($workers);
+
         //====================================================================//
-        // Check all Workers are Stopped 
-        foreach ($Workers as $Worker) {
-            $this->assertInstanceOf( Worker::class , $Worker);
-            $this->assertFalse(     $Worker->getRunning());
-            $this->assertNotEmpty(  $Worker->getLastSeen());
-            $this->assertFalse(     $this->doCheckProcessIsAlive($Worker->getPid()));
+        // Check all Workers are Stopped
+        /** @var Worker $worker */
+        foreach ($workers as $worker) {
+            $this->assertInstanceOf(Worker::class, $worker);
+            $this->assertFalse($worker->isRunning());
+            $this->assertNotEmpty($worker->getLastSeen());
+            $this->assertFalse($this->doCheckProcessIsAlive($worker->getPid()));
         }
-        
-        $this->_em->clear();
+
+        $this->entityManager->clear();
     }
-    
+
     /**
-     * @abstract    Execut Stop Console Command
-     */    
-    public function doStopCommand()
+     * Execute Stop Console Command
+     */
+    public function doStopCommand(): void
     {
         //====================================================================//
         // Create Sub-Porcess
-        $process = new Process("php bin/console tasking:stop -vv");
+        $process = Process::fromShellCommandline("php bin/console tasking:stop -vv");
         //====================================================================//
         // Clean Working Dir
-        $WorkingDirectory   =   $process->getWorkingDirectory();
-        if (strrpos($WorkingDirectory, "/web") == (strlen($WorkingDirectory) - 4) ){
-            $process->setWorkingDirectory(substr($WorkingDirectory, 0, strlen($WorkingDirectory) - 4));
-        } 
-        else if (strrpos($WorkingDirectory, "/app") == (strlen($WorkingDirectory) - 4) ){
-            $process->setWorkingDirectory(substr($WorkingDirectory, 0, strlen($WorkingDirectory) - 4));
-        }         
+        $workingDirectory = $process->getWorkingDirectory();
+        if (strrpos($workingDirectory, "/web") == (strlen($workingDirectory) - 4)) {
+            $process->setWorkingDirectory(substr($workingDirectory, 0, strlen($workingDirectory) - 4));
+        } elseif (strrpos($workingDirectory, "/app") == (strlen($workingDirectory) - 4)) {
+            $process->setWorkingDirectory(substr($workingDirectory, 0, strlen($workingDirectory) - 4));
+        }
         //====================================================================//
         // Run Shell Command
         $process->mustRun();
     }
-    
-    public function doCheckProcessIsAlive($Pid) : bool
+
+    /**
+     * Check if Process is Alive
+     *
+     * @param int $pid
+     *
+     * @return bool
+     */
+    public function doCheckProcessIsAlive(int $pid) : bool
     {
         //====================================================================//
         // Init Result Array
         $list = array();
         //====================================================================//
         // Execute Seach Command
-        exec( "ps " . $Pid  , $list);
+        exec("ps ". (string) $pid, $list);
         //====================================================================//
         // Check Result
-        return (count($list) > 1) ? True : False;
+        return (count($list) > 1) ? true : false;
     }
-    
 }

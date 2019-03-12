@@ -1,147 +1,91 @@
 <?php
 
+/*
+ *  This file is part of SplashSync Project.
+ *
+ *  Copyright (C) 2015-2019 Splash Sync  <www.splashsync.com>
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
+ */
+
 namespace Splash\Tasking\Tests\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\Console\Output\NullOutput;
-
-use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Tests\Jobs\TestServiceJob;
 
-class C003ServiceJobControllerTest extends WebTestCase
+/**
+ * Test of Service Jobs
+ */
+class C003ServiceJobControllerTest extends AbstractTestController
 {
     /**
-     * @var \Doctrine\ORM\EntityManager
+     * Test of A Service Job Execution
+     *
+     * @SuppressWarnings(PHPMD.ElseExpression)
      */
-    private $_em;    
-    
-    /**
-     * @var \Splash\Tasking\Repository\TasksRepository
-     */
-    private $TasksRepository;
-    
-    /**
-     * @var \Splash\Tasking\Repository\TokenRepository
-     */
-    private $TokenRepository;
-
-    /**
-     * @var \Splash\Tasking\Services\TaskingService
-     */
-    private $Tasking;    
-    
-    /**
-     * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
-     */
-    private $Dispatcher;    
-    
-    
-    /**
-     * @var string
-     */
-    private $RandomStr;
-    
-    /**
-     * @var \Symfony\Component\Console\Output\NullOutput
-     */
-    private $Output;
-    
-    /**
-     * {@inheritDoc}
-     */
-    protected function setUp()
+    public function testServiceJob() : void
     {
-        self::bootKernel();
+        $nbTasks = 2;
+        $watchDog = 0;
 
         //====================================================================//
-        // Link to entity manager Services
-        $this->_em              = static::$kernel->getContainer()->get('doctrine')->getManager();
-        
-        //====================================================================//
-        // Link to Entity Repository Services
-        $this->TasksRepository  = $this->_em->getRepository('SplashTaskingBundle:Task'); 
-        $this->TokenRepository  = $this->_em->getRepository('SplashTaskingBundle:Token'); 
-        
-        //====================================================================//
-        // Link to Tasking manager Services
-        $this->Dispatcher       = static::$kernel->getContainer()->get('event_dispatcher');
-        
-        //====================================================================//
-        // Link to Event Dispatecher Services
-        $this->Tasking          = static::$kernel->getContainer()->get('TaskingService');
-
-        //====================================================================//
-        // Generate a Fake Output
-        $this->Output           = new NullOutput();
-    }        
-    
-    
-    /**
-     * @abstract    Test of A Service Job Execution
-     */    
-    public function testServiceJob()
-    {
-        $NbTasks    =   2;
-        $WatchDog   =   0;
-        
+        // Create a New Job
+        $job = (new TestServiceJob());        
         //====================================================================//
         // Add Job To Queue
-        for($i=0 ; $i < $NbTasks ; $i++) {
-            
+        for ($i = 0; $i < $nbTasks; $i++) {
             //====================================================================//
             // Create a New Job
-            $Job    =   (new TestServiceJob());
+            $job = (new TestServiceJob());
             //====================================================================//
             // Add Job to Queue
-            $this->Dispatcher->dispatch("tasking.add" , $Job);
-            
+            $this->dispatcher->dispatch("tasking.add", $job);
         }
 
         //====================================================================//
         // While Tasks Are Running
-        $TaskFound = False;
-        $TaskEnded = 0;
+        $taskFound = false;
+        $taskEnded = 0;
         do {
-            usleep(500 * 1E3); // 500Ms
+            usleep((int) (500 * 1E3)); // 500Ms
 
             //====================================================================//
             // We Found Our Task Running
-            if ($this->TasksRepository->getActiveTasksCount($Job->getToken())) {
-                $TaskFound = True;
+            if ($this->tasksRepository->getActiveTasksCount($job->getToken())) {
+                $taskFound = true;
             }
-            
+
             //====================================================================//
             // We Found Only One Task Running
-            $this->assertLessThan(2,$this->TasksRepository->getActiveTasksCount($Job->getToken()));
-            
-            if ($this->TasksRepository->getActiveTasksCount($Job->getToken()) == 0 ) {
-                $TaskEnded ++;
+            $this->assertLessThan(2, $this->tasksRepository->getActiveTasksCount($job->getToken()));
+
+            if (0 == $this->tasksRepository->getActiveTasksCount($job->getToken())) {
+                $taskEnded++;
             } else {
-                $TaskEnded  =   0;
+                $taskEnded = 0;
             }
-            
-            $WatchDog++;
-            
-        } while ( ($WatchDog < (2 * $NbTasks + 2 ) ) && ($TaskEnded < 4) );
-        
+
+            $watchDog++;
+        } while (($watchDog < (2 * $nbTasks + 2)) && ($taskEnded < 4));
+
         //====================================================================//
         //Verify All Tasks Are Finished
-        $this->assertEquals(0,$this->TasksRepository->getWaitingTasksCount($Job->getToken()));
-        
+        $this->assertEquals(0, $this->tasksRepository->getWaitingTasksCount($job->getToken()));
+
         //====================================================================//
         // Delete Current Token
-        $this->TokenRepository->Delete($Job->getToken());
+        $this->tokenRepository->Delete($job->getToken());
         //====================================================================//
         // Finished Tasks
         sleep(1);
-        $this->TasksRepository->Clear(0);
-        
+        $this->tasksRepository->clean(0);
+
         //====================================================================//
         // Check We Found Our Task Running
-        $this->assertTrue($TaskFound);
-        
-        
+        $this->assertTrue($taskFound);
     }
-  
-    
 }
