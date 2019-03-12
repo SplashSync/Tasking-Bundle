@@ -28,6 +28,8 @@ matrix:
     fast_finish: true
 
 before_install:
+    # Disable Xdebug ...
+    - phpenv config-rm xdebug.ini    
     # Configure Bundle App
     - echo "Configuring The Bundles"
     - cp app/parameters.yml.dist app/parameters.yml
