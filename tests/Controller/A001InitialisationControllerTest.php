@@ -46,8 +46,11 @@ class A001InitialisationControllerTest extends KernelTestCase
         echo "                                                                ".PHP_EOL;
 
         //====================================================================//
-        // Create Process
-        $process = Process::fromShellCommandline("php bin/console tasking:stop --no-restart");
+        // Create Process (SF 3.4 Versions)
+        $process = new Process("php bin/console tasking:stop --no-restart");
+        //====================================================================//
+        // Create Process (SF 4 Versions)
+//        $process = Process::fromShellCommandline("php bin/console tasking:stop --no-restart");
 
         //====================================================================//
         // Clean Working Dir

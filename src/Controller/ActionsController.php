@@ -57,8 +57,11 @@ class ActionsController extends Controller
         $command = "phpunit ";
 
         //====================================================================//
-        // Execute Test
-        $process = Process::fromShellCommandline($command);
+        // Execute Test (SF 3.4 Versions)
+        $process = new Process($command);
+        //====================================================================//
+        // Execute Test (SF 4 Versions)
+//        $process = Process::fromShellCommandline($command);
         $process->setTimeout(360);
         $process->setWorkingDirectory($process->getWorkingDirectory()."/..");
         $process->run(function ($type, $buffer) {

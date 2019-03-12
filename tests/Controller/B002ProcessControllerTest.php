@@ -222,8 +222,14 @@ class B002ProcessControllerTest extends AbstractTestController
     private function doStopCommand(bool $noRestart): void
     {
         //====================================================================//
-        // Create Sub-Porcess
-        $process = Process::fromShellCommandline("php bin/console tasking:stop --env=test -vv".($noRestart? " --no-restart" : null));
+        // Create Command
+        $command = "php bin/console tasking:stop --env=test -vv".($noRestart? " --no-restart" : null);
+        //====================================================================//
+        // Execute Test (SF 3.4 Versions)
+        $process = new Process($command);
+        //====================================================================//
+        // Execute Test (SF 4 Versions)
+//        $process = Process::fromShellCommandline($command);
         //====================================================================//
         // Clean Working Dir
         $workingDirectory = (string) $process->getWorkingDirectory();

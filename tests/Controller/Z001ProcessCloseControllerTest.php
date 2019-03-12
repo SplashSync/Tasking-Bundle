@@ -67,8 +67,11 @@ class Z001ProcessCloseControllerTest extends AbstractTestController
     public function doStopCommand(): void
     {
         //====================================================================//
-        // Create Sub-Porcess
-        $process = Process::fromShellCommandline("php bin/console tasking:stop -vv");
+        // Create Sub-Process (SF 3.4 Versions)
+        $process = new Process("php bin/console tasking:stop -vv");
+//        //====================================================================//
+//        // Create Sub-Process (SF 4 Versions)
+//        $process = Process::fromShellCommandline("php bin/console tasking:stop -vv");
         //====================================================================//
         // Clean Working Dir
         $workingDirectory = $process->getWorkingDirectory();
