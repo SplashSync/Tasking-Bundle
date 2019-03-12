@@ -74,7 +74,7 @@ class Z001ProcessCloseControllerTest extends AbstractTestController
 //        $process = Process::fromShellCommandline("php bin/console tasking:stop -vv");
         //====================================================================//
         // Clean Working Dir
-        $workingDirectory = $process->getWorkingDirectory();
+        $workingDirectory = (string) $process->getWorkingDirectory();
         if (strrpos($workingDirectory, "/web") == (strlen($workingDirectory) - 4)) {
             $process->setWorkingDirectory(substr($workingDirectory, 0, strlen($workingDirectory) - 4));
         } elseif (strrpos($workingDirectory, "/app") == (strlen($workingDirectory) - 4)) {
