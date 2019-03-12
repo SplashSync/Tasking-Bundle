@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
+use PHPUnit\Framework\Assert;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Worker;
 use Symfony\Component\Process\Process;
@@ -34,8 +35,8 @@ class B002ProcessControllerTest extends AbstractTestController
         //====================================================================//
         $config = $this->getContainer()->getParameter('splash_tasking');
         if (!$config["server"]["force_crontab"]) {
-            $this->assertNotEmpty($this->process->checkCrontab());
-            $this->assertTrue($this->worker->checkSupervisor());
+            Assert::assertNotEmpty($this->process->checkCrontab());
+            Assert::assertTrue($this->worker->checkSupervisor());
             sleep(5);
 
             return;
@@ -61,8 +62,8 @@ class B002ProcessControllerTest extends AbstractTestController
         // Read Current Cron Tab Configuration
         $cronTab = array();
         exec("crontab -l", $cronTab);
-        $this->assertCount(1, $cronTab);
-        $this->assertInternalType("string", array_shift($cronTab));
+        Assert::assertCount(1, $cronTab);
+        Assert::assertInternalType("string", array_shift($cronTab));
     }
 
     /**
@@ -86,15 +87,15 @@ class B002ProcessControllerTest extends AbstractTestController
 
         //====================================================================//
         // Workers List Shall not be Empty at this Step of Tests
-        $this->assertNotEmpty($workers);
+        Assert::assertNotEmpty($workers);
 
         //====================================================================//
         // Check all Workers are Stopped
         foreach ($workers as $worker) {
-            $this->assertInstanceOf(Worker::class, $worker);
-            $this->assertFalse($worker->isRunning());
-            $this->assertNotEmpty($worker->getLastSeen());
-            $this->assertFalse($this->doCheckProcessIsAlive($worker->getPid()));
+            Assert::assertInstanceOf(Worker::class, $worker);
+            Assert::assertFalse($worker->isRunning());
+            Assert::assertNotEmpty($worker->getLastSeen());
+            Assert::assertFalse($this->doCheckProcessIsAlive($worker->getPid()));
         }
 
         $this->entityManager->clear();
@@ -119,8 +120,8 @@ class B002ProcessControllerTest extends AbstractTestController
         $this->entityManager->clear();
 
         $supervisor = $this->workersRepository->findOneByProcess(0);
-        $this->assertInstanceOf(Worker::class, $supervisor);
-        $this->assertTrue($supervisor->isRunning());
+        Assert::assertInstanceOf(Worker::class, $supervisor);
+        Assert::assertTrue($supervisor->isRunning());
 
         //====================================================================//
         // CHECK EXPECTED WORKERS are RUNNING
@@ -137,20 +138,19 @@ class B002ProcessControllerTest extends AbstractTestController
 
         //====================================================================//
         // Verify Workers Count
-        $this->assertEquals($config['max_workers'] + 1, count($workers));
+        Assert::assertEquals($config['max_workers'] + 1, count($workers));
 
         //====================================================================//
         // Verify all Workers are Alive
-        foreach ($workers as $worker) 
-        {
+        foreach ($workers as $worker) {
             $refreshedWorker = $this->workersRepository->find($worker->getId());
-            $this->assertInstanceOf(Worker::class, $refreshedWorker);
+            Assert::assertInstanceOf(Worker::class, $refreshedWorker);
             $this->entityManager->refresh($refreshedWorker);
-            $this->assertInstanceOf(Worker::class, $refreshedWorker);
-            $this->assertTrue($refreshedWorker->isRunning());
-            $this->assertNotEmpty($refreshedWorker->getLastSeen());
-            $this->assertTrue($this->worker->isRunning($refreshedWorker->getProcess()));
-            $this->assertTrue($this->doCheckProcessIsAlive($refreshedWorker->getPid()));
+            Assert::assertInstanceOf(Worker::class, $refreshedWorker);
+            Assert::assertTrue($refreshedWorker->isRunning());
+            Assert::assertNotEmpty($refreshedWorker->getLastSeen());
+            Assert::assertTrue($this->worker->isRunning($refreshedWorker->getProcess()));
+            Assert::assertTrue($this->doCheckProcessIsAlive($refreshedWorker->getPid()));
         }
     }
 
@@ -184,7 +184,7 @@ class B002ProcessControllerTest extends AbstractTestController
         // Load Local Supervisor
         $this->entityManager->clear();
         $supervisor = $this->workersRepository->findOneByProcess(0);
-        $this->assertInstanceOf(Worker::class, $supervisor);
+        Assert::assertInstanceOf(Worker::class, $supervisor);
 
         //====================================================================//
         // Load Workers for Local Supervisor
@@ -197,13 +197,13 @@ class B002ProcessControllerTest extends AbstractTestController
          */
         foreach ($workers as $worker) {
             $refreshedWorker = $this->workersRepository->find($worker->getId());
-            
-            $this->assertInstanceOf(Worker::class, $refreshedWorker);
+
+            Assert::assertInstanceOf(Worker::class, $refreshedWorker);
             $this->entityManager->refresh($refreshedWorker);
-            $this->assertTrue($this->worker->isRunning($refreshedWorker->getProcess()));
-            $this->assertFalse($refreshedWorker->isEnabled());
-            $this->assertFalse($this->doCheckProcessIsAlive($refreshedWorker->getPid()));
-            $this->assertFalse($worker->isRunning());
+            Assert::assertTrue($this->worker->isRunning($refreshedWorker->getProcess()));
+            Assert::assertFalse($refreshedWorker->isEnabled());
+            Assert::assertFalse($this->doCheckProcessIsAlive($refreshedWorker->getPid()));
+            Assert::assertFalse($worker->isRunning());
         }
 
         //====================================================================//

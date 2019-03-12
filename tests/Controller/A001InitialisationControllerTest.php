@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
+use PHPUnit\Framework\Assert;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Process\Process;
 
@@ -34,7 +35,7 @@ class A001InitialisationControllerTest extends KernelTestCase
     /**
      * Stop All Supervisor & Worker Process
      */
-    public function testDisplayLogo()
+    public function testDisplayLogo(): void
     {
         echo PHP_EOL;
         echo " ______     ______   __         ______     ______     __  __    ".PHP_EOL;
@@ -43,14 +44,7 @@ class A001InitialisationControllerTest extends KernelTestCase
         echo " \\/\\_____\\  \\ \\_\\    \\ \\_____\\  \\ \\_\\ \\_\\  \\/\\_____\\  \\ \\_\\ \\_\\ ".PHP_EOL;
         echo "  \\/_____/   \\/_/     \\/_____/   \\/_/\\/_/   \\/_____/   \\/_/\\/_/ ".PHP_EOL;
         echo "                                                                ".PHP_EOL;
-        $this->assertTrue(true);
-    }
 
-    /**
-     * Stop All Supervisor & Worker Process
-     */
-    public function testStopWorkers()
-    {
         //====================================================================//
         // Create Process
         $process = Process::fromShellCommandline("php bin/console tasking:stop --no-restart");
@@ -73,6 +67,6 @@ class A001InitialisationControllerTest extends KernelTestCase
             echo PHP_EOL.$process->getOutput();
         }
 
-        $this->assertTrue($process->isSuccessful());
+        Assert::assertTrue($process->isSuccessful());
     }
 }

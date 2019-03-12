@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
+use PHPUnit\Framework\Assert;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Tests\Jobs\TestJob;
 
@@ -31,7 +32,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
         parent::setUp();
         //====================================================================//
         // CleanUp Tasks
-        $this->DeleteAllTasks()->DeleteAllTokens();
+        $this->deleteAllTasks()->deleteAllTokens();
     }
 
     /**
@@ -52,7 +53,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
 
         //====================================================================//
         // Wait Until All Tasks are Completed
-        $this->WaitUntilCompleted(2);
+        $this->waitUntilCompleted(2);
 
         //====================================================================//
         // Load a Task
@@ -61,13 +62,13 @@ class C001TasksExecutionControllerTest extends AbstractTestController
 
         //====================================================================//
         // Verify Task
-        $this->assertInstanceOf(Task::class, $task);
-        $this->assertFalse($task->isRunning());
-        $this->assertTrue($task->isFinished());
-        $this->assertNotEmpty($task->getOutputs());
-        $this->assertNotEmpty($task->getStartedAt());
-        $this->assertNotEmpty($task->getFinishedAt());
-        $this->assertEquals(1, $task->getTry());
+        Assert::assertInstanceOf(Task::class, $task);
+        Assert::assertFalse($task->isRunning());
+        Assert::assertTrue($task->isFinished());
+        Assert::assertNotEmpty($task->getOutputs());
+        Assert::assertNotEmpty($task->getStartedAt());
+        Assert::assertNotEmpty($task->getFinishedAt());
+        Assert::assertEquals(1, $task->getTry());
     }
 
     /**
@@ -96,7 +97,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
 
         //====================================================================//
         // Wait Until All Tasks are Completed
-        $this->WaitUntilCompleted(2);
+        $this->waitUntilCompleted(2);
 
         //====================================================================//
         // Load a Task
@@ -105,14 +106,14 @@ class C001TasksExecutionControllerTest extends AbstractTestController
 
         //====================================================================//
         // Verify Task
-        $this->assertInstanceOf(Task::class, $task);
-        $this->assertFalse($task->isRunning());
-        $this->assertEquals($finished, $task->isFinished());
-        $this->assertNotEmpty($task->getOutputs());
-        $this->assertNotEmpty($task->getStartedAt());
-        $this->assertNotEmpty($task->getFinishedAt());
-        $this->assertNotEmpty($task->getFaultStr());
-        $this->assertEquals(1, $task->getTry());
+        Assert::assertInstanceOf(Task::class, $task);
+        Assert::assertFalse($task->isRunning());
+        Assert::assertEquals($finished, $task->isFinished());
+        Assert::assertNotEmpty($task->getOutputs());
+        Assert::assertNotEmpty($task->getStartedAt());
+        Assert::assertNotEmpty($task->getFinishedAt());
+        Assert::assertNotEmpty($task->getFaultStr());
+        Assert::assertEquals(1, $task->getTry());
     }
 
     /**
@@ -121,9 +122,8 @@ class C001TasksExecutionControllerTest extends AbstractTestController
      * @dataProvider jobsMethodsProvider
      *
      * @param string $method
-     * @param bool   $finished
      */
-    public function testTaskExceptions(string $method, bool $finished): void
+    public function testTaskExceptions(string $method): void
     {
         //====================================================================//
         // Create a Simple Test Job
@@ -141,7 +141,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
 
         //====================================================================//
         // Wait Until All Tasks are Completed
-        $this->WaitUntilCompleted(2);
+        $this->waitUntilCompleted(2);
 
         //====================================================================//
         // Load a Task
@@ -150,14 +150,14 @@ class C001TasksExecutionControllerTest extends AbstractTestController
 
         //====================================================================//
         // Verify Task
-        $this->assertInstanceOf(Task::class, $task);
-        $this->assertFalse($task->isRunning());
-        $this->assertFalse($task->isFinished());
-        $this->assertNotEmpty($task->getOutputs());
-        $this->assertNotEmpty($task->getStartedAt());
-        $this->assertNotEmpty($task->getFinishedAt());
-        $this->assertNotEmpty($task->getFaultStr());
-        $this->assertEquals(1, $task->getTry());
+        Assert::assertInstanceOf(Task::class, $task);
+        Assert::assertFalse($task->isRunning());
+        Assert::assertFalse($task->isFinished());
+        Assert::assertNotEmpty($task->getOutputs());
+        Assert::assertNotEmpty($task->getStartedAt());
+        Assert::assertNotEmpty($task->getFinishedAt());
+        Assert::assertNotEmpty($task->getFaultStr());
+        Assert::assertEquals(1, $task->getTry());
     }
 
     /**
@@ -167,46 +167,46 @@ class C001TasksExecutionControllerTest extends AbstractTestController
     {
         //====================================================================//
         // Delete All Tasks
-        $this->DeleteAllTasks();
-        $this->DeleteAllTokens();
+        $this->deleteAllTasks();
+        $this->deleteAllTokens();
 
         //====================================================================//
         // Test with no Tasks in Buffer
-        $this->assertTrue($this->tasks->waitUntilTaskCompleted());
-        $this->assertEquals(0, $this->tasksRepository->getPendingTasksCount());
+        Assert::assertTrue($this->tasks->waitUntilTaskCompleted());
+        Assert::assertEquals(0, $this->tasksRepository->getPendingTasksCount());
 
         //====================================================================//
         // Test with a 1 second Tasks in Buffer
-        $this->AddTask($this->randomStr, 1);
-        $this->assertEquals(1, $this->tasksRepository->getPendingTasksCount());
-        $this->assertTrue($this->tasks->waitUntilTaskCompleted());
-        $this->assertEquals(0, $this->tasksRepository->getPendingTasksCount());
+        $this->addTask($this->randomStr, 1);
+        Assert::assertEquals(1, $this->tasksRepository->getPendingTasksCount());
+        Assert::assertTrue($this->tasks->waitUntilTaskCompleted());
+        Assert::assertEquals(0, $this->tasksRepository->getPendingTasksCount());
 
         //====================================================================//
         // Test with a 3 second Tasks in Buffer
-        $this->AddTask($this->randomStr, 3);
-        $this->assertEquals(1, $this->tasksRepository->getPendingTasksCount());
-        $this->assertFalse($this->tasks->waitUntilTaskCompleted(1));
-        $this->assertEquals(1, $this->tasksRepository->getPendingTasksCount());
-        $this->assertTrue($this->tasks->waitUntilTaskCompleted());
-        $this->assertEquals(0, $this->tasksRepository->getPendingTasksCount());
+        $this->addTask($this->randomStr, 3);
+        Assert::assertEquals(1, $this->tasksRepository->getPendingTasksCount());
+        Assert::assertFalse($this->tasks->waitUntilTaskCompleted(1));
+        Assert::assertEquals(1, $this->tasksRepository->getPendingTasksCount());
+        Assert::assertTrue($this->tasks->waitUntilTaskCompleted());
+        Assert::assertEquals(0, $this->tasksRepository->getPendingTasksCount());
 
         //====================================================================//
         // Test with a 5 x 1 second Tasks in Buffer
         for ($i = 0; $i < 5; $i++) {
-            $this->AddTask($this->randomStr, 1);
+            $this->addTask($this->randomStr, 1);
         }
-        $this->assertEquals(5, $this->tasksRepository->getPendingTasksCount());
-        $this->assertTrue($this->tasks->waitUntilTaskCompleted(2));
-        $this->assertEquals(0, $this->tasksRepository->getPendingTasksCount());
+        Assert::assertEquals(5, $this->tasksRepository->getPendingTasksCount());
+        Assert::assertTrue($this->tasks->waitUntilTaskCompleted(2));
+        Assert::assertEquals(0, $this->tasksRepository->getPendingTasksCount());
 
         //====================================================================//
         // Test with a 12 x 1 second Tasks in Buffer
         for ($i = 0; $i < 12; $i++) {
-            $this->AddTask($this->randomStr, 1);
+            $this->addTask($this->randomStr, 1);
         }
-        $this->assertEquals(12, $this->tasksRepository->getPendingTasksCount());
-        $this->assertFalse($this->tasks->waitUntilTaskCompleted(1));
+        Assert::assertEquals(12, $this->tasksRepository->getPendingTasksCount());
+        Assert::assertFalse($this->tasks->waitUntilTaskCompleted(1));
     }
 
     /**
@@ -263,7 +263,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
             $this->entityManager->flush();
         }
 
-        $this->assertEmpty($this->tasksRepository->findAll());
+        Assert::assertEmpty($this->tasksRepository->findAll());
 
         return $this;
     }
@@ -281,7 +281,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
             $this->entityManager->flush();
         }
 
-        $this->assertEmpty($this->tokenRepository->findAll());
+        Assert::assertEmpty($this->tokenRepository->findAll());
 
         return $this;
     }
@@ -304,6 +304,6 @@ class C001TasksExecutionControllerTest extends AbstractTestController
             $this->entityManager->clear();
             $queue = $this->tasksRepository->getWaitingTasksCount();
             $queue += $this->tasksRepository->getActiveTasksCount();
-        } while (($watchDog < (2 * $limit)) && ($queue));
+        } while (($watchDog < (2 * $limit)) && ($queue > 0));
     }
 }

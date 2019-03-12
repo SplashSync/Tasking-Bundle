@@ -16,16 +16,15 @@
 namespace Splash\Tasking\Tests\Controller;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Doctrine\ORM\EntityRepository;
 use Exception;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Repository\TaskRepository;
 use Splash\Tasking\Repository\TokenRepository;
 use Splash\Tasking\Repository\WorkerRepository;
-use Splash\Tasking\Services\TasksManager;
-use Splash\Tasking\Services\WorkersManager;
 use Splash\Tasking\Services\ProcessManager;
 use Splash\Tasking\Services\Runner;
+use Splash\Tasking\Services\TasksManager;
+use Splash\Tasking\Services\WorkersManager;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -33,6 +32,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Base Test Controller for Tasking Bundle PhpUnit Tests
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 abstract class AbstractTestController extends WebTestCase
 {
@@ -65,7 +66,7 @@ abstract class AbstractTestController extends WebTestCase
      * @var WorkersManager
      */
     protected $worker;
-    
+
     /**
      * @var Runner
      */
@@ -75,7 +76,7 @@ abstract class AbstractTestController extends WebTestCase
      * @var ProcessManager
      */
     protected $process;
-    
+
     /**
      * @var EventDispatcherInterface
      */
@@ -185,13 +186,13 @@ abstract class AbstractTestController extends WebTestCase
      */
     protected static function randomStr(): string
     {
-        return (string) base64_encode((string) rand((int)1E5, (int)1E10));
+        return base64_encode((string) rand((int) 1E5, (int) 1E10));
     }
-    
+
     /**
      * Call protected/private method of a class.
      *
-     * @param object $object    Instantiated object that we will run method on.
+     * @param object $object     Instantiated object that we will run method on.
      * @param string $methodName Method name to call
      * @param array  $parameters Array of parameters to pass into method.
      *
@@ -204,5 +205,5 @@ abstract class AbstractTestController extends WebTestCase
         $method->setAccessible(true);
 
         return $method->invokeArgs($object, $parameters);
-    }    
+    }
 }

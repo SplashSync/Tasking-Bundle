@@ -92,9 +92,9 @@ class TestStaticJob extends \Splash\Tasking\Model\AbstractBatchJob
     public function validate() : bool
     {
         $inputs = $this->getInputs();
-        echo "Static Job => Validate Inputs </br>";
+        echo "Batch Job => Validate Inputs </br>";
         if (is_integer($inputs["delay"])) {
-            echo "Simple Job => Delay is a Integer </br>";
+            echo "Batch Job => Delay is a Integer </br>";
         }
 
         return true;
@@ -105,7 +105,7 @@ class TestStaticJob extends \Splash\Tasking\Model\AbstractBatchJob
      */
     public function prepare() : bool
     {
-        echo "Static Job => Prepare for Action </br>";
+        echo "Batch Job => Prepare for Action </br>";
 
         return true;
     }
@@ -116,7 +116,7 @@ class TestStaticJob extends \Splash\Tasking\Model\AbstractBatchJob
     public function execute() : bool
     {
         $inputs = $this->getInputs();
-        echo "Static Job => Execute a ".$inputs["delay"]." Second Pause </br>";
+        echo "Batch Job => Execute a ".$inputs["delay"]." Second Pause </br>";
         sleep($inputs["delay"]);
 
         return true;
@@ -127,7 +127,7 @@ class TestStaticJob extends \Splash\Tasking\Model\AbstractBatchJob
      */
     public function finalize() : bool
     {
-        echo "Static Job => Finalize Action </br>";
+        echo "Batch Job => Finalize Action </br>";
 
         return true;
     }
@@ -137,7 +137,7 @@ class TestStaticJob extends \Splash\Tasking\Model\AbstractBatchJob
      */
     public function close() : bool
     {
-        echo "Static Job => Close Action </br>";
+        echo "Batch Job => Close Action </br>";
 
         return true;
     }

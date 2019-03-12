@@ -82,10 +82,14 @@ class TestJob extends AbstractJob
      * Set Static Job Repeat Delay
      *
      * @param int $delay
+     *
+     * @return $this
      */
-    public function setDelay(int $delay)
+    public function setDelay(int $delay): self
     {
         $this->setInputs(array("delay" => $delay));
+
+        return $this;
     }
 
     //==============================================================================
@@ -210,7 +214,7 @@ class TestJob extends AbstractJob
     {
         //====================================================================//
         // Simulate Wrong Action Name
-        if (is_array($this->inputs) && isset($this->inputs["Error-Wrong-Action"]) && $this->inputs["Error-Wrong-Action"]) {
+        if (isset($this->inputs, $this->inputs["Error-Wrong-Action"]) && (true === $this->inputs["Error-Wrong-Action"])) {
             return "WrongAction";
         }
 
@@ -220,14 +224,14 @@ class TestJob extends AbstractJob
     /**
      * Get Job Priority
      *
-     * @return int|string
+     * @return int
      */
-    public function getPriority()
+    public function getPriority(): int
     {
         //====================================================================//
         // Simulate Wrong Priority Format
-        if (is_array($this->inputs) && isset($this->inputs["Error-Wrong-Priority"]) && $this->inputs["Error-Wrong-Priority"]) {
-            return "TextFormat";
+        if (isset($this->inputs, $this->inputs["Error-Wrong-Priority"]) && (true === $this->inputs["Error-Wrong-Priority"])) {
+            return -1;
         }
 
         return static::$priority;
@@ -240,13 +244,13 @@ class TestJob extends AbstractJob
     {
         //====================================================================//
         // Milliseconds Delay
-        if (isset($this->inputs["Delay-Ms"]) && $this->inputs["Delay-Ms"]) {
+        if (isset($this->inputs["Delay-Ms"]) && (true == $this->inputs["Delay-Ms"])) {
             echo "Simple Job => Wait for ".$this->inputs["Delay-Ms"]." Ms </br>";
             usleep((int) 1E3 * $this->inputs["Delay-Ms"]);
         }
         //====================================================================//
         // Seconds Delay
-        if (isset($this->inputs["Delay-S"]) && $this->inputs["Delay-S"]) {
+        if (isset($this->inputs["Delay-S"]) && (true == $this->inputs["Delay-S"])) {
             echo "Simple Job => Wait for ".$this->inputs["Delay-S"]." Seconds </br>";
             sleep($this->inputs["Delay-S"]);
         }
@@ -266,7 +270,7 @@ class TestJob extends AbstractJob
         $parameterId = "Error-On-".$methodName;
         //====================================================================//
         // Trow exception if requested!
-        if (isset($this->inputs[$parameterId]) && $this->inputs[$parameterId]) {
+        if (isset($this->inputs[$parameterId]) && (true == $this->inputs[$parameterId])) {
             echo "You requeted Job Error on ".$methodName." Method.";
 
             return false;
@@ -289,7 +293,7 @@ class TestJob extends AbstractJob
         $parameterId = "Exception-On-".$methodName;
         //====================================================================//
         // Trow exception if requested!
-        if (isset($this->inputs[$parameterId]) && $this->inputs[$parameterId]) {
+        if (isset($this->inputs[$parameterId]) && (true == $this->inputs[$parameterId])) {
             throw new \Exception(sprintf("You requeted Job to Fail on %s Method.", $methodName));
         }
     }

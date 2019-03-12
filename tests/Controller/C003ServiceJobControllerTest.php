@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
+use PHPUnit\Framework\Assert;
 use Splash\Tasking\Tests\Jobs\TestServiceJob;
 
 /**
@@ -34,7 +35,7 @@ class C003ServiceJobControllerTest extends AbstractTestController
 
         //====================================================================//
         // Create a New Job
-        $job = (new TestServiceJob());        
+        $job = (new TestServiceJob());
         //====================================================================//
         // Add Job To Queue
         for ($i = 0; $i < $nbTasks; $i++) {
@@ -55,13 +56,13 @@ class C003ServiceJobControllerTest extends AbstractTestController
 
             //====================================================================//
             // We Found Our Task Running
-            if ($this->tasksRepository->getActiveTasksCount($job->getToken())) {
+            if ($this->tasksRepository->getActiveTasksCount($job->getToken()) > 0) {
                 $taskFound = true;
             }
 
             //====================================================================//
             // We Found Only One Task Running
-            $this->assertLessThan(2, $this->tasksRepository->getActiveTasksCount($job->getToken()));
+            Assert::assertLessThan(2, $this->tasksRepository->getActiveTasksCount($job->getToken()));
 
             if (0 == $this->tasksRepository->getActiveTasksCount($job->getToken())) {
                 $taskEnded++;
@@ -74,11 +75,11 @@ class C003ServiceJobControllerTest extends AbstractTestController
 
         //====================================================================//
         //Verify All Tasks Are Finished
-        $this->assertEquals(0, $this->tasksRepository->getWaitingTasksCount($job->getToken()));
+        Assert::assertEquals(0, $this->tasksRepository->getWaitingTasksCount($job->getToken()));
 
         //====================================================================//
         // Delete Current Token
-        $this->tokenRepository->Delete($job->getToken());
+        $this->tokenRepository->delete((string) $job->getToken());
         //====================================================================//
         // Finished Tasks
         sleep(1);
@@ -86,6 +87,6 @@ class C003ServiceJobControllerTest extends AbstractTestController
 
         //====================================================================//
         // Check We Found Our Task Running
-        $this->assertTrue($taskFound);
+        Assert::assertTrue($taskFound);
     }
 }

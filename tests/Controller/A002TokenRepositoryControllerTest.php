@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
+use PHPUnit\Framework\Assert;
 use Splash\Tasking\Entity\Token;
 
 /**
@@ -29,11 +30,11 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
     {
         //====================================================================//
         // Delete All Tokens
-        $this->tokenRepository->Clean(0);
+        $this->tokenRepository->clean(0);
 
         //====================================================================//
         // Verify Delete All Tokens
-        $this->assertEquals(0, $this->tokenRepository->Clean(0));
+        Assert::assertEquals(0, $this->tokenRepository->clean(0));
     }
 
     /**
@@ -43,7 +44,7 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
     {
         //====================================================================//
         // Delete All Tokens
-        $this->tokenRepository->Clean(0);
+        $this->tokenRepository->clean(0);
 
         //====================================================================//
         // Generate a Random Token Name
@@ -51,11 +52,11 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
 
         //====================================================================//
         // Verify Token
-        $this->assertTrue($this->tokenRepository->Validate($this->randomStr));
+        Assert::assertTrue($this->tokenRepository->validate($this->randomStr));
 
         //==============================================================================
         // Verify If Token Now Exists
-        $this->assertNotEmpty($this->tokenRepository->findOneByName($this->randomStr));
+        Assert::assertNotEmpty($this->tokenRepository->findOneByName($this->randomStr));
     }
 
     /**
@@ -71,16 +72,16 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
         $this->randomStr = self::randomStr();
         //====================================================================//
         // Add Tokens
-        $this->assertTrue($this->tokenRepository->Validate($this->randomStr));
+        Assert::assertTrue($this->tokenRepository->validate($this->randomStr));
         //==============================================================================
         // Verify If Token Now Exists
-        $this->assertNotEmpty($this->tokenRepository->findOneByName($this->randomStr));
+        Assert::assertNotEmpty($this->tokenRepository->findOneByName($this->randomStr));
         //====================================================================//
         // Delete Tokens
-        $this->assertTrue($this->tokenRepository->Delete($this->randomStr));
+        Assert::assertTrue($this->tokenRepository->delete($this->randomStr));
         //==============================================================================
         // Verify If Token Now Deleted
-        $this->assertNull($this->tokenRepository->findOneByName($this->randomStr));
+        Assert::assertNull($this->tokenRepository->findOneByName($this->randomStr));
     }
 
     /**
@@ -93,45 +94,45 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
         $this->randomStr = self::randomStr();
         //====================================================================//
         // Add Token
-        $this->assertTrue($this->tokenRepository->Validate($this->randomStr));
+        Assert::assertTrue($this->tokenRepository->validate($this->randomStr));
         //==============================================================================
         // Verify If Token Now Exists
-        $this->assertNotEmpty($this->tokenRepository->findOneByName($this->randomStr));
+        Assert::assertNotEmpty($this->tokenRepository->findOneByName($this->randomStr));
         //====================================================================//
         // Acquire Token
-        $token = $this->tokenRepository->Acquire($this->randomStr);
-        $this->assertInstanceOf(Token::class, $token);
+        $token = $this->tokenRepository->acquire($this->randomStr);
+        Assert::assertInstanceOf(Token::class, $token);
         //====================================================================//
         // Verify Token
-        $this->assertNotEmpty($token->getCreatedAt());
-        $this->assertNotEmpty($token->getLockedAt());
-        $this->assertNotEmpty($token->getLockedAtTimeStamp());
-        $this->assertTrue($token->isLocked());
-        $this->assertFalse($token->isFree());
-        $this->assertEquals($this->randomStr, $token->getName());
+        Assert::assertNotEmpty($token->getCreatedAt());
+        Assert::assertNotEmpty($token->getLockedAt());
+        Assert::assertNotEmpty($token->getLockedAtTimeStamp());
+        Assert::assertTrue($token->isLocked());
+        Assert::assertFalse($token->isFree());
+        Assert::assertEquals($this->randomStr, $token->getName());
         //====================================================================//
         // Acquire Token Again
         for ($i = 0; $i < 5; $i++) {
-            $this->assertNull($this->tokenRepository->Acquire($this->randomStr));
+            Assert::assertNull($this->tokenRepository->acquire($this->randomStr));
         }
         //====================================================================//
         // Release Token
-        $this->assertTrue($this->tokenRepository->Release($this->randomStr));
+        Assert::assertTrue($this->tokenRepository->release($this->randomStr));
         //====================================================================//
         // Verify Token
-        $this->assertFalse($token->isLocked());
-        $this->assertTrue($token->isFree());
-        $this->assertEquals($this->randomStr, $token->getName());
+        Assert::assertFalse($token->isLocked());
+        Assert::assertTrue($token->isFree());
+        Assert::assertEquals($this->randomStr, $token->getName());
 
         //====================================================================//
         // Acquire Token Again
-        $this->assertInstanceOf(
+        Assert::assertInstanceOf(
             Token::class,
-            $this->tokenRepository->Acquire($this->randomStr)
+            $this->tokenRepository->acquire($this->randomStr)
         );
         //====================================================================//
         // Delete Tokens
-        $this->assertTrue($this->tokenRepository->Delete($this->randomStr));
+        Assert::assertTrue($this->tokenRepository->delete($this->randomStr));
     }
 
     /**
@@ -149,19 +150,19 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
         //====================================================================//
         // Acquire Token and Change LockedAt Date
         //====================================================================//
-        $token->Acquire();
+        $token->acquire();
         $minAge = new \DateTime("-".(Token::SELFRELEASE_DELAY - 2)." Seconds");
         $token->setLockedAt($minAge);
         $this->entityManager->persist($token);
         $this->entityManager->flush();
         //====================================================================//
         // Test Acquire a Token
-        $this->assertNull($this->tokenRepository->Acquire($this->randomStr));
+        Assert::assertNull($this->tokenRepository->acquire($this->randomStr));
 
         //====================================================================//
         // Acquire Token and Change LockedAt Date
         //====================================================================//
-        $token->Acquire();
+        $token->acquire();
         $maxAge = new \DateTime("-".(Token::SELFRELEASE_DELAY + 1)." Seconds");
         $token->setLockedAt($maxAge);
         $this->entityManager->persist($token);
@@ -169,21 +170,21 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
 
         //====================================================================//
         // Test Acquire a Token
-        $this->assertInstanceOf(Token::class, $this->tokenRepository->Acquire($this->randomStr));
+        Assert::assertInstanceOf(Token::class, $this->tokenRepository->acquire($this->randomStr));
 
         //====================================================================//
         // Test Acquire a Token
         for ($i = 0; $i < 5; $i++) {
-            $this->assertNull($this->tokenRepository->Acquire($this->randomStr));
+            Assert::assertNull($this->tokenRepository->acquire($this->randomStr));
         }
 
         //====================================================================//
         // Test Relase a Token
-        $this->assertTrue($this->tokenRepository->Release($this->randomStr));
+        Assert::assertTrue($this->tokenRepository->release($this->randomStr));
 
         //====================================================================//
         // Test Delete a Token
-        $this->tokenRepository->Delete($this->randomStr);
-        $this->assertNull($this->tokenRepository->findOneByName($this->randomStr));
+        $this->tokenRepository->delete($this->randomStr);
+        Assert::assertNull($this->tokenRepository->findOneByName($this->randomStr));
     }
 }

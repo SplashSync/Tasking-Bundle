@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
+use PHPUnit\Framework\Assert;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Worker;
 use Symfony\Component\Process\Process;
@@ -27,7 +28,7 @@ class Z001ProcessCloseControllerTest extends AbstractTestController
     /**
      * Test of Task Inputs
      */
-    public function testStopCommand()
+    public function testStopCommand(): void
     {
         //====================================================================//
         // REQUEST STOP OF ALL PROCESS
@@ -41,22 +42,20 @@ class Z001ProcessCloseControllerTest extends AbstractTestController
 
         //====================================================================//
         // Load Worker Reprository
-        $workers = $this->entityManager
-            ->getRepository('SplashTaskingBundle:Worker')
-            ->findAll();
+        $workers = $this->workersRepository->findAll();
 
         //====================================================================//
         // Workers List Shall not be Empty at this Step of Tests
-        $this->assertNotEmpty($workers);
+        Assert::assertNotEmpty($workers);
 
         //====================================================================//
         // Check all Workers are Stopped
         /** @var Worker $worker */
         foreach ($workers as $worker) {
-            $this->assertInstanceOf(Worker::class, $worker);
-            $this->assertFalse($worker->isRunning());
-            $this->assertNotEmpty($worker->getLastSeen());
-            $this->assertFalse($this->doCheckProcessIsAlive($worker->getPid()));
+//            self::assertInstanceOf(Worker::class, $worker);
+            Assert::assertFalse($worker->isRunning());
+            Assert::assertNotEmpty($worker->getLastSeen());
+            Assert::assertFalse($this->doCheckProcessIsAlive($worker->getPid()));
         }
 
         $this->entityManager->clear();
@@ -97,7 +96,7 @@ class Z001ProcessCloseControllerTest extends AbstractTestController
         $list = array();
         //====================================================================//
         // Execute Seach Command
-        exec("ps ". (string) $pid, $list);
+        exec("ps ".(string) $pid, $list);
         //====================================================================//
         // Check Result
         return (count($list) > 1) ? true : false;

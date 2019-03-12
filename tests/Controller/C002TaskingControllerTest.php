@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
+use PHPUnit\Framework\Assert;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Tests\Jobs\TestJob;
 
@@ -42,7 +43,7 @@ class C002TaskingControllerTest extends AbstractTestController
         //====================================================================//
         // Add Task To List
         for ($i = 0; $i < $nbTasks; $i++) {
-            $this->AddTask($this->randomStr);
+            $this->addTask($this->randomStr);
         }
 
         //====================================================================//
@@ -54,13 +55,12 @@ class C002TaskingControllerTest extends AbstractTestController
 
             //====================================================================//
             // We Found Our Task Running
-            if ($this->tasksRepository->getActiveTasksCount($this->randomStr)) {
+            if ($this->tasksRepository->getActiveTasksCount($this->randomStr) > 0) {
                 $taskFound = true;
             }
-
             //====================================================================//
             // We Found Only One Task Running
-            $this->assertLessThan(2, $this->tasksRepository->getActiveTasksCount($this->randomStr));
+            Assert::assertLessThan(2, $this->tasksRepository->getActiveTasksCount($this->randomStr));
 
             if (0 == $this->tasksRepository->getActiveTasksCount($this->randomStr)) {
                 $taskEnded++;
@@ -71,11 +71,11 @@ class C002TaskingControllerTest extends AbstractTestController
 
         //====================================================================//
         //Verify All Tasks Are Finished
-        $this->assertEquals(0, $this->tasksRepository->getWaitingTasksCount($this->randomStr));
+        Assert::assertEquals(0, $this->tasksRepository->getWaitingTasksCount($this->randomStr));
 
         //====================================================================//
         // Delete Current Token
-        $this->tokenRepository->Delete($this->randomStr);
+        $this->tokenRepository->delete($this->randomStr);
         //====================================================================//
         // Finished Tasks
         sleep(1);
@@ -83,7 +83,7 @@ class C002TaskingControllerTest extends AbstractTestController
 
         //====================================================================//
         // Check We Found Our Task Running
-        $this->assertTrue($taskFound);
+        Assert::assertTrue($taskFound);
     }
 
     /**
@@ -104,7 +104,7 @@ class C002TaskingControllerTest extends AbstractTestController
         //====================================================================//
         // Add Task To List
         for ($i = 0; $i < $nbTasks; $i++) {
-            $this->assertInstanceOf(TestJob::class, $this->AddMicroTask($this->randomStr, $delay));
+            $this->addMicroTask($this->randomStr, $delay);
         }
 
         //====================================================================//
@@ -116,13 +116,13 @@ class C002TaskingControllerTest extends AbstractTestController
 
             //====================================================================//
             // We Found Our Task Running
-            if ($this->tasksRepository->getActiveTasksCount($this->randomStr)) {
+            if ($this->tasksRepository->getActiveTasksCount($this->randomStr) > 0) {
                 $taskFound = true;
             }
 
             //====================================================================//
             // We Found Only One Task Running
-            $this->assertLessThan(2, $this->tasksRepository->getActiveTasksCount($this->randomStr));
+            Assert::assertLessThan(2, $this->tasksRepository->getActiveTasksCount($this->randomStr));
 
             if (0 == $this->tasksRepository->getActiveTasksCount($this->randomStr)) {
                 $taskEnded++;
@@ -133,19 +133,19 @@ class C002TaskingControllerTest extends AbstractTestController
 
         //====================================================================//
         //Verify All Tasks Are Finished
-        $this->assertEquals(0, $this->tasksRepository->getWaitingTasksCount($this->randomStr));
+        Assert::assertEquals(0, $this->tasksRepository->getWaitingTasksCount($this->randomStr));
 
         //====================================================================//
         // Delete Current Token
-        $this->tokenRepository->Delete($this->randomStr);
+        $this->tokenRepository->delete($this->randomStr);
         //====================================================================//
         // Finished Tasks
         sleep(1);
-        $this->tasksRepository->Clean(0);
+        $this->tasksRepository->clean(0);
 
         //====================================================================//
         // Check We Found Our Task Running
-        $this->assertTrue($taskFound);
+        Assert::assertTrue($taskFound);
     }
 
     /**
@@ -169,13 +169,13 @@ class C002TaskingControllerTest extends AbstractTestController
         //====================================================================//
         // Add Task To List
         for ($i = 0; $i < $nbTasks; $i++) {
-            $this->assertInstanceOf(TestJob::class, $this->AddMicroTask($tokenA, $delay));
-            $this->assertInstanceOf(TestJob::class, $this->AddMicroTask($tokenB, $delay));
-            $this->assertInstanceOf(TestJob::class, $this->AddMicroTask($tokenC, $delay));
+            $this->addMicroTask($tokenA, $delay);
+            $this->addMicroTask($tokenB, $delay);
+            $this->addMicroTask($tokenC, $delay);
         }
 
         $this->entityManager->clear();
-        $this->assertGreaterThan(0, $this->tasksRepository->getWaitingTasksCount());
+        Assert::assertGreaterThan(0, $this->tasksRepository->getWaitingTasksCount());
 
         //====================================================================//
         // While Tasks Are Running
@@ -183,24 +183,24 @@ class C002TaskingControllerTest extends AbstractTestController
         do {
             usleep((int) (($delay / 10) * 1E3));
 
-            $this->entityManager->Clear();
+            $this->entityManager->clear();
             //====================================================================//
             // We Found Our Task Running
-            if ($this->tasksRepository->getActiveTasksCount($tokenA)) {
+            if ($this->tasksRepository->getActiveTasksCount($tokenA) > 0) {
                 $taskAFound = true;
             }
-            if ($this->tasksRepository->getActiveTasksCount($tokenB)) {
+            if ($this->tasksRepository->getActiveTasksCount($tokenB) > 0) {
                 $taskBFound = true;
             }
-            if ($this->tasksRepository->getActiveTasksCount($tokenC)) {
+            if ($this->tasksRepository->getActiveTasksCount($tokenC) > 0) {
                 $taskCFound = true;
             }
 
             //====================================================================//
             // We Found Only One Task Running
-            $this->assertLessThan(2, $this->tasksRepository->getActiveTasksCount($tokenA));
-            $this->assertLessThan(2, $this->tasksRepository->getActiveTasksCount($tokenB));
-            $this->assertLessThan(2, $this->tasksRepository->getActiveTasksCount($tokenC));
+            Assert::assertLessThan(2, $this->tasksRepository->getActiveTasksCount($tokenA));
+            Assert::assertLessThan(2, $this->tasksRepository->getActiveTasksCount($tokenB));
+            Assert::assertLessThan(2, $this->tasksRepository->getActiveTasksCount($tokenC));
 
             if (0 == $this->tasksRepository->getActiveTasksCount()) {
                 $taskEnded++;
@@ -211,25 +211,25 @@ class C002TaskingControllerTest extends AbstractTestController
 
         //====================================================================//
         //Verify All Tasks Are Finished
-        $this->assertEquals(0, $this->tasksRepository->getWaitingTasksCount($tokenA));
-        $this->assertEquals(0, $this->tasksRepository->getWaitingTasksCount($tokenB));
-        $this->assertEquals(0, $this->tasksRepository->getWaitingTasksCount($tokenC));
+        Assert::assertEquals(0, $this->tasksRepository->getWaitingTasksCount($tokenA));
+        Assert::assertEquals(0, $this->tasksRepository->getWaitingTasksCount($tokenB));
+        Assert::assertEquals(0, $this->tasksRepository->getWaitingTasksCount($tokenC));
 
         //====================================================================//
         // Delete Current Token
-        $this->tokenRepository->Delete($tokenA);
-        $this->tokenRepository->Delete($tokenB);
-        $this->tokenRepository->Delete($tokenC);
+        $this->tokenRepository->delete($tokenA);
+        $this->tokenRepository->delete($tokenB);
+        $this->tokenRepository->delete($tokenC);
 
         //====================================================================//
         // Clean Finished Tasks
-        $this->tasksRepository->Clean(0);
+        $this->tasksRepository->clean(0);
 
         //====================================================================//
         // Check We Found Our Tasks Running
-        $this->assertTrue($taskAFound);
-        $this->assertTrue($taskBFound);
-        $this->assertTrue($taskCFound);
+        Assert::assertTrue($taskAFound);
+        Assert::assertTrue($taskBFound);
+        Assert::assertTrue($taskCFound);
     }
 
     /**

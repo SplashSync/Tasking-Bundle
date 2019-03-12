@@ -2,6 +2,7 @@ includes:
 	- ../../vendor/phpstan/phpstan-phpunit/extension.neon
 	- ../../vendor/phpstan/phpstan-doctrine/extension.neon
 	- ../../vendor/phpstan/phpstan-symfony/extension.neon
+	- ../../vendor/phpstan/phpstan-strict-rules/rules.neon
 parameters:
         bootstrap: "./vendor/splash/phpcore/Resources/grumphp/phpstan.php"
         universalObjectCratesClasses:
@@ -9,8 +10,8 @@ parameters:
         symfony:
 #                container_xml_path: %currentWorkingDirectory%/var/cache/dev/testContainer.xml # or srcDevDebugProjectContainer.xml for Symfony 4+
                 container_xml_path: %currentWorkingDirectory%/var/cache/test/appAppKernelTestDebugContainer.xml # or srcDevDebugProjectContainer.xml for Symfony 4+
-#        ignoreErrors:
-#                # Splash Widgets Blocks Methods 
-#                - '#Call to an undefined method [a-zA-Z0-9\\_]+BaseBlock::[a-zA-Z0-9\\_]+().#'
-#                - '#Call to an undefined method [a-zA-Z0-9\\_]+FactoryService::[a-zA-Z0-9\\_]+().#'
-
+        ignoreErrors:
+                # Allow Methods & Property Variables calls 
+                - '#Variable method call on [a-zA-Z0-9\\]#'
+                - '#Variable method call on \$this[a-zA-Z0-9\\()]#'
+                - '#Variable property access on \$this[a-zA-Z0-9\\()]#'

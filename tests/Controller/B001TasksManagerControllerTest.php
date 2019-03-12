@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
+use PHPUnit\Framework\Assert;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Tests\Jobs\TestJob;
 use Splash\Tasking\Tests\Jobs\TestStaticJob;
@@ -32,21 +33,21 @@ class B001TasksManagerControllerTest extends AbstractTestController
         //====================================================================//
         // Test Standard Result
         $testJob = new TestJob();
-        $this->assertTrue(
+        Assert::assertTrue(
             $this->invokeMethod($this->tasks, "validate", array($testJob))
         );
 
         //====================================================================//
         // Detect Wrong Action
         $testJob->setInputs(array("Error-Wrong-Action" => true));
-        $this->assertFalse(
+        Assert::assertFalse(
             $this->invokeMethod($this->tasks, "validate", array($testJob))
         );
 
         //====================================================================//
         // Detect Wrong Priority
         $testJob->setInputs(array("Error-Wrong-Priority" => true));
-        $this->assertFalse(
+        Assert::assertFalse(
             $this->invokeMethod($this->tasks, "validate", array($testJob))
         );
     }
@@ -63,20 +64,20 @@ class B001TasksManagerControllerTest extends AbstractTestController
 
         //====================================================================//
         // Verify Generic Job Result
-        $this->assertInstanceOf(Task::class, $task);
-        $this->assertNotEmpty($task->getName());
-        $this->assertEquals($task->getJobClass(), "\\".get_class($job));
-        $this->assertEquals($task->getJobInputs(), $job->__get("inputs"));
-        $this->assertEquals($task->getJobPriority(), $job->getPriority());
-        $this->assertEquals($task->getJobToken(), $job->getToken());
-        $this->assertEquals($task->getSettings(), $job->getSettings());
-        $this->assertEquals($task->getJobIndexKey1(), $job->getIndexKey1());
-        $this->assertEquals($task->getJobIndexKey2(), $job->getIndexKey2());
-        $this->assertFalse($task->isRunning());
-        $this->assertFalse($task->isFinished());
-        $this->assertEquals(0, $task->getTry());
-        $this->assertEmpty($task->getFaultStr());
-        $this->assertNotEmpty($task->getDiscriminator());
+        Assert::assertInstanceOf(Task::class, $task);
+        Assert::assertNotEmpty($task->getName());
+        Assert::assertEquals($task->getJobClass(), "\\".get_class($job));
+        Assert::assertEquals($task->getJobInputs(), $job->__get("inputs"));
+        Assert::assertEquals($task->getJobPriority(), $job->getPriority());
+        Assert::assertEquals($task->getJobToken(), $job->getToken());
+        Assert::assertEquals($task->getSettings(), $job->getSettings());
+        Assert::assertEquals($task->getJobIndexKey1(), $job->getIndexKey1());
+        Assert::assertEquals($task->getJobIndexKey2(), $job->getIndexKey2());
+        Assert::assertFalse($task->isRunning());
+        Assert::assertFalse($task->isFinished());
+        Assert::assertEquals(0, $task->getTry());
+        Assert::assertEmpty($task->getFaultStr());
+        Assert::assertNotEmpty($task->getDiscriminator());
 
         //====================================================================//
         // Convert Static Job to Task
@@ -85,9 +86,9 @@ class B001TasksManagerControllerTest extends AbstractTestController
 
         //====================================================================//
         // Verify Static Job Result
-        $this->assertInstanceOf(Task::class, $staticTask);
-        $this->assertTrue($staticTask->isStaticJob());
-        $this->assertNotEmpty($staticTask->getJobFrequency());
+        Assert::assertInstanceOf(Task::class, $staticTask);
+        Assert::assertTrue($staticTask->isStaticJob());
+        Assert::assertNotEmpty($staticTask->getJobFrequency());
     }
 
     /**
@@ -114,7 +115,7 @@ class B001TasksManagerControllerTest extends AbstractTestController
         }
         //====================================================================//
         //Verify Only One Task Added
-        $this->assertEquals(1, $this->tasksRepository->getWaitingTasksCount($token));
+        Assert::assertEquals(1, $this->tasksRepository->getWaitingTasksCount($token));
         //====================================================================//
         // Finished Tasks
         $this->tasksRepository->clean(0);
