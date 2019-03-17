@@ -132,7 +132,7 @@ class Runner
         Timer::start();
         //==============================================================================
         // Clear Current Entity Manager
-        $this->taskRepository->clear();        
+        $this->taskRepository->clear();
         //====================================================================//
         // Run Next Normal Tasks
         if ($this->runNextTask(false)) {
