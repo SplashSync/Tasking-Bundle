@@ -381,6 +381,14 @@ class TaskRepository extends EntityRepository
         $this->_em->flush($task);
     }
 
+    /**
+     * Clear Entity Manager
+     */
+    public function clear(): void
+    {
+        $this->_em->clear();
+    }
+    
     //====================================================================//
     // *******************************************************************//
     //  Low Level Functions

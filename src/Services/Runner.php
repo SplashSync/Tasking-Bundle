@@ -130,6 +130,9 @@ class Runner
         //====================================================================//
         // Store Task Startup Time
         Timer::start();
+        //==============================================================================
+        // Clear Current Entity Manager
+        $this->taskRepository->clear();        
         //====================================================================//
         // Run Next Normal Tasks
         if ($this->runNextTask(false)) {
