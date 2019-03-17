@@ -38,8 +38,8 @@ class TaskAdmin extends Admin
             ->add('running')
             ->add('finished')
             ->add('try')
-            ->add('fault_str')
-            ->add('fault_trace')
+            ->add('faultStr')
+            ->add('faultTrace')
             ->end()
             ->with('General', array('class' => 'col-md-6'))
             ->add('name')
@@ -85,7 +85,7 @@ class TaskAdmin extends Admin
             ->add('finished', null, array('editable' => true))
             ->add('jobIsStatic')
             ->add('try')
-            ->add('fault_str')
+            ->add('faultStr')
         ;
     }
 

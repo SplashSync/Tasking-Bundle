@@ -90,7 +90,7 @@ class Token
     /**
      * When this token was taken
      *
-     * @var DateTime
+     * @var null|DateTime
      *
      * @ORM\Column(name="LockedAt", type="datetime", nullable=TRUE)
      */
@@ -106,7 +106,7 @@ class Token
     private $lockedAtTimeStamp;
 
     /**
-     * @var string
+     * @var null|string
      *
      * @ORM\Column(name="LockedBy", type="string", length=250, nullable=TRUE)
      */
@@ -310,9 +310,9 @@ class Token
     /**
      * Get lockedAt
      *
-     * @return DateTime
+     * @return null|DateTime
      */
-    public function getLockedAt(): DateTime
+    public function getLockedAt(): ?DateTime
     {
         return $this->lockedAt;
     }
@@ -334,9 +334,9 @@ class Token
     /**
      * Get lockedBy
      *
-     * @return string
+     * @return null|string
      */
-    public function getLockedBy(): string
+    public function getLockedBy(): ?string
     {
         return $this->lockedBy;
     }

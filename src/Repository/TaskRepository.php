@@ -44,10 +44,6 @@ class TaskRepository extends EntityRepository
     public function getNextTask(array $options, string $tokenName = null, bool $static = null): ?Task
     {
         //====================================================================//
-        // Clear Entity Manager Cache
-        $this->_em->clear();
-
-        //====================================================================//
         // Init Query Builder
         $this->builder = $this->createQueryBuilder("task");
 

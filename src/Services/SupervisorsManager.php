@@ -115,7 +115,7 @@ class SupervisorsManager extends WorkersManager
     {
         $this->logger->info("Supervisor Manager: This Worker will die in ".$this->config->supervisor['max_age']." Seconds");
 
-        return new DateTime("+".$this->config->workers['max_age']."Seconds");
+        return new DateTime("+".$this->config->supervisor['max_age']."Seconds");
     }
 
     /**

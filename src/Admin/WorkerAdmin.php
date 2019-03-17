@@ -54,7 +54,7 @@ class WorkerAdmin extends Admin
     protected function configureListFields(ListMapper $listMapper): void
     {
         $listMapper
-            ->addIdentifier('_toString', null, array('route' => array('name' => 'show')))
+            ->addIdentifier('__toString', null, array('route' => array('name' => 'show')))
 //            ->add('nodeIp')
             ->add('enabled', null, array('editable' => true))
             ->add('pID')
