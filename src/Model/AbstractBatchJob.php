@@ -275,7 +275,7 @@ abstract class AbstractBatchJob extends AbstractJob
 
         //==============================================================================
         //      Check List is not Empty
-        if (!is_iterable($jobsInputs) || (0 == count($jobsInputs))) {
+        if (!is_array($jobsInputs) || (0 == count($jobsInputs))) {
             $this->setStateItem("isCompleted", true);
 
             return true;
