@@ -230,6 +230,7 @@ class Task extends AbstractTask
         $array = array(
             $this->getJobClass(),
             $this->getJobAction(),
+            $this->getJobInputs(),
             $this->getSettings(),
         );
 
