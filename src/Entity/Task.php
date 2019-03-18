@@ -220,16 +220,36 @@ class Task extends AbstractTask
     public function updateDiscriminator(): self
     {
         //====================================================================//
+        // Check Discrimination Was Never Set
+        if (isset($this->discriminator)) {
+            return $this;
+        }
+
+        //====================================================================//
         // Prepare Discrimination Array
         $array = array(
             $this->getJobClass(),
             $this->getJobAction(),
-            $this->getJobInputs(),
             $this->getSettings(),
         );
+
         //====================================================================//
         // Setup Discriminator
-        $this->discriminator = md5(serialize($array));
+        return $this->setDiscriminator($array);
+    }
+
+    /**
+     * Set Task Disciminator Using an Array of Inputs Parameters
+     *
+     * @param array $values
+     *
+     * @return $this
+     */
+    public function setDiscriminator(array $values): self
+    {
+        //====================================================================//
+        // Setup Discriminator
+        $this->discriminator = md5(serialize($values));
 
         return $this;
     }
