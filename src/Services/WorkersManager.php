@@ -209,7 +209,6 @@ class WorkersManager
         //==============================================================================
         // Flush Database
         $this->entityManager->flush();
-        $this->entityManager->clear();
         //====================================================================//
         // Output Refresh Sign
         $this->logger->info("Worker Manager: Worker ".$worker->getProcess()." Refreshed in Database");

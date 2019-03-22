@@ -187,13 +187,18 @@ class ProcessManager
         //====================================================================//
         // Find Command
         $listCommand = $this->config["server"]["php_version"]." ";
-        $listCommand = $this->projectDir."/".self::CMD_CONSOLE;
+        $listCommand .= $this->projectDir."/".self::CMD_CONSOLE;
         $listCommand .= $command." --env=".$env;
 
         //====================================================================//
         // Verify This Command Not Already Running
         $list = null;
+        $count = (int) exec("pgrep '".$listCommand."' -xfc ", $list);
 
-        return (int) exec("pgrep '".$listCommand."' -xfc ", $list);
+        //====================================================================//
+        // Debug
+        $this->logger->info("Process Manager: Count (".$listCommand.") = ".$count);
+
+        return $count;
     }
 }
