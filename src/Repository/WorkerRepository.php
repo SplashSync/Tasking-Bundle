@@ -34,9 +34,6 @@ class WorkerRepository extends EntityRepository
         // Load Current Server Infos
         $system = posix_uname();
         //====================================================================//
-        // Clear Cache of EntityManager
-        $this->_em->clear();
-        //====================================================================//
         // Retrieve Server Local Supervisor
         return  $this->findOneBy(array(
             "nodeName" => $system["nodename"],
@@ -56,9 +53,6 @@ class WorkerRepository extends EntityRepository
         //====================================================================//
         // Load Current Server Infos
         $system = posix_uname();
-        //====================================================================//
-        // Clear Cache of EntityManager
-        $this->_em->clear();
         //====================================================================//
         // Retrieve Server Local Supervisor
         return  $this->findOneBy(array(
