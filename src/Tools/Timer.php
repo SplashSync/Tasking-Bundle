@@ -37,7 +37,7 @@ class Timer
      *
      * @var int
      */
-    const STANDBY_IDLE = 50;
+    const STANDBY_IDLE = 500;
 
     /**
      * Second & Max Step for Stand by Increase
@@ -90,11 +90,11 @@ class Timer
         //====================================================================//
         // 500 First Ms => Wait 50 Ms More Each Loop
         if (static::$standBy < self::STANDBY_IDLE) {
-            static::$standBy += self::STANDBY_MIN;
+            static::$standBy += 25;
         }
         //====================================================================//
         // 500 Ms to 1 Second => Wait 100 Ms More Each Loop
-        if ((self::STANDBY_IDLE < static::$standBy) && (static::$standBy < self::STANDBY_MAX)) {
+        if ((self::STANDBY_IDLE <= static::$standBy) && (static::$standBy < self::STANDBY_MAX)) {
             static::$standBy += 2 * self::STANDBY_MIN;
         }
     }
