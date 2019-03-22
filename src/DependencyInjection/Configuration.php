@@ -132,7 +132,7 @@ class Configuration implements ConfigurationInterface
             ->info('Max. Age for a Supervisor Process in seconds. Supervisor Worker will stop after this delay.')
             ->end()
             ->scalarNode('refresh_delay')
-            ->defaultValue(200)
+            ->defaultValue(500)
             ->info('Delay between two Supervisor Worker Status checks in MilliSeconds.')
             ->end()
             ->integerNode('max_workers')
