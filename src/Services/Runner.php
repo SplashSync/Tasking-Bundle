@@ -133,6 +133,9 @@ class Runner
         //==============================================================================
         // Clear Current Entity Manager
         $this->taskRepository->clear();
+        //==============================================================================
+        // Clear Global Entity Manager
+        $this->container->get("doctrine")->getManager()->clear();
         //====================================================================//
         // Run Next Normal Tasks
         if ($this->runNextTask(false)) {
