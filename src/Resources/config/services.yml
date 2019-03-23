@@ -16,6 +16,7 @@ services:
         arguments:
             - "@service_container"
             - "@logger"
+            - "@=service('doctrine.orm.entity_manager').getRepository('SplashTaskingBundle:Task')"
             - "@splash.tasking.tokens"
             - "%splash_tasking%"
             

@@ -92,10 +92,11 @@ class Runner
      *
      * @param ContainerInterface $container
      * @param LoggerInterface    $logger
+     * @param TaskRepository     $tasks
      * @param TokenManager       $token
      * @param array              $config
      */
-    public function __construct(ContainerInterface $container, LoggerInterface $logger, TokenManager $token, array $config)
+    public function __construct(ContainerInterface $container, LoggerInterface $logger, TaskRepository $tasks, TokenManager $token, array $config)
     {
         //====================================================================//
         // Link to Service Container
@@ -105,7 +106,7 @@ class Runner
         $this->logger = $logger;
         //====================================================================//
         // Link to Tasks Repository
-        $this->taskRepository = $container->getDoctrine()->getRepository('SplashTaskingBundle:Task');
+        $this->taskRepository = $tasks;
         //====================================================================//
         // Link to Token Manager
         $this->token = $token;
