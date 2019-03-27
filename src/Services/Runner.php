@@ -285,7 +285,7 @@ class Runner
         $this->job = new $jobClass();
         //====================================================================//
         // Job Class is SubClass of Base Job Class
-        if (!is_subclass_of($this->job, AbstractJob::class)) {
+        if (!($this->job instanceof AbstractJob)) {
             $task->setFaultStr("Job Class is Invalid: ".$jobClass);
 
             return false;
