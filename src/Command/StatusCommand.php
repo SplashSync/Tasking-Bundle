@@ -17,6 +17,7 @@ namespace Splash\Tasking\Command;
 
 use Splash\Tasking\Entity\Worker;
 use Splash\Tasking\Repository\TaskRepository;
+use Splash\Tasking\Repository\WorkerRepository;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -105,10 +106,10 @@ class StatusCommand extends ContainerAwareCommand
     {
         //====================================================================//
         // Load Tasks Repository
-        /** @var TaskRepository $repo */
+        /** @var WorkerRepository $repo */
         $repo = $this->getContainer()
             ->get("doctrine")->getManager()
-            ->getRepository('SplashTaskingBundle:Task');
+            ->getRepository('SplashTaskingBundle:Worker');
 
         //====================================================================//
         // List Workers Status
