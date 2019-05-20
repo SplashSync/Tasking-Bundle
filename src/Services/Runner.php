@@ -321,6 +321,7 @@ class Runner
         $task->setStartedAt();
         $task->setStartedBy($task->getCurrentServer());
         $task->setTry($task->getTry() + 1);
+        $task->clearOutputs();
         $task->setFaultStr(null);
         //====================================================================//
         // Safety Check

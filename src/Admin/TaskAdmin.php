@@ -46,7 +46,7 @@ class TaskAdmin extends Admin
             ->add('jobClass')
             ->add('jobName')
             ->add('jobToken')
-            ->add('jobIsStatic')
+            ->add('staticJob', 'boolean')
             ->add('jobFrequency')
             ->add('plannedAt')
             ->end()
@@ -83,7 +83,7 @@ class TaskAdmin extends Admin
             ->add('duration')
             ->add('running', null, array('editable' => true))
             ->add('finished', null, array('editable' => true))
-            ->add('jobIsStatic')
+            ->add('staticJob', 'boolean')
             ->add('try')
             ->add('faultStr')
         ;

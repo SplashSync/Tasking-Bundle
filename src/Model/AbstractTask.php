@@ -824,6 +824,18 @@ abstract class AbstractTask
     }
 
     /**
+     * Clear Task Outputs
+     *
+     * @return $this
+     */
+    public function clearOutputs()
+    {
+        $this->outputs = null;
+
+        return $this;
+    }
+
+    /**
      * Get Task Disciminator
      *
      * @return string
