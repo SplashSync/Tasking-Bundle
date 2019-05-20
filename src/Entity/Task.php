@@ -203,6 +203,18 @@ class Task extends AbstractTask
     }
 
     /**
+     * Clear Task Outputs
+     *
+     * @return $this
+     */
+    public function clearOutputs()
+    {
+        $this->outputs = "";
+
+        return $this;
+    }
+
+    /**
      * Get jobInputs as a string
      *
      * @return string
