@@ -46,6 +46,7 @@
         
         "splash/php-bundle":                            "dev-master",
         "splash/phpcore":                               "dev-master",
+        "splash/console":                               "dev-master",
         
         "composer/composer":                            "^1.5",
         "j13k/yaml-lint":                               "^1.1",
