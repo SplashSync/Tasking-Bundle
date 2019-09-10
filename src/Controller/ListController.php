@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Controller;
 
+use Exception;
 use Splash\Tasking\Repository\TaskRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
@@ -203,7 +204,7 @@ class ListController extends Controller
             ->getRepository('SplashTaskingBundle:Task');
 
         if (!($repository instanceof TaskRepository)) {
-            throw new \Exception("Unable to Load Tasks Repository");
+            throw new Exception("Unable to Load Tasks Repository");
         }
 
         return $repository;

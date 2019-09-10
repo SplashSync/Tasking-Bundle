@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Repository;
 
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Splash\Tasking\Entity\Task;
@@ -61,7 +62,7 @@ class TaskRepository extends EntityRepository
 
         //====================================================================//
         // Set Dates Parameters as TimeStamps
-        $nowTimeStamp = (new \DateTime())->getTimestamp();
+        $nowTimeStamp = (new DateTime())->getTimestamp();
 
         //====================================================================//
         // Setup Query Token Parameters
@@ -329,8 +330,8 @@ class TaskRepository extends EntityRepository
     {
         //==============================================================================
         // Prepare Max Age DateTime
-        $maxDate = (new \DateTime())->getTimestamp() - $maxAge;
-        $maxErrorDate = (new \DateTime())->getTimestamp() - (10 * $maxAge);
+        $maxDate = (new DateTime())->getTimestamp() - $maxAge;
+        $maxErrorDate = (new DateTime())->getTimestamp() - (10 * $maxAge);
 
         //==============================================================================
         // Count Old Finished Tasks

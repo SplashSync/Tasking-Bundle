@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Repository;
 
+use DateTime;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\OptimisticLockException;
@@ -149,7 +150,7 @@ class TokenRepository extends EntityRepository
     {
         //==============================================================================
         // Prepare Max Age DateTime
-        $maxDate = new \DateTime("-".$maxAge."Hours");
+        $maxDate = new DateTime("-".$maxAge."Hours");
         //==============================================================================
         // Count Old Finished Tasks
         return $this->createQueryBuilder("t")

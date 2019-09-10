@@ -220,7 +220,8 @@ abstract class AbstractBatchJob extends AbstractJob
 
             //==============================================================================
             //      Safety Ckeck - Ensure Input Array Exists
-            if (is_null($jobInputs = $this->getJobInputs($index))) {
+            $jobInputs = $this->getJobInputs($index);
+            if (is_null($jobInputs)) {
                 $this->setStateItem("isCompleted", true);
 
                 return false;
