@@ -17,6 +17,7 @@ namespace Splash\Tasking\Tests\Controller;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Exception;
+use ReflectionClass;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Repository\TaskRepository;
 use Splash\Tasking\Repository\TokenRepository;
@@ -200,7 +201,7 @@ abstract class AbstractTestController extends WebTestCase
      */
     protected function invokeMethod(&$object, $methodName, array $parameters = array())
     {
-        $reflection = new \ReflectionClass(get_class($object));
+        $reflection = new ReflectionClass(get_class($object));
         $method = $reflection->getMethod($methodName);
         $method->setAccessible(true);
 

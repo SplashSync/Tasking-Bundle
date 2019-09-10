@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Tests\Jobs;
 
+use Exception;
 use Splash\Tasking\Model\AbstractJob;
 
 /**
@@ -294,7 +295,7 @@ class TestJob extends AbstractJob
         //====================================================================//
         // Trow exception if requested!
         if (isset($this->inputs[$parameterId]) && (true == $this->inputs[$parameterId])) {
-            throw new \Exception(sprintf("You requeted Job to Fail on %s Method.", $methodName));
+            throw new Exception(sprintf("You requeted Job to Fail on %s Method.", $methodName));
         }
     }
 }

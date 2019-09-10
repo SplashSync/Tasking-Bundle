@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
+use DateTime;
 use PHPUnit\Framework\Assert;
 use Splash\Tasking\Entity\Token;
 
@@ -151,7 +152,7 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
         // Acquire Token and Change LockedAt Date
         //====================================================================//
         $token->acquire();
-        $minAge = new \DateTime("-".(Token::SELFRELEASE_DELAY - 2)." Seconds");
+        $minAge = new DateTime("-".(Token::SELFRELEASE_DELAY - 2)." Seconds");
         $token->setLockedAt($minAge);
         $this->entityManager->persist($token);
         $this->entityManager->flush();
@@ -163,7 +164,7 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
         // Acquire Token and Change LockedAt Date
         //====================================================================//
         $token->acquire();
-        $maxAge = new \DateTime("-".(Token::SELFRELEASE_DELAY + 1)." Seconds");
+        $maxAge = new DateTime("-".(Token::SELFRELEASE_DELAY + 1)." Seconds");
         $token->setLockedAt($maxAge);
         $this->entityManager->persist($token);
         $this->entityManager->flush();
