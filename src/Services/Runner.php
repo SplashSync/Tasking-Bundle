@@ -365,7 +365,14 @@ class Runner
             $result = false;
             $task->setFaultStr($e->getMessage().PHP_EOL.$e->getFile()." Line ".$e->getLine());
             $task->setFaultTrace($e->getTraceAsString());
+            //==============================================================================
+            // Push Exception to Sentry if Installed
+            $sentry = $this->container->get('Sentry\State\HubInterface');
+            if ($sentry) {
+                $sentry->captureException($e);
+            }
         }
+
         //==============================================================================
         // Flush Output Buffer
         $task->appendOutputs((string) ob_get_contents());

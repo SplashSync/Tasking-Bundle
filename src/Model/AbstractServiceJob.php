@@ -74,7 +74,7 @@ abstract class AbstractServiceJob extends AbstractJob
             throw new Exception(sprintf("Service %s not found", $this->getService()));
         }
         $service = $this->container->get($this->getService());
-        if ($service && !method_exists($service, $this->getMethod())) {
+        if (!is_null($service) && !method_exists($service, $this->getMethod())) {
             throw new Exception(sprintf("Method %s not found", $this->getMethod()));
         }
 
