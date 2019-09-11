@@ -19,13 +19,13 @@ use ArrayObject;
 use DateTime;
 use Exception;
 use Psr\Log\LoggerInterface;
+use Sentry;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
 use Splash\Tasking\Repository\TaskRepository;
 use Splash\Tasking\Tools\Timer;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Sentry;
 
 /**
  * Tasks Runner
@@ -368,7 +368,7 @@ class Runner
             $task->setFaultTrace($exception->getTraceAsString());
             //==============================================================================
             // Push Exception to Sentry if Installed
-            if ($this->container->has('Sentry\State\HubInterface')) {
+            if (!empty($this->container->has('Sentry\State\HubInterface'))) {
                 Sentry\captureException($exception);
             }
         }
