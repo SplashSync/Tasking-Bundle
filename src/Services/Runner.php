@@ -25,6 +25,7 @@ use Splash\Tasking\Model\AbstractJob;
 use Splash\Tasking\Repository\TaskRepository;
 use Splash\Tasking\Tools\Timer;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Sentry;
 
 /**
  * Tasks Runner
@@ -359,17 +360,16 @@ class Runner
         //==============================================================================
         try {
             $result = $this->executeJobAction($task);
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             //==============================================================================
             // Catch Any Exceptions that may occur during task execution
             $result = false;
-            $task->setFaultStr($e->getMessage().PHP_EOL.$e->getFile()." Line ".$e->getLine());
-            $task->setFaultTrace($e->getTraceAsString());
+            $task->setFaultStr($exception->getMessage().PHP_EOL.$exception->getFile()." Line ".$exception->getLine());
+            $task->setFaultTrace($exception->getTraceAsString());
             //==============================================================================
             // Push Exception to Sentry if Installed
-            $sentry = $this->container->get('Sentry\State\HubInterface');
-            if ($sentry) {
-                $sentry->captureException($e);
+            if ($this->container->has('Sentry\State\HubInterface')) {
+                Sentry\captureException($exception);
             }
         }
 
