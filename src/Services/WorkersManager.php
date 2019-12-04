@@ -181,6 +181,7 @@ class WorkersManager
         }
         //====================================================================//
         // Reload Worker From DB
+        $this->entityManager->clear();
         $worker = $this->workerRepository->findOneByProcess($this->worker->getProcess());
         if (null === $worker) {
             throw new Exception("Unable to reload Worker from Database");
