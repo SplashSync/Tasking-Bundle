@@ -4,6 +4,6 @@
 ################################################################################    
 
 status:
-    waiting:    Waiting
-    running:    Running
-    done:       Finished
+    waiting:    En attente
+    running:    En cours
+    done:       Terminée

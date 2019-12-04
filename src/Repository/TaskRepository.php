@@ -22,7 +22,7 @@ use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Token  as Token;
 
 /**
- * Splash Background Tasks Repository
+ * Splash Background Tasks Repository.
  */
 class TaskRepository extends EntityRepository
 {
@@ -32,7 +32,7 @@ class TaskRepository extends EntityRepository
     private $builder;
 
     /**
-     * Load Next Task To Perform from Db with Filter for Used Tokens
+     * Load Next Task To Perform from Db with Filter for Used Tokens.
      *
      * @param array  $options   Search Options
      * @param string $tokenName Focus on a Specific Token (When Already Acquired)
@@ -92,7 +92,7 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Load Tasks Summmary Array
+     * Load Tasks Summmary Array.
      *
      * @param string $indexKey1 Your Custom Index Key 1
      * @param string $indexKey2 Your Custom Index Key 2
@@ -156,7 +156,7 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Load Tasks By Index Keys or Token
+     * Load Tasks By Index Keys or Token.
      *
      * @param string $indexKey1 Your Custom Index Key 1
      * @param string $indexKey2 Your Custom Index Key 2
@@ -187,25 +187,34 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Load User Task Array, Sorted By Type
+     * Load User Task Array, Sorted By Type.
      *
      * @param string $key1    Your Custom Index Key 1
      * @param string $key2    Your Custom Index Key 2
      * @param array  $orderBy List Ordering
      * @param int    $limit   Limit Number of Items
      * @param int    $offset  Page Offset
+     * @param string $group   Grouping Key (Default: T.discriminator)
      *
      * @return array User Task Summary Array
      */
-    public function getTasksStatus(string $key1 = null, string $key2 = null, array $orderBy = array(), int $limit = 10, int $offset = 0)
+    public function getTasksStatus(string $key1 = null, string $key2 = null, array $orderBy = array(), int $limit = 10, int $offset = 0, string $group = "discriminator")
     {
         //====================================================================//
-        // Get List of Tasks By Types
+        // Get Status for Tasks
         //====================================================================//
         $builder = $this
             ->createQueryBuilder("T")
-            ->select(array('T.name', 'count(T.name) as Total', 'T.discriminator as Md5', 'T.settings'))
-            ->groupBy("T.discriminator");
+            ->select(array(
+                'T.name',
+                "count(NULLIF(T.running, '')) as running",
+                "count(NULLIF(T.finished, '')) as finished",
+                'count(T.name) as total',
+                'T.discriminator as md5',
+                'T.settings',
+                'T.jobInputs',
+            ))
+            ->groupBy("T.".$group);
 
         $this
             ->setupIndexKeys($builder, $key1, $key2)
@@ -216,19 +225,17 @@ class TaskRepository extends EntityRepository
         $status = $builder->getQuery()->getArrayResult();
 
         //====================================================================//
-        // Add Tasks Counters
+        // Add Tasks Waiting Counter
         //====================================================================//
         foreach ($status as &$taskStatus) {
-            $taskStatus["Waiting"] = $this->getWaitingTasksCount(null, $taskStatus["Md5"], $key1, $key2);
-            $taskStatus["Running"] = $this->getActiveTasksCount(null, $taskStatus["Md5"], $key1, $key2);
-            $taskStatus["Finished"] = $taskStatus["Total"] - $taskStatus["Waiting"] - $taskStatus["Running"];
+            $taskStatus["waiting"] = $taskStatus["total"] - $taskStatus["running"] - $taskStatus["finished"];
         }
 
         return $status;
     }
 
     /**
-     * Return Number of Active Tasks
+     * Return Number of Active Tasks.
      *
      * @param string $tokenName Filter on a specific token Name
      * @param string $md5       Filter on a specific Discriminator
@@ -259,7 +266,7 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Return Number of Active Tasks
+     * Return Number of Active Tasks.
      *
      * @param string $tokenName Filter on a specific token Name
      * @param string $md5       Filter on a specific Discriminator
@@ -290,7 +297,7 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Return Number of Pending Tasks
+     * Return Number of Pending Tasks.
      *
      * @param string $tokenName Filter on a specific token Name
      * @param string $md5       Filter on a specific Discriminator
@@ -320,7 +327,7 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Delete all Tasks finished for more than given delay
+     * Delete all Tasks finished for more than given delay.
      *
      * @param int $maxAge Max Aging for Finished Tasks in Seconds
      *
@@ -360,7 +367,7 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Load List of Static Tasks
+     * Load List of Static Tasks.
      *
      * @return array User Task Summary Array
      */
@@ -373,7 +380,7 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Flushes Entity Manager
+     * Flushes Entity Manager.
      *
      * @param Task $task Task Item to Save
      */
@@ -383,7 +390,7 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Clear Entity Manager
+     * Clear Entity Manager.
      */
     public function clear(): void
     {
@@ -397,7 +404,7 @@ class TaskRepository extends EntityRepository
     //====================================================================//
 
     /**
-     * Generate Active Tokens Query DQL
+     * Generate Active Tokens Query DQL.
      *
      * @return string
      */
@@ -412,7 +419,7 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Select Tasks That Have Inactive Tokens or Given Token
+     * Select Tasks That Have Inactive Tokens or Given Token.
      *
      * @param string $token Filter on a Specific Token
      *
@@ -434,7 +441,7 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Select Tasks That Shall be Performed
+     * Select Tasks That Shall be Performed.
      *
      * @return $this
      */
@@ -463,7 +470,7 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Select Static Tasks That Shall be Performed
+     * Select Static Tasks That Shall be Performed.
      *
      * @return $this
      */
@@ -491,7 +498,7 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Setup Index Keys Filter on a QueryBuilder
+     * Setup Index Keys Filter on a QueryBuilder.
      *
      * @param QueryBuilder $builder   Target QueryBuilder
      * @param string       $indexKey1 Your Custom Index Key 1
@@ -512,7 +519,7 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Setup Order By Filter on a QueryBuilder
+     * Setup Order By Filter on a QueryBuilder.
      *
      * @param QueryBuilder $builder Target QueryBuilder
      * @param array        $orderBy OrderBy Array
@@ -533,7 +540,7 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Setup Limit Filter on a QueryBuilder
+     * Setup Limit Filter on a QueryBuilder.
      *
      * @param QueryBuilder $builder Target QueryBuilder
      * @param int          $limit   Result Limit
@@ -550,14 +557,14 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Setup Offset Filter on a QueryBuilder
+     * Setup Offset Filter on a QueryBuilder.
      *
      * @param QueryBuilder $builder Target QueryBuilder
      * @param int          $offset  Pagination Offset
      *
      * @return $this
      */
-    private function setupOffset(&$builder, int $offset = null) : self
+    private function setupOffset(&$builder, int $offset = null): self
     {
         if (!is_null($offset) && ($offset > 0)) {
             $builder->setFirstResult($offset);
@@ -567,14 +574,14 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Setup Token Filter on a QueryBuilder
+     * Setup Token Filter on a QueryBuilder.
      *
      * @param QueryBuilder $builder   Target QueryBuilder
      * @param string       $tokenName Filter on a specific token Name
      *
      * @return $this
      */
-    private function setupToken(&$builder, string $tokenName = null) : self
+    private function setupToken(&$builder, string $tokenName = null): self
     {
         if (null != $tokenName) {
             $builder
@@ -587,14 +594,14 @@ class TaskRepository extends EntityRepository
     }
 
     /**
-     * Setup Token Filter on a QueryBuilder
+     * Setup Token Filter on a QueryBuilder.
      *
      * @param QueryBuilder $builder Target QueryBuilder
      * @param string       $md5     Filter on a specific Discriminator
      *
      * @return $this
      */
-    private function setupDiscriminator(&$builder, string $md5 = null) : self
+    private function setupDiscriminator(&$builder, string $md5 = null): self
     {
         if (null != $md5) {
             $builder
