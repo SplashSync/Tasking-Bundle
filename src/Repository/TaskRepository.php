@@ -410,7 +410,7 @@ class TaskRepository extends EntityRepository
      */
     private function getActiveTokensDQL(): string
     {
-        return $this->_em->createQueryBuilder()
+        return (string) $this->_em->createQueryBuilder()
             ->select('tokens.name')
             ->from('Splash\Tasking\Entity\Token', 'tokens')
             ->where("tokens.locked = 1")                                    // Token is Locked
