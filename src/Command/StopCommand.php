@@ -111,6 +111,8 @@ class StopCommand extends Command
         //====================================================================//
         // Request All Active Workers to Restart
         $this->manager->setupAllWorkers(true);
+
+        return 0;
     }
 
     /**

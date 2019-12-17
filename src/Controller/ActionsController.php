@@ -64,7 +64,7 @@ class ActionsController extends Controller
 //        $process = Process::fromShellCommandline($command);
         $process->setTimeout(360);
         $process->setWorkingDirectory($process->getWorkingDirectory()."/..");
-        $process->run(function ($type, $buffer) {
+        $process->run(function ($type, $buffer): void {
             if (Process::ERR === $type) {
                 echo '! '.nl2br($buffer).PHP_EOL."</br>";
             } elseif ("." != $buffer) {

@@ -101,6 +101,8 @@ class SupervisorCommand extends ContainerAwareCommand
         //==============================================================================
         // Set Status as Stopped
         $this->manager->stop();
+
+        return 0;
     }
 
     /**

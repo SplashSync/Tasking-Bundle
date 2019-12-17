@@ -233,7 +233,9 @@ class Runner
 
         //==============================================================================
         // Save Status in Db
-        $this->taskRepository->flush($this->task);
+        if ($this->task instanceof Task) {
+            $this->taskRepository->flush($this->task);
+        }
 
         //====================================================================//
         // Exit & Ask for a Next Round

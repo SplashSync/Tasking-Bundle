@@ -19,7 +19,7 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Entity\Token  as Token;
+use Splash\Tasking\Entity\Token;
 
 /**
  * Splash Background Tasks Repository.
@@ -138,7 +138,7 @@ class TaskRepository extends EntityRepository
         // Count Total of Locked Tokens
         //====================================================================//
         $tokenQb = $this->getEntityManager()
-            ->getRepository('SplashTaskingBundle:Token')
+            ->getRepository(Token::class)
             ->createQueryBuilder("T")
             ->select('count(T.id)')
             ->where("T.locked = 1");
@@ -410,7 +410,7 @@ class TaskRepository extends EntityRepository
      */
     private function getActiveTokensDQL(): string
     {
-        return (string) $this->_em->createQueryBuilder()
+        return $this->_em->createQueryBuilder()
             ->select('tokens.name')
             ->from('Splash\Tasking\Entity\Token', 'tokens')
             ->where("tokens.locked = 1")                                    // Token is Locked

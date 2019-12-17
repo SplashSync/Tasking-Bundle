@@ -16,6 +16,7 @@
 namespace Splash\Tasking\Controller;
 
 use Exception;
+use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Repository\TaskRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
@@ -42,7 +43,7 @@ class ListController extends Controller
         // Load Task Repository
         /** @var TaskRepository $repository */
         $repository = $this->get('doctrine')->getManager()
-            ->getRepository('SplashTaskingBundle:Task');
+            ->getRepository(Task::class);
         //==============================================================================
         // Compute Filters
         $filters = $this->getIndexKeysFindBy($key2, $key1);
@@ -69,7 +70,7 @@ class ListController extends Controller
         //==============================================================================
         // Load Task Repository
         $repository = $this->get('doctrine')->getManager()
-            ->getRepository('SplashTaskingBundle:Task');
+            ->getRepository(Task::class);
         //==============================================================================
         // Compute Filters
         $filters = $this->getIndexKeysFindBy($key2, $key1);
@@ -98,7 +99,7 @@ class ListController extends Controller
         //==============================================================================
         // Load Task Repository
         $repository = $this->get('doctrine')->getManager()
-            ->getRepository('SplashTaskingBundle:Task');
+            ->getRepository(Task::class);
         //==============================================================================
         // Compute Filters
         $filters = $this->getIndexKeysFindBy($key2, $key1);
@@ -201,7 +202,7 @@ class ListController extends Controller
     private function getTasksRepository(): TaskRepository
     {
         $repository = $this->get('doctrine')->getManager()
-            ->getRepository('SplashTaskingBundle:Task');
+            ->getRepository(Task::class);
 
         if (!($repository instanceof TaskRepository)) {
             throw new Exception("Unable to Load Tasks Repository");

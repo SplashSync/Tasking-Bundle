@@ -438,7 +438,7 @@ class WorkersManager
         }
         //====================================================================//
         // Retrieve List of All Supervisors
-        $list = $this->workerRepository->findByProcess(0);
+        $list = $this->workerRepository->findBy(array("process" => 0));
         //====================================================================//
         // Check All Supervisors
         foreach ($list as $supervisor) {

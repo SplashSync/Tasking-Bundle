@@ -110,6 +110,8 @@ class WorkerCommand extends ContainerAwareCommand
         //====================================================================//
         // Ensure Release All Token Before Exit
         $this->runner->ensureTokenRelease();
+
+        return 0;
     }
 
     /**

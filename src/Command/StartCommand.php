@@ -74,5 +74,7 @@ class StartCommand extends Command
         //====================================================================//
         // Check Supervisors & Crontab
         $this->manager->checkSupervisor();
+
+        return 0;
     }
 }

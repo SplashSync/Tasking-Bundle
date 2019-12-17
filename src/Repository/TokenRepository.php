@@ -99,7 +99,7 @@ class TokenRepository extends EntityRepository
     {
         //==============================================================================
         // Ckeck If Token Exists
-        $token = $this->findOneByName($tokenName);
+        $token = $this->findOneBy(array("name" => $tokenName));
 
         //==============================================================================
         // Create token if necessary
@@ -123,7 +123,7 @@ class TokenRepository extends EntityRepository
     {
         //==============================================================================
         // Ckeck If this token Exists Token Key Name
-        $token = $this->findOneByName($tokenName);
+        $token = $this->findOneBy(array("name" => $tokenName));
         //==============================================================================
         // Create token if necessary
         if (!$token) {
@@ -174,7 +174,7 @@ class TokenRepository extends EntityRepository
     {
         //==============================================================================
         // Ckeck If this token Exists Token Key Name
-        $token = $this->findOneByName($tokenName);
+        $token = $this->findOneBy(array("name" => $tokenName));
 
         //==============================================================================
         // Create token if necessary
@@ -210,7 +210,7 @@ class TokenRepository extends EntityRepository
     {
         //==============================================================================
         // Ckeck If this token Exists Token Key Name
-        $token = $this->findOneByName($tokenName);
+        $token = $this->findOneBy(array("name" => $tokenName));
         //==============================================================================
         //If Token Doesn't Exists
         if (!$token) {
@@ -240,7 +240,7 @@ class TokenRepository extends EntityRepository
     {
         //==============================================================================
         // Ckeck If this token Exists Token Key Name
-        $token = $this->findOneByName($tokenName);
+        $token = $this->findOneBy(array("name" => $tokenName));
         //==============================================================================
         // Create token if necessary
         if (!$token) {
@@ -268,14 +268,12 @@ class TokenRepository extends EntityRepository
             //====================================================================//
             // Save Changes
             $this->_em->flush();
-
-            return $token;
         } catch (OptimisticLockException $e) {
             echo "Token Rejected (Optimistic) => ".$e->getMessage().PHP_EOL;
             die;
         }
 
-        return null;
+        return $token;
     }
 
     /**
@@ -290,7 +288,7 @@ class TokenRepository extends EntityRepository
     {
         //==============================================================================
         // Ckeck If this token Exists Token Key Name
-        $token = $this->findOneByName($tokenName);
+        $token = $this->findOneBy(array("name" => $tokenName));
         //==============================================================================
         //If Token Doesn't Exists
         if (!$token) {
@@ -325,7 +323,5 @@ class TokenRepository extends EntityRepository
                 continue;
             }
         }
-
-        return false;
     }
 }

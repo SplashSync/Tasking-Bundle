@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Command;
 
+use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Worker;
 use Splash\Tasking\Repository\TaskRepository;
 use Splash\Tasking\Repository\WorkerRepository;
@@ -62,7 +63,7 @@ class StatusCommand extends ContainerAwareCommand
         /** @var TaskRepository $repo */
         $repo = $this->getContainer()
             ->get("doctrine")->getManager()
-            ->getRepository('SplashTaskingBundle:Task');
+            ->getRepository(Task::class);
 
         while (1) {
             //====================================================================//
@@ -109,7 +110,7 @@ class StatusCommand extends ContainerAwareCommand
         /** @var WorkerRepository $repo */
         $repo = $this->getContainer()
             ->get("doctrine")->getManager()
-            ->getRepository('SplashTaskingBundle:Worker');
+            ->getRepository(Worker::class);
 
         //====================================================================//
         // List Workers Status
@@ -156,7 +157,7 @@ class StatusCommand extends ContainerAwareCommand
         // Load Worker Repository
         $workers = $this->getContainer()
             ->get("doctrine")->getManager()
-            ->getRepository('SplashTaskingBundle:Worker');
+            ->getRepository(Worker::class);
         $workers->clear();
 
         //====================================================================//
