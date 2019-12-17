@@ -17,6 +17,12 @@
 
 parameters:
     stan_config:    "./tests/grumphp/phpstan.neon"
+    # For Building Splash Module
+    mod-enable:     false
+    # For Building Splash Documentations
+    doc-enable:     false
+    # For Building Splash Manifest
+    yml-enable:     false
 
 #############################################        
 # Import Config. from Generic Bundle
