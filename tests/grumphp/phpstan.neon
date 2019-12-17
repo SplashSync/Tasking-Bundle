@@ -14,6 +14,9 @@ parameters:
                 container_xml_path: %currentWorkingDirectory%/var/cache/dev/testContainer.xml # or srcDevDebugProjectContainer.xml for Symfony 4+
 #                container_xml_path: %currentWorkingDirectory%/var/cache/test/appAppKernelTestDebugContainer.xml # or srcDevDebugProjectContainer.xml for Symfony 4+
         ignoreErrors:
+                # Allow Int Compare oin While Loops 
+                - '#Comparison operation \"<\" between 0 and [0-9] is always true.#'
+                - '#Comparison operation \"<\" between 0 and [0-9][0-9][0-9] is always true.#'
                 # Allow Methods & Property Variables calls 
                 - '#Variable method call on [a-zA-Z0-9\\]#'
                 - '#Variable method call on \$this[a-zA-Z0-9\\()]#'

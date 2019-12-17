@@ -19,6 +19,8 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Exception;
 use ReflectionClass;
 use Splash\Tasking\Entity\Task;
+use Splash\Tasking\Entity\Token;
+use Splash\Tasking\Entity\Worker;
 use Splash\Tasking\Repository\TaskRepository;
 use Splash\Tasking\Repository\TokenRepository;
 use Splash\Tasking\Repository\WorkerRepository;
@@ -126,7 +128,7 @@ abstract class AbstractTestController extends WebTestCase
 
         //====================================================================//
         // Link to Tasks Reprository
-        $tasksRepository = $container->get('doctrine')->getRepository('SplashTaskingBundle:Task');
+        $tasksRepository = $this->entityManager->getRepository(Task::class);
         if (!($tasksRepository instanceof TaskRepository)) {
             throw new Exception("Unable to Load Task Repository");
         }
@@ -134,7 +136,7 @@ abstract class AbstractTestController extends WebTestCase
 
         //====================================================================//
         // Link to Token Reprository
-        $tokenRepository = $container->get('doctrine')->getRepository('SplashTaskingBundle:Token');
+        $tokenRepository = $this->entityManager->getRepository(Token::class);
         if (!($tokenRepository instanceof TokenRepository)) {
             throw new Exception("Unable to Load Token Repository");
         }
@@ -142,7 +144,7 @@ abstract class AbstractTestController extends WebTestCase
 
         //====================================================================//
         // Link to Workers Reprository
-        $workersRepository = $container->get('doctrine')->getRepository('SplashTaskingBundle:Worker');
+        $workersRepository = $this->entityManager->getRepository(Worker::class);
         if (!($workersRepository instanceof WorkerRepository)) {
             throw new Exception("Unable to Load Worker Repository");
         }

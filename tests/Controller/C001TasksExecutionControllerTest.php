@@ -58,7 +58,9 @@ class C001TasksExecutionControllerTest extends AbstractTestController
         //====================================================================//
         // Load a Task
         $this->entityManager->clear();
-        $task = $this->tasksRepository->findOneByJobToken($this->randomStr);
+        $task = $this->tasksRepository->findOneBy(
+            array("jobToken" => $this->randomStr)
+        );
 
         //====================================================================//
         // Verify Task
@@ -102,7 +104,9 @@ class C001TasksExecutionControllerTest extends AbstractTestController
         //====================================================================//
         // Load a Task
         $this->entityManager->clear();
-        $task = $this->tasksRepository->findOneByJobToken($this->randomStr);
+        $task = $this->tasksRepository->findOneBy(
+            array("jobToken" => $this->randomStr)
+        );
 
         //====================================================================//
         // Verify Task
@@ -146,7 +150,9 @@ class C001TasksExecutionControllerTest extends AbstractTestController
         //====================================================================//
         // Load a Task
         $this->entityManager->clear();
-        $task = $this->tasksRepository->findOneByJobToken($this->randomStr);
+        $task = $this->tasksRepository->findOneBy(
+            array("jobToken" => $this->randomStr)
+        );
 
         //====================================================================//
         // Verify Task

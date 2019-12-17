@@ -126,7 +126,10 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
 
         //====================================================================//
         // Load a Task
-        $task = $this->tasksRepository->findOneByJobToken($this->randomStrA);
+        $task = $this->tasksRepository->findOneBy(
+            array("jobToken" => $this->randomStrA)
+        );
+
         Assert::assertInstanceOf(Task::class, $task);
         Assert::assertFalse($task->isRunning());
         Assert::assertFalse($task->isFinished());
@@ -183,7 +186,9 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
 
         //====================================================================//
         // Load a Task
-        $task = $this->tasksRepository->findOneByJobToken($this->randomStrA);
+        $task = $this->tasksRepository->findOneBy(
+            array("jobToken" => $this->randomStrA)
+        );
         //====================================================================//
         // Set Task As Running
         $this->startTask($task);
@@ -273,7 +278,9 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
 
         //====================================================================//
         // Load Tasks List
-        $tasks = $this->tasksRepository->findByJobIndexKey1($key);
+        $tasks = $this->tasksRepository->findBy(
+            array("jobIndexKey1" => $key)
+        );
         Assert::assertEquals($this->maxItems, count($tasks));
         //====================================================================//
         // Set Task As Running
@@ -303,7 +310,9 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
 
         //====================================================================//
         // Load Tasks List
-        $task = $this->tasksRepository->findOneByJobIndexKey1($key);
+        $task = $this->tasksRepository->findOneBy(
+            array("jobIndexKey1" => $key)
+        );
         Assert::assertEquals($this->maxItems, count($tasks));
         //====================================================================//
         // Set Task As Finished

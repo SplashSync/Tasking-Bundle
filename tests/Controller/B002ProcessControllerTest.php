@@ -187,7 +187,9 @@ class B002ProcessControllerTest extends AbstractTestController
 
         //====================================================================//
         // Load Workers for Local Supervisor
-        $workers = $this->workersRepository->findByNodeName($supervisor->getNodeName());
+        $workers = $this->workersRepository->findBy(
+            array("nodeName" => $supervisor->getNodeName())
+        );
 
         /**
          * Check all Workers

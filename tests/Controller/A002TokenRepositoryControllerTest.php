@@ -57,7 +57,7 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
 
         //==============================================================================
         // Verify If Token Now Exists
-        Assert::assertNotEmpty($this->tokenRepository->findOneByName($this->randomStr));
+        Assert::assertNotEmpty($this->tokenRepository->findOneBy(array("name" => $this->randomStr)));
     }
 
     /**
@@ -76,13 +76,13 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
         Assert::assertTrue($this->tokenRepository->validate($this->randomStr));
         //==============================================================================
         // Verify If Token Now Exists
-        Assert::assertNotEmpty($this->tokenRepository->findOneByName($this->randomStr));
+        Assert::assertNotEmpty($this->tokenRepository->findOneBy(array("name" => $this->randomStr)));
         //====================================================================//
         // Delete Tokens
         Assert::assertTrue($this->tokenRepository->delete($this->randomStr));
         //==============================================================================
         // Verify If Token Now Deleted
-        Assert::assertNull($this->tokenRepository->findOneByName($this->randomStr));
+        Assert::assertNull($this->tokenRepository->findOneBy(array("name" => $this->randomStr)));
     }
 
     /**
@@ -98,7 +98,7 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
         Assert::assertTrue($this->tokenRepository->validate($this->randomStr));
         //==============================================================================
         // Verify If Token Now Exists
-        Assert::assertNotEmpty($this->tokenRepository->findOneByName($this->randomStr));
+        Assert::assertNotEmpty($this->tokenRepository->findOneBy(array("name" => $this->randomStr)));
         //====================================================================//
         // Acquire Token
         $token = $this->tokenRepository->acquire($this->randomStr);
@@ -186,6 +186,6 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
         //====================================================================//
         // Test Delete a Token
         $this->tokenRepository->delete($this->randomStr);
-        Assert::assertNull($this->tokenRepository->findOneByName($this->randomStr));
+        Assert::assertNull($this->tokenRepository->findOneBy(array("name" => $this->randomStr)));
     }
 }
