@@ -4,7 +4,10 @@ includes:
 	- ../../vendor/phpstan/phpstan-symfony/extension.neon
 	- ../../vendor/phpstan/phpstan-strict-rules/rules.neon
 parameters:
-        bootstrap: "./vendor/splash/phpcore/Resources/grumphp/phpstan.php"
+        bootstrap: "%currentWorkingDirectory%/vendor/splash/phpcore/Resources/grumphp/phpstan.php"
+        checkMissingIterableValueType: false
+        checkGenericClassInNonGenericObjectType: false
+        inferPrivatePropertyTypeFromConstructor: true 
         universalObjectCratesClasses:
                 - ArrayObject
         symfony:
