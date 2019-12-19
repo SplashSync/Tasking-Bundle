@@ -61,7 +61,9 @@ class WorkerRepository extends EntityRepository
         ));
         //====================================================================//
         // Ensure Sync with Database
-        $this->_em->refresh($worker);
+        if ($worker instanceof Worker) {
+            $this->_em->refresh($worker);
+        }
 
         return $worker;
     }
