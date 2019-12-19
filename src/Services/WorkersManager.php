@@ -233,13 +233,6 @@ class WorkersManager
         // Load Local Machine Worker
         $worker = $this->workerRepository->findOneByProcess($processId);
         //====================================================================//
-        // Worker Found
-        if ($worker instanceof Worker) {
-            //====================================================================//
-            // Refresh From DataBase
-            $this->entityManager->refresh($worker);
-        }
-        //====================================================================//
         // Worker Found & Running
         if (($worker instanceof Worker) && $worker->isRunning()) {
             return true;
@@ -564,9 +557,6 @@ class WorkersManager
         //====================================================================//
         // Supervisor Exists
         if ($supervisor instanceof Worker) {
-            //====================================================================//
-            // Refresh From DataBase
-            $this->entityManager->refresh($supervisor);
             //====================================================================//
             // Supervisor Is Running
             if (!$supervisor->isEnabled() || $supervisor->isRunning()) {

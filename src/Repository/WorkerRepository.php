@@ -54,11 +54,16 @@ class WorkerRepository extends EntityRepository
         // Load Current Server Infos
         $system = posix_uname();
         //====================================================================//
-        // Retrieve Server Local Supervisor
-        return  $this->findOneBy(array(
+        // Retrieve Server Local Worker
+        $worker = $this->findOneBy(array(
             "nodeName" => $system["nodename"],
             "process" => $processId,
         ));
+        //====================================================================//
+        // Ensure Sync with Database
+        $this->_em->refresh($worker);
+
+        return $worker;
     }
 
     /**
