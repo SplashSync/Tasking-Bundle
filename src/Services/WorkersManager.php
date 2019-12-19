@@ -88,11 +88,10 @@ class WorkersManager
      *
      * @param EntityManagerInterface $entityManager
      * @param LoggerInterface        $logger
-     * @param WorkerRepository       $workerRepository
      * @param ProcessManager         $processManager
      * @param array                  $config
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger, WorkerRepository $workerRepository, ProcessManager $processManager, array $config)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger, ProcessManager $processManager, array $config)
     {
         //====================================================================//
         // Link to entity manager Service
@@ -102,6 +101,10 @@ class WorkersManager
         $this->logger = $logger;
         //====================================================================//
         // Link to Workers Repository
+        $workerRepository = $entityManager->getRepository(Worker::class);
+        if (!($workerRepository instanceof WorkerRepository)) {
+            throw new Exception("Wrong repository class");
+        }
         $this->workerRepository = $workerRepository;
         //====================================================================//
         // Link to Process Manager

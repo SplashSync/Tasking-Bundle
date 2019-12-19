@@ -16,7 +16,7 @@ services:
         arguments:
             - "@service_container"
             - "@logger"
-            - "@=service('doctrine.orm.entity_manager').getRepository('SplashTaskingBundle:Task')"
+            - "@doctrine.orm.entity_manager"
             - "@splash.tasking.tokens"
             - "%splash_tasking%"
             
@@ -29,7 +29,6 @@ services:
             - "@doctrine.orm.entity_manager"
             - "@event_dispatcher"
             - "@logger"
-            - "@=service('doctrine.orm.entity_manager').getRepository('SplashTaskingBundle:Task')"
             - "@splash.tasking.tokens"
             - "%splash_tasking%"
         tags:
@@ -44,7 +43,6 @@ services:
         arguments:
             - "@doctrine.orm.entity_manager"
             - "@logger"
-            - "@=service('doctrine.orm.entity_manager').getRepository('SplashTaskingBundle:Worker')"
             - "@splash.tasking.process"
             - "%splash_tasking%"
         tags:
@@ -59,7 +57,6 @@ services:
         arguments:
             - "@doctrine.orm.entity_manager"
             - "@logger"
-            - "@=service('doctrine.orm.entity_manager').getRepository('SplashTaskingBundle:Worker')"
             - "@splash.tasking.process"
             - "%splash_tasking%"
 
@@ -71,7 +68,6 @@ services:
         arguments:
             - "@doctrine.orm.entity_manager"
             - "@logger"
-            - "@=service('doctrine.orm.entity_manager').getRepository('SplashTaskingBundle:Token')"
             - "%splash_tasking%"
 
     ########################################################################

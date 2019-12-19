@@ -17,6 +17,7 @@ namespace Splash\Tasking\Services;
 
 use ArrayObject;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface as EntityManager;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Sentry;
@@ -25,7 +26,7 @@ use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
 use Splash\Tasking\Repository\TaskRepository;
 use Splash\Tasking\Tools\Timer;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface as Container;
 
 /**
  * Tasks Runner
@@ -39,7 +40,7 @@ class Runner
      * Symfony Service Container
      * Used for On-Demand Injection in Task
      *
-     * @var ContainerInterface
+     * @var Container
      */
     private $container;
 
@@ -91,13 +92,13 @@ class Runner
     /**
      * Service Constructor
      *
-     * @param ContainerInterface $container
-     * @param LoggerInterface    $logger
-     * @param TaskRepository     $tasks
-     * @param TokenManager       $token
-     * @param array              $config
+     * @param Container       $container
+     * @param LoggerInterface $logger
+     * @param EntityManager   $doctrine
+     * @param TokenManager    $token
+     * @param array           $config
      */
-    public function __construct(ContainerInterface $container, LoggerInterface $logger, TaskRepository $tasks, TokenManager $token, array $config)
+    public function __construct(Container $container, LoggerInterface $logger, EntityManager $doctrine, TokenManager $token, array $config)
     {
         //====================================================================//
         // Link to Service Container
@@ -107,7 +108,11 @@ class Runner
         $this->logger = $logger;
         //====================================================================//
         // Link to Tasks Repository
-        $this->taskRepository = $tasks;
+        $taskRepository = $doctrine->getRepository(Task::class);
+        if (!($taskRepository instanceof TaskRepository)) {
+            throw new Exception("Wrong repository class");
+        }
+        $this->taskRepository = $taskRepository;
         //====================================================================//
         // Link to Token Manager
         $this->token = $token;

@@ -17,6 +17,7 @@ namespace Splash\Tasking\Services;
 
 use ArrayObject;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Psr\Log\LoggerInterface;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Model\AbstractBatchJob;
@@ -88,11 +89,10 @@ class TasksManager
      * @param EntityManagerInterface   $doctrine
      * @param EventDispatcherInterface $dispatcher
      * @param LoggerInterface          $logger
-     * @param TaskRepository           $tasks
      * @param TokenManager             $token
      * @param array                    $config
      */
-    public function __construct(EntityManagerInterface $doctrine, EventDispatcherInterface $dispatcher, LoggerInterface $logger, TaskRepository $tasks, TokenManager $token, array $config)
+    public function __construct(EntityManagerInterface $doctrine, EventDispatcherInterface $dispatcher, LoggerInterface $logger, TokenManager $token, array $config)
     {
         //====================================================================//
         // Link to entity manager Service
@@ -105,7 +105,11 @@ class TasksManager
         $this->dispatcher = $dispatcher;
         //====================================================================//
         // Link to Tasks Repository
-        $this->taskRepository = $tasks;
+        $taskRepository = $doctrine->getRepository(Task::class);
+        if (!($taskRepository instanceof TaskRepository)) {
+            throw new Exception("Wrong repository class");
+        }
+        $this->taskRepository = $taskRepository;
         //====================================================================//
         // Link to Token Manager
         $this->token = $token;
