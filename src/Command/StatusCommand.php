@@ -158,51 +158,23 @@ class StatusCommand extends ContainerAwareCommand
         $workers = $this->getContainer()
             ->get("doctrine")->getManager()
             ->getRepository(Worker::class);
-        $workers->clear();
-
         //====================================================================//
-        // Init Counters
-        $disabled = 0;
-        $sleeping = 0;
-        $running = 0;
-        $supervisor = 0;
-
-        //====================================================================//
-        // Update Workers Counters
-        /** @var Worker $worker */
-        foreach ($workers->findAll() as $worker) {
-            //====================================================================//
-            // Workers is Supervisor
-            if ((0 == $worker->getProcess()) && $worker->isRunning()) {
-                $supervisor++;
-            }
-            if ((0 == $worker->getProcess())) {
-                continue;
-            }
-            //====================================================================//
-            // Workers is Disabled
-            if ($worker->isRunning()) {
-                $running++;
-            } elseif (!$worker->isEnabled()) {
-                $disabled++;
-            } else {
-                $sleeping++;
-            }
-        }
+        // Fetch Workers Status
+        $status = $workers->getWorkersStatus();
         //====================================================================//
         // IF No Worker is Running
-        if ($running < 1) {
+        if ($status["running"] < 1) {
             return ' <error>No Worker Running!</error>';
         }
         //====================================================================//
         // IF No Supervisor is Running
-        if ($supervisor < 1) {
+        if ($status["supervisor"] < 1) {
             return ' <error>No Supervisor Running!</error>';
         }
         //====================================================================//
         // Generate Response String
-        $response = $running.'/'.($disabled + $sleeping + $running).' Workers ';
-        $response .= $supervisor.' Supervisors';
+        $response = $status["running"].'/'.$status["total"].' Workers ';
+        $response .= $status["supervisor"].' Supervisors';
 
         return ' <info>'.$response.'</info>';
     }

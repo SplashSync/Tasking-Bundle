@@ -1,0 +1,8 @@
+
+################################################################################    
+#    Tasking Status
+################################################################################    
+
+tasking_status_json_main:
+    path:     /tasking
+    defaults: { _controller: SplashTaskingBundle:Status:main }

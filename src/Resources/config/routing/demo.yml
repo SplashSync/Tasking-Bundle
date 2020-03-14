@@ -1,17 +1,5 @@
 
 ################################################################################    
-#    Tasking Rest Actions
-################################################################################    
-
-tasking_start:
-    path:     /start
-    defaults: { _controller: SplashTaskingBundle:Actions:start }
-
-tasking_test:
-    path:     /test
-    defaults: { _controller: SplashTaskingBundle:Actions:test }
-
-################################################################################    
 #    Tasks Controler Demo Display Page
 ################################################################################    
 

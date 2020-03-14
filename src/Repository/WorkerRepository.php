@@ -96,4 +96,60 @@ class WorkerRepository extends EntityRepository
 
         return $activesWorkers;
     }
+
+    /**
+     * Get Worker Status Array
+     *
+     * @return array
+     */
+    public function getWorkersStatus(): array
+    {
+        //====================================================================//
+        // Get List of Workers
+        $this->clear();
+        $workers = $this->findAll();
+        //====================================================================//
+        // Init Counters
+        $status = array(
+            "total" => 0,
+            "workers" => 0,
+            "supervisor" => 0,
+            "running" => 0,
+            "disabled" => 0,
+            "sleeping" => 0,
+        );
+        //====================================================================//
+        // Update Workers Counters
+        /** @var Worker $worker */
+        foreach ($workers as $worker) {
+            //====================================================================//
+            // Workers is Supervisor
+            if ((0 == $worker->getProcess()) && $worker->isRunning()) {
+                $status["supervisor"]++;
+            }
+            if ((0 == $worker->getProcess())) {
+                continue;
+            }
+            $status["total"]++;
+            //====================================================================//
+            // Workers is Running
+            if ($worker->isRunning()) {
+                $status["running"]++;
+
+                continue;
+            }
+            //====================================================================//
+            // Workers is Disabled
+            if (!$worker->isEnabled()) {
+                $status["disabled"]++;
+
+                continue;
+            }
+            //====================================================================//
+            // Workers is Sleeping
+            $status["sleeping"]++;
+        }
+
+        return $status;
+    }
 }
