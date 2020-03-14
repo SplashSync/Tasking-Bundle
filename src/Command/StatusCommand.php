@@ -155,7 +155,7 @@ class StatusCommand extends ContainerAwareCommand
     {
         //====================================================================//
         // Load Worker Repository
-        /** @var WorkerRepository $workers */        
+        /** @var WorkerRepository $workers */
         $workers = $this->getContainer()
             ->get("doctrine")->getManager()
             ->getRepository(Worker::class);

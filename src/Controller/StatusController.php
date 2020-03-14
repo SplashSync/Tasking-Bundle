@@ -41,7 +41,7 @@ class StatusController extends Controller
         $tasks = $manager->getRepository(Task::class);
         //====================================================================//
         // Load Worker Repository
-        /** @var WorkerRepository $tasks */
+        /** @var WorkerRepository $workers */
         $workers = $manager->getRepository(Worker::class);
         //==============================================================================
         // Build Status Array
