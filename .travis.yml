@@ -10,8 +10,8 @@ jobs:
 ##          env: SF_VERSION="3.4.*"        
 #          
         # Symfony 4.4 Branch
-        - php: 7.3
-          env: SF_VERSION="4.4.*"
+#        - php: 7.3
+#          env: SF_VERSION="4.4.*"
 #        - php: 7.2
 #          env: SF_VERSION="4.0.*"   
 
