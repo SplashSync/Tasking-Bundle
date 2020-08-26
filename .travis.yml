@@ -1,7 +1,7 @@
 
 ################################################################################
 # Define Test Matrix
-matrix:
+jobs:
     include:          
         # Symfony 3.4 Branch       
         - php: 7.2
@@ -70,9 +70,7 @@ script:
 ################################################################################
 # Project language
 language: php
-# Allows use container-based infrastructure
-sudo: false
-#sudo: required
+os: linux
 dist: trusty
 ################################################################################
 # Start mysql service
