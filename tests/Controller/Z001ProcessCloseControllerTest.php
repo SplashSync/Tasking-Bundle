@@ -72,7 +72,7 @@ class Z001ProcessCloseControllerTest extends AbstractTestController
         //====================================================================//
         // Clean Working Dir
         $workingDirectory = (string) $process->getWorkingDirectory();
-        if (strrpos($workingDirectory, "/web") == (strlen($workingDirectory) - 4)) {
+        if (strrpos($workingDirectory, "/public") == (strlen($workingDirectory) - 4)) {
             $process->setWorkingDirectory(substr($workingDirectory, 0, strlen($workingDirectory) - 4));
         } elseif (strrpos($workingDirectory, "/app") == (strlen($workingDirectory) - 4)) {
             $process->setWorkingDirectory(substr($workingDirectory, 0, strlen($workingDirectory) - 4));

@@ -55,7 +55,7 @@ services:
         depends_on:
             - mysql
         environment:
-            - APACHE_DOCUMENT_ROOT=/project/web
+            - APACHE_DOCUMENT_ROOT=/project/public
         volumes:
             - "./:/project/"
         command: sh /project/docker/docker-entrypoint.sh

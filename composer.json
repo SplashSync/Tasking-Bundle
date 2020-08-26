@@ -86,7 +86,7 @@
     },
 
     "extra": {
-        "symfony-web-dir": "web",
-        "symfony-public-dir": "web"
+        "symfony-web-dir": "public",
+        "symfony-public-dir": "public"
     }    
 }

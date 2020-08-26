@@ -4,19 +4,17 @@
 jobs:
     include:
       # Symfony 4.4 Branch
-        - php: 7.3
+        - php: 7.4
           env: SF_VERSION="4.4.*"
-#        - php: 7.2
-#          env: SF_VERSION="4.0.*"   
+        - php: 7.2
+          env: SF_VERSION="4.4.*"
 
         # Symfony 5.x Branch
-#        - php: 7.2
-#          env: SF_VERSION="4.2.*"  STABILITY="dev"        
-#        - php: 7.1
-#          env: SF_VERSION="4.0.*"  STABILITY="dev"   
-        
-#    allow_failures:
-#        - env: SF_VERSION="4.4.*"
+        - php: 7.4
+          env: SF_VERSION="5.1.*"
+
+    allow_failures:
+        - env: SF_VERSION="5.1.*"
         
     # Fast finish allows to set the build as "finished" even if the "allow_failures" matrix elements are not finished yet.
     fast_finish: true
@@ -40,9 +38,6 @@ install:
     # Install Symfony
     - curl -s https://raw.githubusercontent.com/SplashSync/Php-Bundle/master/src/Resources/travis/install.sh  | bash
     
-#    - echo "Start Web Server"
-#    - php bin/console server:start -d web
-
 # Run script
 script:
     # Execute Grump Travis Testsuite 
@@ -55,12 +50,7 @@ script:
     - vendor/bin/phpunit --testdox
     # Show Outdated Packages   
     - composer outdated
-    
-#    - php bin/console tasking:check     --env=test
-#    - php bin/console tasking:start     --env=test
-#    - php bin/console tasking:stop      --env=test --no-restart
-#    - phpunit
-    
+
 ################################################################################
 # Project language
 language: php
