@@ -46,13 +46,13 @@ class StaticTasksListingEvent extends GenericEvent
         //====================================================================//
         // Safety Check
         if (!class_exists($class)) {
-            throw new Exception(printf("Job Class %s not found", $class));
+            throw new Exception(sprintf("Job Class %s not found", $class));
         }
-        if (!($class instanceof AbstractStaticJob)) {
-            throw new Exception(printf("Job Class %s must extends %s", $class, AbstractStaticJob::class));
+        if (!is_subclass_of($class, AbstractStaticJob::class)) {
+            throw new Exception(sprintf("Job Class %s must extends %s", $class, AbstractStaticJob::class));
         }
-        if (empty($token)) {
-            throw new Exception(printf("Job Token for %s task cannot be empty", $class));
+        if (strlen($token) < 5) {
+            throw new Exception(sprintf("Job Token for %s task cannot be empty", $class));
         }
         //====================================================================//
         // Add Job Definition

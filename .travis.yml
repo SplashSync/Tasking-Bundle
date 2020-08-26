@@ -2,8 +2,8 @@
 ################################################################################
 # Define Test Matrix
 jobs:
-    include:          
-        # Symfony 4.4 Branch
+    include:
+      # Symfony 4.4 Branch
         - php: 7.3
           env: SF_VERSION="4.4.*"
 #        - php: 7.2
