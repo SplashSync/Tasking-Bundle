@@ -227,11 +227,8 @@ class B002ProcessControllerTest extends AbstractTestController
         // Create Command
         $command = "php bin/console tasking:stop --env=test -vv".($noRestart? " --no-restart" : null);
         //====================================================================//
-        // Execute Test (SF 3.4 Versions)
-        $process = new Process($command);
-        //====================================================================//
         // Execute Test (SF 4 Versions)
-//        $process = Process::fromShellCommandline($command);
+        $process = Process::fromShellCommandline($command);
         //====================================================================//
         // Clean Working Dir
         $workingDirectory = (string) $process->getWorkingDirectory();

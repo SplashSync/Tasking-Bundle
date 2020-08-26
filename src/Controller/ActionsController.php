@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Controller;
 
+use Splash\Tasking\Events\CheckEvent;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Process\Process;
@@ -33,7 +34,7 @@ class ActionsController extends Controller
     {
         //==============================================================================
         // Dispatch tasking Bundle Check Event
-        $this->get("event_dispatcher")->dispatch("tasking.check");
+        $this->get("event_dispatcher")->dispatch(new CheckEvent());
         //==============================================================================
         // Render response
         return new Response("Ok", Response::HTTP_OK, array('content-type' => 'text/html'));
@@ -57,11 +58,8 @@ class ActionsController extends Controller
         $command = "phpunit ";
 
         //====================================================================//
-        // Execute Test (SF 3.4 Versions)
-        $process = new Process($command);
-        //====================================================================//
         // Execute Test (SF 4 Versions)
-//        $process = Process::fromShellCommandline($command);
+        $process = Process::fromShellCommandline($command);
         $process->setTimeout(360);
         $process->setWorkingDirectory($process->getWorkingDirectory()."/..");
         $process->run(function ($type, $buffer): void {

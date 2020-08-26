@@ -16,6 +16,7 @@
 namespace Splash\Tasking\Tests\Controller;
 
 use PHPUnit\Framework\Assert;
+use Splash\Tasking\Events\AddEvent;
 use Splash\Tasking\Tests\Jobs\TestServiceJob;
 
 /**
@@ -44,7 +45,7 @@ class C003ServiceJobControllerTest extends AbstractTestController
             $job = (new TestServiceJob());
             //====================================================================//
             // Add Job to Queue
-            $this->dispatcher->dispatch("tasking.add", $job);
+            $this->dispatcher->dispatch(new AddEvent($job));
         }
 
         //====================================================================//

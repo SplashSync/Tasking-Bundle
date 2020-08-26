@@ -17,6 +17,7 @@ namespace Splash\Tasking\Tests\Controller;
 
 use PHPUnit\Framework\Assert;
 use Splash\Tasking\Entity\Task;
+use Splash\Tasking\Events\AddEvent;
 use Splash\Tasking\Tests\Jobs\TestJob;
 
 /**
@@ -49,7 +50,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
 
         //====================================================================//
         // Add Job to Queue
-        $this->dispatcher->dispatch("tasking.add", $job);
+        $this->dispatcher->dispatch(new AddEvent($job));
 
         //====================================================================//
         // Wait Until All Tasks are Completed
@@ -95,7 +96,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
 
         //====================================================================//
         // Add Job to Queue
-        $this->dispatcher->dispatch("tasking.add", $job);
+        $this->dispatcher->dispatch(new AddEvent($job));
 
         //====================================================================//
         // Wait Until All Tasks are Completed
@@ -141,7 +142,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
 
         //====================================================================//
         // Add Job to Queue
-        $this->dispatcher->dispatch("tasking.add", $job);
+        $this->dispatcher->dispatch(new AddEvent($job));
 
         //====================================================================//
         // Wait Until All Tasks are Completed
@@ -251,7 +252,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
             ->setToken($token);
         //====================================================================//
         // Save Task
-        $this->dispatcher->dispatch("tasking.add", $job);
+        $this->dispatcher->dispatch(new AddEvent($job));
 
         return $job;
     }

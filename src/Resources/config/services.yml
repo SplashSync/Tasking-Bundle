@@ -32,8 +32,7 @@ services:
             - "@splash.tasking.tokens"
             - "%splash_tasking%"
         tags:
-            - { name: kernel.event_listener, event: tasking.add, method: onAddAction }
-            - { name: kernel.event_listener, event: tasking.insert, method: onAddAction }
+            - { name: kernel.event_listener, event: Splash\Tasking\Events\AddEvent, method: onAddAction }
 
     ########################################################################
     # Supervisor Management Service
@@ -46,8 +45,8 @@ services:
             - "@splash.tasking.process"
             - "%splash_tasking%"
         tags:
-            - { name: kernel.event_listener, event: tasking.check, method: checkSupervisor }
-            - { name: kernel.event_listener, event: tasking.add, method: checkSupervisor }
+            - { name: kernel.event_listener, event: Splash\Tasking\Events\CheckEvent, method: checkSupervisor }
+            - { name: kernel.event_listener, event: Splash\Tasking\Events\AddEvent, method: checkSupervisor }
 
     ########################################################################
     # Workers Management Service
@@ -80,6 +79,6 @@ services:
             - "%kernel.root_dir%"
             - "%splash_tasking%"
         tags:
-            - { name: kernel.event_listener, event: tasking.add, method: checkCrontab }
+            - { name: kernel.event_listener, event: Splash\Tasking\Events\AddEvent, method: checkCrontab }
          
     

@@ -106,7 +106,7 @@ class StopCommand extends Command
         if ($input->hasParameterOption('--no-restart')) {
             $output->writeln('<question>'.$total.' Workers now Sleeping... </question>');
 
-            return null;
+            return 0;
         }
         //====================================================================//
         // Request All Active Workers to Restart

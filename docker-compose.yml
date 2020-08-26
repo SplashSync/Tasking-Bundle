@@ -1,0 +1,89 @@
+
+################################################################################
+#
+#  This file is part of SplashSync Project.
+# 
+#  Copyright (C) Splash Sync <www.splashsync.com>
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# 
+#  For the full copyright and license information, please view the LICENSE
+#  file that was distributed with this source code.
+# 
+#  @author Bernard Paquier <contact@splashsync.com>
+#
+################################################################################
+
+################################################################################
+# Docker Compose File
+#
+# This Docker File intend to Create a Complete Dev Environnement
+#
+# To us different Versions coinfigured, you need to add hosts to /etc/hosts
+# 
+#    172.201.0.10        dev.tasking.local
+#    172.201.0.200       phpmyadmin.tasking.local
+#
+################################################################################
+
+version: "3.2"
+
+services:
+
+    ################################################################################
+    # MySQL Container
+    mysql:
+        image: mysql:5.7
+        container_name: tasking-mysql
+        logging: { driver: "none" }
+        environment:
+            - "MYSQL_ROOT_PASSWORD=tasking"
+            - "MYSQL_DATABASE=tasking"
+            - "MYSQL_USER=tasking"
+            - "MYSQL_PASSWORD=tasking"
+        networks:
+            tasking:        { ipv4_address: 172.201.0.100, aliases: [ mysql.tasking.local ] }
+
+    ################################################################################
+    # Dolibarr Latest (Develop)     
+    app:
+        build:
+            context: ./docker
+        container_name: tasking-app
+        depends_on:
+            - mysql
+        environment:
+            - APACHE_DOCUMENT_ROOT=/project/web
+        volumes:
+            - "./:/project/"
+        command: sh /project/docker/docker-entrypoint.sh
+        hostname: dev.tasking.local
+        networks:
+            tasking:        { ipv4_address: 172.201.0.10, aliases: [ dev.tasking.local ] }
+
+    ################################################################################
+    # PhpMyAdmin Container
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin:5
+        container_name: tasking-phpmyadmin
+        logging: { driver: "none" }
+        depends_on:
+            - mysql
+        environment:
+            - PMA_HOST=mysql
+            - MYSQL_USER=tasking
+            - MYSQL_ROOT_PASSWORD=tasking
+            - MYSQL_PASSWORD=tasking
+        networks:
+            tasking:        { ipv4_address: 172.201.0.200, aliases: [ phpmyadmin.tasking.local ] }
+
+networks:
+    ################################################################################
+    # Default Private Network
+    tasking:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 172.201.0.0/24

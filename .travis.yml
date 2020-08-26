@@ -3,15 +3,9 @@
 # Define Test Matrix
 jobs:
     include:          
-        # Symfony 3.4 Branch       
-        - php: 7.2
-          env: SF_VERSION="3.4.*"        
-##        - php: 7.3 
-##          env: SF_VERSION="3.4.*"        
-#          
         # Symfony 4.4 Branch
-#        - php: 7.3
-#          env: SF_VERSION="4.4.*"
+        - php: 7.3
+          env: SF_VERSION="4.4.*"
 #        - php: 7.2
 #          env: SF_VERSION="4.0.*"   
 
@@ -21,8 +15,8 @@ jobs:
 #        - php: 7.1
 #          env: SF_VERSION="4.0.*"  STABILITY="dev"   
         
-    allow_failures:
-        - env: SF_VERSION="4.4.*"
+#    allow_failures:
+#        - env: SF_VERSION="4.4.*"
         
     # Fast finish allows to set the build as "finished" even if the "allow_failures" matrix elements are not finished yet.
     fast_finish: true
@@ -58,7 +52,7 @@ script:
     # With PHP > 7.0 => Execute Phpstan 
     - if [[ ${TRAVIS_PHP_VERSION:0:3} > "7.0" ]]; then php ./vendor/bin/grumphp run --testsuite=phpstan; fi   
     # Execute PhpUnit Tests 
-    - vendor/bin/phpunit
+    - vendor/bin/phpunit --testdox
     # Show Outdated Packages   
     - composer outdated
     

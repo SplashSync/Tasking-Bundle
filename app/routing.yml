@@ -1,6 +1,10 @@
 
 ################################################################################
 # SPLASH Tasking Bundle
-splash_tasking_bundle:
-    resource: "@SplashTaskingBundle/Resources/config/routing.yml"
-    prefix:   /  
+splash_tasking_bundle_api:
+    resource: "@SplashTaskingBundle/Resources/config/routing/api.yml"
+    prefix:   /
+
+splash_tasking_bundle_status:
+    resource: "@SplashTaskingBundle/Resources/config/routing/status.yml"
+    prefix:   /

@@ -20,13 +20,14 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Splash\Tasking\Entity\Task;
+use Splash\Tasking\Events\AddEvent;
+use Splash\Tasking\Events\StaticTasksListingEvent;
 use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
 use Splash\Tasking\Model\AbstractStaticJob;
 use Splash\Tasking\Repository\TaskRepository;
 use Splash\Tasking\Tools\Timer;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\EventDispatcher\GenericEvent;
 
 /**
  * Tasks Management Service
@@ -308,12 +309,13 @@ class TasksManager
     /**
      * Add a New Task on Scheduler
      *
-     * @param AbstractJob $job
+     * @param AddEvent $event
      *
      * @return bool
      */
-    public function onAddAction(AbstractJob $job): bool
+    public function onAddAction(AddEvent $event): bool
     {
+        $job = $event->getSubject();
         //====================================================================//
         // Validate Job
         if (!$this->validate($job)) {
@@ -475,14 +477,14 @@ class TasksManager
     {
         //====================================================================//
         // Create A Generic Event
-        $genericEvent = new GenericEvent();
+        $listingEvent = new StaticTasksListingEvent();
         //====================================================================//
         // Fetch List of Static Tasks from Parameters
-        $genericEvent->setArguments($this->config->static);
+        $listingEvent->setArguments($this->config->static);
         //====================================================================//
-        // Complete List of Static Tasks via Event Listner
-        /** @var GenericEvent $resultEvent */
-        $resultEvent = $this->dispatcher->dispatch("tasking.static", $genericEvent);
+        // Complete List of Static Tasks via Event Listener
+        /** @var StaticTasksListingEvent $resultEvent */
+        $resultEvent = $this->dispatcher->dispatch($listingEvent);
 
         return $resultEvent->getArguments();
     }
