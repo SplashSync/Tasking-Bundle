@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "db6e683e2545094f713ab78b123c5fc1",
+    "content-hash": "510486bd5d2f617737b8341e95162cda",
     "packages": [
         {
             "name": "composer/package-versions-deprecated",
@@ -3697,16 +3697,16 @@
         },
         {
             "name": "symfony/symfony",
-            "version": "v4.4.11",
+            "version": "v4.4.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/symfony.git",
-                "reference": "f5721c658ea5752000baca99f07cc0554708b56f"
+                "reference": "9b8314080fb15e84e030f94488d9e1fa17adb846"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/symfony/zipball/f5721c658ea5752000baca99f07cc0554708b56f",
-                "reference": "f5721c658ea5752000baca99f07cc0554708b56f",
+                "url": "https://api.github.com/repos/symfony/symfony/zipball/9b8314080fb15e84e030f94488d9e1fa17adb846",
+                "reference": "9b8314080fb15e84e030f94488d9e1fa17adb846",
                 "shasum": ""
             },
             "require": {
@@ -3807,7 +3807,7 @@
                 "doctrine/cache": "~1.6",
                 "doctrine/collections": "~1.0",
                 "doctrine/data-fixtures": "^1.1",
-                "doctrine/dbal": "~2.4",
+                "doctrine/dbal": "~2.4|^3.0",
                 "doctrine/doctrine-bundle": "^1.5|^2.0",
                 "doctrine/orm": "~2.4,>=2.4.5",
                 "doctrine/reflection": "~1.0",
@@ -3823,7 +3823,7 @@
                 "predis/predis": "~1.1",
                 "psr/http-client": "^1.0",
                 "psr/simple-cache": "^1.0",
-                "symfony/phpunit-bridge": "^5.0.8",
+                "symfony/phpunit-bridge": "^5.2",
                 "symfony/security-acl": "~2.8|~3.0",
                 "twig/cssinliner-extra": "^2.12",
                 "twig/inky-extra": "^2.12",
@@ -3884,7 +3884,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-07-24T04:10:27+00:00"
+            "time": "2020-09-02T08:11:15+00:00"
         },
         {
             "name": "twig/string-extra",
@@ -8189,12 +8189,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/SplashSync/Php-Bundle.git",
-                "reference": "fa0cf51faed206e58ac637828c0aff882486d80a"
+                "reference": "23c2c9b4472b69e213bc6bb0ae0c936d23ef22c0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SplashSync/Php-Bundle/zipball/fa0cf51faed206e58ac637828c0aff882486d80a",
-                "reference": "fa0cf51faed206e58ac637828c0aff882486d80a",
+                "url": "https://api.github.com/repos/SplashSync/Php-Bundle/zipball/23c2c9b4472b69e213bc6bb0ae0c936d23ef22c0",
+                "reference": "23c2c9b4472b69e213bc6bb0ae0c936d23ef22c0",
                 "shasum": ""
             },
             "require": {
@@ -8254,7 +8254,7 @@
                 }
             ],
             "description": "Splash Core Bundle for Symfony Applications",
-            "time": "2020-05-18T22:08:18+00:00"
+            "time": "2020-08-30T14:15:25+00:00"
         },
         {
             "name": "splash/phpcore",
