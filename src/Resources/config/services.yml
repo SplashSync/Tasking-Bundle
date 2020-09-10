@@ -35,6 +35,7 @@ services:
             - "%splash_tasking%"
         tags:
             - { name: kernel.event_listener, event: Splash\Tasking\Events\AddEvent, method: onAddAction }
+            - { name: kernel.event_listener, event: Splash\Tasking\Events\InsertEvent, method: onAddAction }
             - { name: monolog.logger, channel: Tasking }
 
     ########################################################################

@@ -27,6 +27,7 @@ use Splash\Tasking\Entity\Token;
 use Splash\Tasking\Entity\Worker;
 use Splash\Tasking\Events\AddEvent;
 use Splash\Tasking\Events\CheckEvent;
+use Splash\Tasking\Events\InsertEvent;
 use Splash\Tasking\Events\StaticTasksListingEvent;
 use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
@@ -222,8 +223,6 @@ class TasksManager
      *
      * @param AbstractJob $job An Object Extending Base Job Object
      *
-     * @throws ReflectionException
-     *
      * @return null|AddEvent
      */
     public static function add(AbstractJob $job): ?AddEvent
@@ -233,6 +232,22 @@ class TasksManager
         $event = self::dispatch(new AddEvent($job));
 
         return ($event instanceof AddEvent) ? $event : null;
+    }
+
+    /**
+     * Insert Tasks in DataBase
+     *
+     * @param AbstractJob $job An Object Extending Base Job Object
+     *
+     * @return null|InsertEvent
+     */
+    public static function addNoCheck(AbstractJob $job): ?InsertEvent
+    {
+        //====================================================================//
+        // Dispatch Task Added Event
+        $event = self::dispatch(new InsertEvent($job));
+
+        return ($event instanceof InsertEvent) ? $event : null;
     }
 
     /**
@@ -640,21 +655,23 @@ class TasksManager
      *
      * @param GenericEvent $event
      *
-     * @throws ReflectionException
-     *
-     * @return null|AddEvent
+     * @return null|AddEvent|CheckEvent|CheckEvent
      */
     private static function dispatch(GenericEvent $event): ?GenericEvent
     {
-        $reflection = new ReflectionMethod(static::$staticInstance->dispatcher, "dispatch");
-        $args = array();
-        foreach ($reflection->getParameters() as $param) {
-            if ("event" == $param->getName()) {
-                $args[] = $event;
+        try {
+            $reflection = new ReflectionMethod(static::$staticInstance->dispatcher, "dispatch");
+            $args = array();
+            foreach ($reflection->getParameters() as $param) {
+                if ("event" == $param->getName()) {
+                    $args[] = $event;
+                }
+                if ("eventName" == $param->getName()) {
+                    $args[] = get_class($event);
+                }
             }
-            if ("eventName" == $param->getName()) {
-                $args[] = get_class($event);
-            }
+        } catch (ReflectionException $ex) {
+            return null;
         }
 
         return $reflection->invokeArgs(static::$staticInstance->dispatcher, $args);

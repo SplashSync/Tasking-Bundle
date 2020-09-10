@@ -18,6 +18,7 @@ namespace Splash\Tasking\Model;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Token;
 use Splash\Tasking\Events\AddEvent;
+use Splash\Tasking\Events\InsertEvent;
 use Splash\Tasking\Services\TasksManager;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
@@ -138,6 +139,16 @@ abstract class AbstractJob implements ContainerAwareInterface
     public function add() : ?AddEvent
     {
         return TasksManager::add($this);
+    }
+
+    /**
+     * Insert Tasks in DataBase
+     *
+     * @return null|InsertEvent
+     */
+    public function insert() : ?InsertEvent
+    {
+        return TasksManager::addNoCheck($this);
     }
 
     //==============================================================================

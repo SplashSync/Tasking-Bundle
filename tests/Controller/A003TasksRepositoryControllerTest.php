@@ -47,7 +47,7 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
     /**
      * Test Delete All Tasks
      */
-    public function testDeleteAllTaskss(): void
+    public function testDeleteAllTasks(): void
     {
         //====================================================================//
         // Delete All Tasks Completed
