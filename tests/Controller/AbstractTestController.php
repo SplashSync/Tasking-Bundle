@@ -121,43 +121,24 @@ abstract class AbstractTestController extends WebTestCase
         //====================================================================//
         // Link to Task Process Manager
         $this->process = $container->get('splash.tasking.process');
-
         //====================================================================//
         // Link to entity manager Services
-        $this->entityManager = $container->get('doctrine')->getManager();
-
+        $this->entityManager = $this->tasks->getManager();
         //====================================================================//
-        // Link to Tasks Reprository
-        $tasksRepository = $this->entityManager->getRepository(Task::class);
-        if (!($tasksRepository instanceof TaskRepository)) {
-            throw new Exception("Unable to Load Task Repository");
-        }
-        $this->tasksRepository = $tasksRepository;
-
+        // Link to Tasks Repository
+        $this->tasksRepository = $this->tasks->getTasksRepository();
         //====================================================================//
-        // Link to Token Reprository
-        $tokenRepository = $this->entityManager->getRepository(Token::class);
-        if (!($tokenRepository instanceof TokenRepository)) {
-            throw new Exception("Unable to Load Token Repository");
-        }
-        $this->tokenRepository = $tokenRepository;
-
+        // Link to Token Repository
+        $this->tokenRepository = $this->tasks->getTokenRepository();
         //====================================================================//
-        // Link to Workers Reprository
-        $workersRepository = $this->entityManager->getRepository(Worker::class);
-        if (!($workersRepository instanceof WorkerRepository)) {
-            throw new Exception("Unable to Load Worker Repository");
-        }
-        $this->workersRepository = $workersRepository;
-
+        // Link to Workers Repository
+        $this->workersRepository = $this->tasks->getWorkerRepository();
         //====================================================================//
         // Link to Event Dispatcher
         $this->dispatcher = $container->get('event_dispatcher');
-
         //====================================================================//
         // Generate a Fake Output
         $this->output = new NullOutput();
-
         //====================================================================//
         // Generate a Random Token Name
         $this->randomStr = self::randomStr();

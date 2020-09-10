@@ -15,7 +15,7 @@
 
 namespace Splash\Tasking\Controller;
 
-use Splash\Tasking\Events\CheckEvent;
+use Splash\Tasking\Services\TasksManager;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Process\Process;
@@ -34,7 +34,7 @@ class ActionsController extends Controller
     {
         //==============================================================================
         // Dispatch tasking Bundle Check Event
-        $this->get("event_dispatcher")->dispatch(new CheckEvent());
+        TasksManager::check();
         //==============================================================================
         // Render response
         return new Response("Ok", Response::HTTP_OK, array('content-type' => 'text/html'));

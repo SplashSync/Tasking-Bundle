@@ -3,15 +3,21 @@
 # Define Test Matrix
 jobs:
     include:
+      # Symfony 3.4 Branch
+        - php: 7.4
+          env: SF_VERSION="3.4.*"
+        - php: 7.2
+          env: SF_VERSION="3.4.*"
+
       # Symfony 4.4 Branch
         - php: 7.4
           env: SF_VERSION="4.4.*"
         - php: 7.2
           env: SF_VERSION="4.4.*"
 
-        # Symfony 5.x Branch
-        - php: 7.4
-          env: SF_VERSION="5.1.*"
+#        # Symfony 5.x Branch
+#        - php: 7.4
+#          env: SF_VERSION="5.1.*"
 
     allow_failures:
         - env: SF_VERSION="5.1.*"

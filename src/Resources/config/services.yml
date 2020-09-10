@@ -16,7 +16,7 @@ services:
         arguments:
             - "@service_container"
             - "@logger"
-            - "@doctrine.orm.entity_manager"
+            - "@doctrine"
             - "@splash.tasking.tokens"
             - "%splash_tasking%"
             
@@ -26,7 +26,7 @@ services:
         class: Splash\Tasking\Services\TasksManager
         public:     true        
         arguments:
-            - "@doctrine.orm.entity_manager"
+            - "@doctrine"
             - "@event_dispatcher"
             - "@logger"
             - "@splash.tasking.tokens"
@@ -40,7 +40,7 @@ services:
         class: Splash\Tasking\Services\SupervisorsManager
         public:     true        
         arguments:
-            - "@doctrine.orm.entity_manager"
+            - "@doctrine"
             - "@logger"
             - "@splash.tasking.process"
             - "%splash_tasking%"
@@ -54,7 +54,7 @@ services:
         class: Splash\Tasking\Services\WorkersManager
         public:     true        
         arguments:
-            - "@doctrine.orm.entity_manager"
+            - "@doctrine"
             - "@logger"
             - "@splash.tasking.process"
             - "%splash_tasking%"
@@ -65,7 +65,7 @@ services:
         class: Splash\Tasking\Services\TokenManager
         public:     true        
         arguments:
-            - "@doctrine.orm.entity_manager"
+            - "@doctrine"
             - "@logger"
             - "%splash_tasking%"
 

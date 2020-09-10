@@ -17,7 +17,7 @@ namespace Splash\Tasking\Services;
 
 use ArrayObject;
 use DateTime;
-use Doctrine\ORM\EntityManagerInterface as EntityManager;
+use Doctrine\Bundle\DoctrineBundle\Registry;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Sentry;
@@ -48,6 +48,13 @@ class Runner
      * @var LoggerInterface
      */
     private $logger;
+
+    /**
+     * Doctrine Registry
+     *
+     * @var Registry
+     */
+    private $registry;
 
     /**
      * Tasks Repository
@@ -94,11 +101,11 @@ class Runner
      *
      * @param Container       $container
      * @param LoggerInterface $logger
-     * @param EntityManager   $doctrine
+     * @param Registry        $doctrine
      * @param TokenManager    $token
      * @param array           $config
      */
-    public function __construct(Container $container, LoggerInterface $logger, EntityManager $doctrine, TokenManager $token, array $config)
+    public function __construct(Container $container, LoggerInterface $logger, Registry $doctrine, TokenManager $token, array $config)
     {
         //====================================================================//
         // Link to Service Container
@@ -107,8 +114,12 @@ class Runner
         // Link to Symfony Logger
         $this->logger = $logger;
         //====================================================================//
+        // Link to entity manager Service
+        $this->registry = $doctrine;
+        $entityManager = $doctrine->getManager($config["entity_manager"]);
+        //====================================================================//
         // Link to Tasks Repository
-        $taskRepository = $doctrine->getRepository(Task::class);
+        $taskRepository = $entityManager->getRepository(Task::class);
         if (!($taskRepository instanceof TaskRepository)) {
             throw new Exception("Wrong repository class");
         }
@@ -235,6 +246,7 @@ class Runner
         //==============================================================================
         // Do Post Execution Actions
         $this->closeJob($this->task, $this->maxTry);
+        $this->clearEntityManagers();
 
         //==============================================================================
         // Save Status in Db
@@ -378,6 +390,9 @@ class Runner
             if (true == $this->container->has('Sentry\State\HubInterface')) {
                 Sentry\captureException($exception);
             }
+            //====================================================================//
+            // User Information
+            $this->logger->error('Runner: Task Fail: '.$exception->getMessage());
         }
 
         //==============================================================================
@@ -449,7 +464,7 @@ class Runner
             );
         }
         //==============================================================================
-        // Failled More than maxTry => Set Task as Finished
+        // Failed More than maxTry => Set Task as Finished
         if ($task->getTry() > $maxTry) {
             $task->setFinished(true);
 
@@ -471,5 +486,19 @@ class Runner
         //====================================================================//
         // User Information
         $this->logger->info('Runner: Task Delay = '.$task->getDuration()." Milliseconds </info>");
+    }
+
+    /**
+     * Clear All Entity Managers, Except Tasking Manager
+     *
+     * @return void
+     */
+    private function clearEntityManagers(): void
+    {
+        foreach (array_keys($this->registry->getManagerNames()) as $managerName) {
+            if ($managerName != $this->config->entity_manager) {
+                $this->registry->getManager($managerName)->clear();
+            }
+        }
     }
 }

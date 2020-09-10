@@ -15,8 +15,6 @@
 
 namespace Splash\Tasking\Controller;
 
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Entity\Worker;
 use Splash\Tasking\Repository\TaskRepository;
 use Splash\Tasking\Repository\WorkerRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -34,15 +32,14 @@ class StatusController extends Controller
      */
     public function mainAction() : JsonResponse
     {
-        $manager = $this->get("doctrine")->getManager();
         //====================================================================//
         // Load Tasks Repository
         /** @var TaskRepository $tasks */
-        $tasks = $manager->getRepository(Task::class);
+        $tasks = $this->get('splash.tasking.tasks')->getTasksRepository();
         //====================================================================//
         // Load Worker Repository
         /** @var WorkerRepository $workers */
-        $workers = $manager->getRepository(Worker::class);
+        $workers = $this->get('splash.tasking.tasks')->getWorkerRepository();
         //==============================================================================
         // Build Status Array
         $status = array(

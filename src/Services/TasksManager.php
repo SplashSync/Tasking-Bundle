@@ -16,23 +16,33 @@
 namespace Splash\Tasking\Services;
 
 use ArrayObject;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\Persistence\ObjectManager;
 use Exception;
 use Psr\Log\LoggerInterface;
+use ReflectionException;
+use ReflectionMethod;
 use Splash\Tasking\Entity\Task;
+use Splash\Tasking\Entity\Token;
+use Splash\Tasking\Entity\Worker;
 use Splash\Tasking\Events\AddEvent;
+use Splash\Tasking\Events\CheckEvent;
 use Splash\Tasking\Events\StaticTasksListingEvent;
 use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
 use Splash\Tasking\Model\AbstractStaticJob;
 use Splash\Tasking\Repository\TaskRepository;
+use Splash\Tasking\Repository\TokenRepository;
+use Splash\Tasking\Repository\WorkerRepository;
 use Splash\Tasking\Tools\Timer;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\EventDispatcher\GenericEvent;
 
 /**
  * Tasks Management Service
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class TasksManager
 {
@@ -43,7 +53,7 @@ class TasksManager
     /**
      * Doctrine Entity Manager
      *
-     * @var EntityManagerInterface
+     * @var ObjectManager
      */
     public $entityManager;
 
@@ -80,6 +90,11 @@ class TasksManager
      */
     private $dispatcher;
 
+    /**
+     * @var TasksManager
+     */
+    private static $staticInstance;
+
     //====================================================================//
     //  CONSTRUCTOR
     //====================================================================//
@@ -87,17 +102,17 @@ class TasksManager
     /**
      * Class Constructor
      *
-     * @param EntityManagerInterface   $doctrine
+     * @param Registry                 $doctrine
      * @param EventDispatcherInterface $dispatcher
      * @param LoggerInterface          $logger
      * @param TokenManager             $token
      * @param array                    $config
      */
-    public function __construct(EntityManagerInterface $doctrine, EventDispatcherInterface $dispatcher, LoggerInterface $logger, TokenManager $token, array $config)
+    public function __construct(Registry $doctrine, EventDispatcherInterface $dispatcher, LoggerInterface $logger, TokenManager $token, array $config)
     {
         //====================================================================//
         // Link to entity manager Service
-        $this->entityManager = $doctrine;
+        $this->entityManager = $doctrine->getManager($config["entity_manager"]);
         //====================================================================//
         // Link to Symfony Logger
         $this->logger = $logger;
@@ -106,7 +121,7 @@ class TasksManager
         $this->dispatcher = $dispatcher;
         //====================================================================//
         // Link to Tasks Repository
-        $taskRepository = $doctrine->getRepository(Task::class);
+        $taskRepository = $this->entityManager->getRepository(Task::class);
         if (!($taskRepository instanceof TaskRepository)) {
             throw new Exception("Wrong repository class");
         }
@@ -117,6 +132,71 @@ class TasksManager
         //====================================================================//
         // Init Parameters
         $this->config = new ArrayObject($config, ArrayObject::ARRAY_AS_PROPS);
+        //==============================================================================
+        // Store Static Instance for Access as Static
+        static::$staticInstance = $this;
+    }
+
+    //====================================================================//
+    //  SubServices Access
+    //====================================================================//
+
+    /**
+     * Get Tasking Entity Manager
+     *
+     * @return ObjectManager
+     */
+    public function getManager(): ObjectManager
+    {
+        return $this->entityManager;
+    }
+
+    /**
+     * Get Tasks Repository
+     *
+     * @return TaskRepository
+     */
+    public function getTasksRepository(): TaskRepository
+    {
+        $repository = $this->entityManager->getRepository(Task::class);
+
+        if (!($repository instanceof TaskRepository)) {
+            throw new Exception("Unable to Load Tasks Repository");
+        }
+
+        return $repository;
+    }
+
+    /**
+     * Get Worker Repository
+     *
+     * @return WorkerRepository
+     */
+    public function getWorkerRepository(): WorkerRepository
+    {
+        $repository = $this->entityManager->getRepository(Worker::class);
+
+        if (!($repository instanceof WorkerRepository)) {
+            throw new Exception("Unable to Load Worker Repository");
+        }
+
+        return $repository;
+    }
+
+    /**
+     * Get Token Repository
+     *
+     * @return TokenRepository
+     */
+    public function getTokenRepository(): TokenRepository
+    {
+        $repository = $this->entityManager->getRepository(Token::class);
+
+        if (!($repository instanceof TokenRepository)) {
+            throw new Exception("Unable to Load Token Repository");
+        }
+
+        return $repository;
     }
 
     //====================================================================//
@@ -124,27 +204,35 @@ class TasksManager
     //====================================================================//
 
     /**
-     * Insert Tasks in DataBase
+     * Start Tasking Supervisor on This Machine
      *
-     * @param Task $task Task Item to Insert
+     * @throws ReflectionException
+     *
+     * @return void
      */
-    public function insert(Task $task): void
+    public static function check(): void
     {
         //====================================================================//
-        // Ensure no Similar Task Already Waiting
-        $count = $this->taskRepository->getWaitingTasksCount(
-            $task->getJobToken(),
-            $task->getDiscriminator(),
-            $task->getJobIndexKey1(),
-            $task->getJobIndexKey2()
-        );
-        if ($count > 0) {
-            return;
-        }
+        // Dispatch Task Check Event
+        self::dispatch(new CheckEvent());
+    }
+
+    /**
+     * Add Tasks in DataBase
+     *
+     * @param AbstractJob $job An Object Extending Base Job Object
+     *
+     * @throws ReflectionException
+     *
+     * @return null|AddEvent
+     */
+    public static function add(AbstractJob $job): ?AddEvent
+    {
         //====================================================================//
-        // Persist New Task to Db
-        $this->entityManager->persist($task);
-        $this->entityManager->flush();
+        // Dispatch Task Added Event
+        $event = self::dispatch(new AddEvent($job));
+
+        return ($event instanceof AddEvent) ? $event : null;
     }
 
     /**
@@ -467,6 +555,30 @@ class TasksManager
     //====================================================================//
 
     /**
+     * Insert Tasks in DataBase
+     *
+     * @param Task $task Task Item to Insert
+     */
+    private function insert(Task $task): void
+    {
+        //====================================================================//
+        // Ensure no Similar Task Already Waiting
+        $count = $this->taskRepository->getWaitingTasksCount(
+            $task->getJobToken(),
+            $task->getDiscriminator(),
+            $task->getJobIndexKey1(),
+            $task->getJobIndexKey2()
+        );
+        if ($count > 0) {
+            return;
+        }
+        //====================================================================//
+        // Persist New Task to Db
+        $this->entityManager->persist($task);
+        $this->entityManager->flush();
+    }
+
+    /**
      * Return List of Static Tasks
      *  => Tasks are Loaded from Parameters
      *  => Or Added by registering Event dispatcher
@@ -521,5 +633,30 @@ class TasksManager
         }
 
         return true;
+    }
+
+    /**
+     * Dispatch an Event with Args Detection
+     *
+     * @param GenericEvent $event
+     *
+     * @throws ReflectionException
+     *
+     * @return null|AddEvent
+     */
+    private static function dispatch(GenericEvent $event): ?GenericEvent
+    {
+        $reflection = new ReflectionMethod(static::$staticInstance->dispatcher, "dispatch");
+        $args = array();
+        foreach ($reflection->getParameters() as $param) {
+            if ("event" == $param->getName()) {
+                $args[] = $event;
+            }
+            if ("eventName" == $param->getName()) {
+                $args[] = get_class($event);
+            }
+        }
+
+        return $reflection->invokeArgs(static::$staticInstance->dispatcher, $args);
     }
 }

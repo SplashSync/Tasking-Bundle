@@ -102,8 +102,6 @@ abstract class AbstractBatchJob extends AbstractJob
      */
     public function __construct()
     {
-        parent::__construct();
-
         $this->setInputs(array());
         $this->setState(array());
         $this->setToken(get_class($this)."::".static::$action);

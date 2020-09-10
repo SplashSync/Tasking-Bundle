@@ -17,7 +17,8 @@ namespace Splash\Tasking\Services;
 
 use ArrayObject;
 use DateTime;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\Persistence\ObjectManager;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Splash\Tasking\Entity\Task;
@@ -39,7 +40,7 @@ class WorkersManager
     /**
      * Doctrine Entity Manager
      *
-     * @var EntityManagerInterface
+     * @var ObjectManager
      */
     public $entityManager;
 
@@ -86,22 +87,22 @@ class WorkersManager
     /**
      * Class Constructor
      *
-     * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface        $logger
-     * @param ProcessManager         $processManager
-     * @param array                  $config
+     * @param Registry        $doctrine
+     * @param LoggerInterface $logger
+     * @param ProcessManager  $processManager
+     * @param array           $config
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger, ProcessManager $processManager, array $config)
+    public function __construct(Registry   $doctrine, LoggerInterface $logger, ProcessManager $processManager, array $config)
     {
         //====================================================================//
         // Link to entity manager Service
-        $this->entityManager = $entityManager;
+        $this->entityManager = $doctrine->getManager($config["entity_manager"]);
         //====================================================================//
         // Link to Symfony Logger
         $this->logger = $logger;
         //====================================================================//
         // Link to Workers Repository
-        $workerRepository = $entityManager->getRepository(Worker::class);
+        $workerRepository = $this->entityManager->getRepository(Worker::class);
         if (!($workerRepository instanceof WorkerRepository)) {
             throw new Exception("Wrong repository class");
         }

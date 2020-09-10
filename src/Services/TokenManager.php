@@ -16,7 +16,8 @@
 namespace Splash\Tasking\Services;
 
 use ArrayObject;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\Persistence\ObjectManager;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Splash\Tasking\Entity\Task;
@@ -35,7 +36,7 @@ class TokenManager
     /**
      * Doctrine Entity Manager
      *
-     * @var EntityManagerInterface
+     * @var ObjectManager
      */
     public $entityManager;
 
@@ -72,21 +73,21 @@ class TokenManager
     /**
      * Class Constructor
      *
-     * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface        $logger
-     * @param array                  $config
+     * @param Registry        $doctrine
+     * @param LoggerInterface $logger
+     * @param array           $config
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger, array $config)
+    public function __construct(Registry $doctrine, LoggerInterface $logger, array $config)
     {
         //====================================================================//
         // Link to entity manager Service
-        $this->entityManager = $entityManager;
+        $this->entityManager = $doctrine->getManager($config["entity_manager"]);
         //====================================================================//
         // Link to Symfony Logger
         $this->logger = $logger;
         //====================================================================//
         // Link to Token Repository
-        $tokenRepository = $entityManager->getRepository(Token::class);
+        $tokenRepository = $this->entityManager->getRepository(Token::class);
         if (!($tokenRepository instanceof TokenRepository)) {
             throw new Exception("Wrong repository class");
         }

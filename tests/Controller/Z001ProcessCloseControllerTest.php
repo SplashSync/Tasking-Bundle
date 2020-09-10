@@ -41,7 +41,9 @@ class Z001ProcessCloseControllerTest extends AbstractTestController
         //====================================================================//
 
         //====================================================================//
-        // Load Worker Reprository
+        // Load Worker Repository
+        $this->entityManager->clear();
+        sleep(1);
         $workers = $this->workersRepository->findAll();
 
         //====================================================================//
@@ -52,7 +54,6 @@ class Z001ProcessCloseControllerTest extends AbstractTestController
         // Check all Workers are Stopped
         /** @var Worker $worker */
         foreach ($workers as $worker) {
-//            self::assertInstanceOf(Worker::class, $worker);
             Assert::assertFalse($worker->isRunning());
             Assert::assertNotEmpty($worker->getLastSeen());
             Assert::assertFalse($this->doCheckProcessIsAlive($worker->getPid()));

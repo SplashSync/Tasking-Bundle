@@ -17,14 +17,15 @@ namespace Splash\Tasking\Model;
 
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Token;
+use Splash\Tasking\Events\AddEvent;
+use Splash\Tasking\Services\TasksManager;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
-use Symfony\Component\EventDispatcher\GenericEvent;
 
 /**
  * Base Class for Background Jobs Definition
  */
-abstract class AbstractJob extends GenericEvent implements ContainerAwareInterface
+abstract class AbstractJob implements ContainerAwareInterface
 {
     use ContainerAwareTrait;
 
@@ -80,13 +81,17 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
     protected $inputs = array();
 
     /**
-     * Job Token is Used for concurency Management
+     * Job Token is Used for concurrency Management
      * You can set it directly by overriding this constant
      * or by writing an array of parameters to setJobToken()
      *
      * @var null|string
      */
     protected $token;
+
+    //==============================================================================
+    // Magic Getters & Setters
+    //==============================================================================
 
     /**
      * Magic Property Getter
@@ -122,11 +127,25 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
     }
 
     //==============================================================================
-    //      Task Execution Management
+    // Task Management
     //==============================================================================
 
     /**
-     * Overide this function to validate you Input parameters
+     * Add Tasks in DataBase
+     *
+     * @return null|AddEvent
+     */
+    public function add() : ?AddEvent
+    {
+        return TasksManager::add($this);
+    }
+
+    //==============================================================================
+    // Task Execution (To Override)
+    //==============================================================================
+
+    /**
+     * Override this function to validate you Input parameters
      *
      * @return bool
      */
@@ -136,7 +155,7 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
     }
 
     /**
-     * Overide this function to prepare your class for it's execution
+     * Override this function to prepare your class for it's execution
      *
      * @return bool
      */
@@ -146,7 +165,7 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
     }
 
     /**
-     * Overide this function to perform your task
+     * Override this function to perform your task
      *
      * @return bool
      */
@@ -156,7 +175,7 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
     }
 
     /**
-     * Overide this function to validate results of your task or perform post-actions
+     * Override this function to validate results of your task or perform post-actions
      *
      * @return bool
      */
@@ -166,7 +185,7 @@ abstract class AbstractJob extends GenericEvent implements ContainerAwareInterfa
     }
 
     /**
-     * Overide this function to close your task
+     * Override this function to close your task
      *
      * @return bool
      */

@@ -29,7 +29,7 @@
     "require": {
         "php":                                          "^7.2",
         
-        "symfony/symfony":                              "~4.4",
+        "symfony/symfony":                              "~3.0|~4.0",
         "symfony/monolog-bundle":                       ">=2.1",
         
         "doctrine/orm":                                 "^2.5",
@@ -54,7 +54,7 @@
         "php-parallel-lint/php-parallel-lint":          "^1.0",
         "phpmd/phpmd":                                  "~2.7.0",
         "phpro/grumphp":                                "^0.16",
-        "sclable/xml-lint":                             "^0.2.4",
+        "sclable/xml-lint":                             "^0.3",
         "sebastian/phpcpd":                             ">3.0",
         "seld/jsonlint":                                "^1.7",
         "sensiolabs/security-checker":                  "*",

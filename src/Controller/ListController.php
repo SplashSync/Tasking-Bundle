@@ -15,7 +15,6 @@
 
 namespace Splash\Tasking\Controller;
 
-use Exception;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Repository\TaskRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -98,8 +97,7 @@ class ListController extends Controller
     {
         //==============================================================================
         // Load Task Repository
-        $repository = $this->get('doctrine')->getManager()
-            ->getRepository(Task::class);
+        $repository = $this->get('splash.tasking.tasks')->getTasksRepository();
         //==============================================================================
         // Compute Filters
         $filters = $this->getIndexKeysFindBy($key2, $key1);
@@ -132,7 +130,9 @@ class ListController extends Controller
         //==============================================================================
         // Render All Tasks List
         return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(
-            'tasks' => $this->getTasksRepository()->findBy($filters, $orderBy, $limit, $offset),
+            'tasks' => $this->get('splash.tasking.tasks')
+                ->getTasksRepository()
+                ->findBy($filters, $orderBy, $limit, $offset),
         ));
     }
 
@@ -149,7 +149,9 @@ class ListController extends Controller
         //==============================================================================
         // Render Tasks Sumary
         return $this->render('SplashTaskingBundle:List:summary.html.twig', array(
-            'summary' => $this->getTasksRepository()->getTasksSummary($key1, $key2),
+            'summary' => $this->get('splash.tasking.tasks')
+                ->getTasksRepository()
+                ->getTasksSummary($key1, $key2),
         ));
     }
 
@@ -169,7 +171,9 @@ class ListController extends Controller
         //==============================================================================
         // Render Tasks Sumary
         return $this->render('SplashTaskingBundle:List:status.html.twig', array(
-            'status' => $this->getTasksRepository()->getTasksStatus($key1, $key2, $orderBy, $limit, $offset),
+            'status' => $this->get('splash.tasking.tasks')
+                ->getTasksRepository()
+                ->getTasksStatus($key1, $key2, $orderBy, $limit, $offset),
         ));
     }
 
@@ -192,22 +196,5 @@ class ListController extends Controller
         }
 
         return $filters;
-    }
-
-    /**
-     * Safe Load Tasks Repository
-     *
-     * @return TaskRepository
-     */
-    private function getTasksRepository(): TaskRepository
-    {
-        $repository = $this->get('doctrine')->getManager()
-            ->getRepository(Task::class);
-
-        if (!($repository instanceof TaskRepository)) {
-            throw new Exception("Unable to Load Tasks Repository");
-        }
-
-        return $repository;
     }
 }

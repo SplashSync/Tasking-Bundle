@@ -1,7 +1,6 @@
 imports:
     - { resource: parameters.yml }
-    
-    
+
 # Framework Configuration
 framework:
     translator:      { fallbacks: ["%locale%"] }
@@ -21,16 +20,27 @@ doctrine:
 
     orm:
         auto_generate_proxy_classes: "%kernel.debug%"
-        naming_strategy: doctrine.orm.naming_strategy.underscore
-        auto_mapping: true
-     
+        entity_managers:
+            default:
+                connection:     default
+                auto_mapping:   true
+                mappings:
+                    SplashTaskingBundle: ~
+            tasking:
+                connection:     default
+                mappings:
+                    SplashTaskingBundle: ~
+
 monolog:
     handlers:
         console:
             type:   console
             process_psr_3_messages: false
             channels: ['!event', '!doctrine', '!console']  
-            
+
+splash_tasking:
+    entity_manager: tasking
+
 services:
     
     # default configuration for services in *this* file
