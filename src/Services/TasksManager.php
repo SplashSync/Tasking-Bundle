@@ -596,7 +596,7 @@ class TasksManager
         //====================================================================//
         // Complete List of Static Tasks via Event Listener
         /** @var StaticTasksListingEvent $resultEvent */
-        $resultEvent = $this->dispatcher->dispatch($listingEvent);
+        $resultEvent = self::dispatch($listingEvent);
 
         return $resultEvent->getArguments();
     }

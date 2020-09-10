@@ -69,7 +69,12 @@ class Z001ProcessCloseControllerTest extends AbstractTestController
     {
         //====================================================================//
         // Create Sub-Process (SF 4 Versions)
-        $process = Process::fromShellCommandline("php bin/console tasking:stop -vv");
+        try {
+            $process = Process::fromShellCommandline("php bin/console tasking:stop -vv");
+        } catch (\TypeError $exception) {
+            $process = new Process("php bin/console tasking:stop -vv");
+        }
+
         //====================================================================//
         // Clean Working Dir
         $workingDirectory = (string) $process->getWorkingDirectory();

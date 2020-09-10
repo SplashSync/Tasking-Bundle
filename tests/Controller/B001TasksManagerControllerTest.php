@@ -17,7 +17,6 @@ namespace Splash\Tasking\Tests\Controller;
 
 use PHPUnit\Framework\Assert;
 use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Events\AddEvent;
 use Splash\Tasking\Tests\Jobs\TestJob;
 use Splash\Tasking\Tests\Jobs\TestStaticJob;
 
@@ -112,7 +111,7 @@ class B001TasksManagerControllerTest extends AbstractTestController
             ;
             //====================================================================//
             // Add Job to Queue
-            $this->dispatcher->dispatch(new AddEvent($job));
+            $job->add();
         }
         //====================================================================//
         //Verify Only One Task Added
