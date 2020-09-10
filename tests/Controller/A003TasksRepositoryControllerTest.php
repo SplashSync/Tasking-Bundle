@@ -530,7 +530,7 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
         }
         //====================================================================//
         // Save Task
-        $job->add();
+        $job->insert();
 
         return $job;
     }

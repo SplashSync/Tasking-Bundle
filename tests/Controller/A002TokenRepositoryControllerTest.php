@@ -180,7 +180,7 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
         }
 
         //====================================================================//
-        // Test Relase a Token
+        // Test Release a Token
         Assert::assertTrue($this->tokenRepository->release($this->randomStr));
 
         //====================================================================//
