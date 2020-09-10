@@ -655,7 +655,7 @@ class TasksManager
      *
      * @param GenericEvent $event
      *
-     * @return null|AddEvent|CheckEvent|CheckEvent
+     * @return null|AddEvent|CheckEvent|InsertEvent
      */
     private static function dispatch(GenericEvent $event): ?GenericEvent
     {
