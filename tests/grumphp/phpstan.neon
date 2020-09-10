@@ -23,4 +23,4 @@ parameters:
                 - '#Variable property access on \$this[a-zA-Z0-9\\()]#'
                 # For Copmpat with Symfony 3 & 4
                 - '#Parameter \#1 \$command of class [a-zA-Z0-9\\]+Process constructor expects array, string given.#'
-                - '#Call to an undefined method [a-zA-Z0-9\\]+Process::fromShellCommandline().#'
+                - '#Call to an undefined static method [a-zA-Z0-9\\]+Process::fromShellCommandline().#'

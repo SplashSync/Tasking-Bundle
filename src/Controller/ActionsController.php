@@ -61,7 +61,7 @@ class ActionsController extends Controller
         // Execute Test (SF 3&4 Versions)
         try {
             $process = Process::fromShellCommandline($command);
-        } catch (\TypeError $exception) {
+        } catch (\Error $exception) {
             $process = new Process($command);
         }
         $process->setTimeout(360);

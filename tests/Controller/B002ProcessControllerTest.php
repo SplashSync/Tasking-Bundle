@@ -230,7 +230,7 @@ class B002ProcessControllerTest extends AbstractTestController
         // Execute Test (SF 4 Versions)
         try {
             $process = Process::fromShellCommandline($command);
-        } catch (\TypeError $exception) {
+        } catch (\Error $exception) {
             $process = new Process($command);
         }
         //====================================================================//
