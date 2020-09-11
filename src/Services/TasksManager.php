@@ -425,6 +425,11 @@ class TasksManager
         }
         $job = $event->getSubject();
         //====================================================================//
+        // Validate Subject
+        if (!($job instanceof AbstractJob)) {
+            return false;
+        }
+        //====================================================================//
         // Validate Job
         if (!$this->validate($job)) {
             $job->setInputs(array("error" => "Invalid Job: Rejected"));
