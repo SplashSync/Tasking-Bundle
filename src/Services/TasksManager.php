@@ -418,20 +418,10 @@ class TasksManager
      */
     public function onAddAction(GenericEvent $event): bool
     {
-        //====================================================================//
-        // Validate Event
-        if (!($event instanceof AddEvent) && !($event instanceof InsertEvent)) {
-            return false;
-        }
         $job = $event->getSubject();
         //====================================================================//
-        // Validate Subject
-        if (!($job instanceof AbstractJob)) {
-            return false;
-        }
-        //====================================================================//
         // Validate Job
-        if (!$this->validate($job)) {
+        if (!($job instanceof AbstractJob) || !$this->validate($job)) {
             $job->setInputs(array("error" => "Invalid Job: Rejected"));
             $this->logger->error("Tasks Manager: Invalid Job Received >> Rejected");
 
