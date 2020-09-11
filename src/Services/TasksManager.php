@@ -412,12 +412,17 @@ class TasksManager
     /**
      * Add a New Task on Scheduler
      *
-     * @param AddEvent $event
+     * @param GenericEvent $event
      *
      * @return bool
      */
-    public function onAddAction(AddEvent $event): bool
+    public function onAddAction(GenericEvent $event): bool
     {
+        //====================================================================//
+        // Validate Event
+        if (!($event instanceof AddEvent) && !($event instanceof InsertEvent)) {
+            return false;
+        }
         $job = $event->getSubject();
         //====================================================================//
         // Validate Job
