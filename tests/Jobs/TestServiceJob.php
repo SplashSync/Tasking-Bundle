@@ -28,7 +28,7 @@ class TestServiceJob extends AbstractServiceJob
      * @var array
      */
     protected $inputs = array(
-        "Service" => "Tasking.Sampling.Service",
+        "Service" => "tasking.sampling.service",
         "Method" => "delayTask",
         "Inputs" => array("Delay" => 1),
     );

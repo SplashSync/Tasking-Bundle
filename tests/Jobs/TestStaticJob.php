@@ -42,7 +42,7 @@ class TestStaticJob extends AbstractStaticJob
     protected $inputs = array("delay" => 1);
 
     /**
-     * Job Token is Used for concurency Management
+     * Job Token is Used for concurrency Management
      * You can set it directly by overriding this constant
      * or by writing an array of parameters to setJobToken()
      *

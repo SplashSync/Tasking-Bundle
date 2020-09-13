@@ -21,7 +21,7 @@
 #
 # This Docker File intend to Create a Complete Dev Environnement
 #
-# To us different Versions coinfigured, you need to add hosts to /etc/hosts
+# To us different Versions configured, you need to add hosts to /etc/hosts
 # 
 #    172.201.0.10        dev.tasking.local
 #    172.201.0.200       phpmyadmin.tasking.local
