@@ -15,7 +15,6 @@
 
 namespace Splash\Tasking\Command;
 
-use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Worker;
 use Splash\Tasking\Repository\TaskRepository;
 use Splash\Tasking\Repository\WorkerRepository;
