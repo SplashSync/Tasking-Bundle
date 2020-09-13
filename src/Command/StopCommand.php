@@ -84,7 +84,7 @@ class StopCommand extends Command
         // Setup TimeOut for this operation
         $this->setupTimeout();
         //====================================================================//
-        // Count Total Number of Wrokers
+        // Count Total Number of Workers
         $total = $this->manager->countActiveWorkers();
         //====================================================================//
         // Track Workers are Stopped

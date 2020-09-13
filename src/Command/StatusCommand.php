@@ -61,9 +61,7 @@ class StatusCommand extends ContainerAwareCommand
         //====================================================================//
         // Load Tasks Repository
         /** @var TaskRepository $repo */
-        $repo = $this->getContainer()
-            ->get("doctrine")->getManager()
-            ->getRepository(Task::class);
+        $repo = $this->getContainer()->get("splash.tasking.tasks")->getTasksRepository();
 
         while (1) {
             //====================================================================//
@@ -108,9 +106,7 @@ class StatusCommand extends ContainerAwareCommand
         //====================================================================//
         // Load Tasks Repository
         /** @var WorkerRepository $repo */
-        $repo = $this->getContainer()
-            ->get("doctrine")->getManager()
-            ->getRepository(Worker::class);
+        $repo = $this->getContainer()->get("splash.tasking.tasks")->getWorkerRepository();
 
         //====================================================================//
         // List Workers Status
@@ -156,9 +152,7 @@ class StatusCommand extends ContainerAwareCommand
         //====================================================================//
         // Load Worker Repository
         /** @var WorkerRepository $workers */
-        $workers = $this->getContainer()
-            ->get("doctrine")->getManager()
-            ->getRepository(Worker::class);
+        $workers = $this->getContainer()->get("splash.tasking.tasks")->getWorkerRepository();
         //====================================================================//
         // Fetch Workers Status
         $status = $workers->getWorkersStatus();
