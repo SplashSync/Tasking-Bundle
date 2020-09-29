@@ -398,7 +398,7 @@ class TasksManager
                     ->setToken($staticTask["token"])
                     ->setInputs($staticTask["inputs"]);
 
-                $this->onAddAction($job);
+                $this->onAddAction(new GenericEvent($job));
             }
         }
 
