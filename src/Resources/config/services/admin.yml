@@ -15,7 +15,7 @@ services:
             - Splash\Tasking\Entity\Task
             - ~
         calls:
-            - [ setTranslationDomain, [TaskingBundle]]
+            - [ setTranslationDomain, [ 'TaskingBundle']]
             
     ########################################################################
     # Workers Sonata Admin Service
@@ -28,7 +28,7 @@ services:
             - Splash\Tasking\Entity\Worker
             - ~
         calls:
-            - [ setTranslationDomain, [TaskingBundle]]            
+            - [ setTranslationDomain, [ 'TaskingBundle']]
             
     ########################################################################
     # Tokens Sonata Admin Service
@@ -41,4 +41,4 @@ services:
             - Splash\Tasking\Entity\Token
             - ~
         calls:
-            - [ setTranslationDomain, [TaskingBundle]]  
+            - [ setTranslationDomain, [ 'TaskingBundle']]
