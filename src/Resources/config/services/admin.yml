@@ -16,7 +16,7 @@ services:
             - ~
         calls:
             - [ setTranslationDomain, [ 'TaskingBundle']]
-            
+
     ########################################################################
     # Workers Sonata Admin Service
     splash.tasking.admin.workers:
@@ -29,7 +29,7 @@ services:
             - ~
         calls:
             - [ setTranslationDomain, [ 'TaskingBundle']]
-            
+
     ########################################################################
     # Tokens Sonata Admin Service
     splash.tasking.admin.tokens:
