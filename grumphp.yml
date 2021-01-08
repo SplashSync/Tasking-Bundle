@@ -15,16 +15,14 @@
 #
 ################################################################################
 
+#############################################
+# Override Default Config.
 parameters:
+    mode:           "splashsync"
+    # Php Stan
     stan_config:    "./tests/grumphp/phpstan.neon"
-    # For Building Splash Module
-    mod-enable:     false
-    # For Building Splash Documentations
-    doc-enable:     false
-    # For Building Splash Manifest
-    yml-enable:     false
 
-#############################################        
-# Import Config. from Generic Bundle
+#############################################
+# Import Generic + Splash Console Configs
 imports:
-    - { resource: "./vendor/splash/php-bundle/src/Resources/grumphp/grumphp.base.yml" }
+    - { resource: "./vendor/badpixxel/php-sdk/grumphp/generic.yml" }
