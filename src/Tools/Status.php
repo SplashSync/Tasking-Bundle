@@ -76,8 +76,10 @@ class Status
      * If possible, watchdog (PHP Time Limit) will be extended.
      *
      * @param int $nbSeconds
-     * @return bool True if this delay is Allowed
+     *
      * @throws Exception
+     *
+     * @return bool True if this delay is Allowed
      */
     public static function requireLifetime(int $nbSeconds): bool
     {
@@ -99,6 +101,27 @@ class Status
         }
         //==============================================================================
         // Delay not Allowed
+        return false;
+    }
+
+    /**
+     * Check if at least $nbSeconds remain for running current Job.
+     *
+     * @param int $nbSeconds
+     *
+     * @throws Exception
+     *
+     * @return bool True if this delay is Allowed
+     */
+    public static function hasLifetime(int $nbSeconds): bool
+    {
+        $remaining = self::getRemainingLifetime();
+        //==============================================================================
+        // Current Situation allow this delay
+        if (is_null($remaining) || ($nbSeconds <= $remaining)) {
+            return true;
+        }
+
         return false;
     }
 

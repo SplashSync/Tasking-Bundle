@@ -76,7 +76,9 @@ class LongJob extends AbstractJob
         // Loop until Task Delay is Reached
         do {
             sleep(1);
-            $hasLifetime = Status::requireLifetime(5);
+            $hasLifetime = $this->getInputs()["Allow-Renewal"]
+                ? Status::requireLifetime(5)
+                : Status::hasLifetime(5);
         } while ($hasLifetime);
 
         return true;
