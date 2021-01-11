@@ -46,8 +46,7 @@ class C004LongJobControllerTest extends AbstractTestController
         //====================================================================//
         // Verify Job Duration
         $delay = $finishedAt->getTimestamp() - $startedAt->getTimestamp();
-        Assert::assertGreaterThan(0, $delay);
-        Assert::assertGreaterThanOrEqual(Configuration::getWorkerWatchdogDelay() - 5, $delay);
+        Assert::assertGreaterThan(10, $delay);
         Assert::assertLessThan(Configuration::getWorkerWatchdogDelay(), $delay);
     }
 
