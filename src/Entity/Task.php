@@ -207,7 +207,7 @@ class Task extends AbstractTask
      *
      * @return $this
      */
-    public function clearOutputs()
+    public function clearOutputs(): self
     {
         $this->outputs = "";
 
@@ -292,7 +292,7 @@ class Task extends AbstractTask
     /**
      * Set startedAt
      *
-     * @param DateTime $startedAt
+     * @param null|DateTime $startedAt
      *
      * @return $this
      */
@@ -317,7 +317,7 @@ class Task extends AbstractTask
     /**
      * Set finishedAt
      *
-     * @param DateTime $finishedAt
+     * @param null|DateTime $finishedAt
      *
      * @return $this
      */

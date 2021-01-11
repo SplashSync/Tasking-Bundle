@@ -15,18 +15,13 @@
 
 namespace Splash\Tasking\Services;
 
-use ArrayObject;
-use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\Persistence\ObjectManager;
 use Exception;
 use Psr\Log\LoggerInterface;
 use ReflectionException;
 use ReflectionMethod;
 use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Entity\Token;
-use Splash\Tasking\Entity\Worker;
 use Splash\Tasking\Events\AddEvent;
 use Splash\Tasking\Events\CheckEvent;
 use Splash\Tasking\Events\InsertEvent;
@@ -34,9 +29,6 @@ use Splash\Tasking\Events\StaticTasksListingEvent;
 use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
 use Splash\Tasking\Model\AbstractStaticJob;
-use Splash\Tasking\Repository\TaskRepository;
-use Splash\Tasking\Repository\TokenRepository;
-use Splash\Tasking\Repository\WorkerRepository;
 use Splash\Tasking\Tools\Timer;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
@@ -52,27 +44,6 @@ class TasksManager
     //==============================================================================
     //  Variables Definition
     //==============================================================================
-
-    /**
-     * Doctrine Entity Manager
-     *
-     * @var ObjectManager
-     */
-    public $entityManager;
-
-    /**
-     * Tasking Service Configuration Array
-     *
-     * @var ArrayObject
-     */
-    protected $config;
-
-    /**
-     * Tasks Repository
-     *
-     * @var TaskRepository
-     */
-    private $taskRepository;
 
     /**
      * Token Manager
@@ -105,8 +76,7 @@ class TasksManager
     /**
      * Class Constructor
      *
-     * @param array                    $config
-     * @param Registry                 $doctrine
+     * @param Configuration            $configuration
      * @param EventDispatcherInterface $dispatcher
      * @param LoggerInterface          $logger
      * @param TokenManager             $token
@@ -114,15 +84,11 @@ class TasksManager
      * @throws Exception
      */
     public function __construct(
-        array $config,
-        Registry $doctrine,
+        Configuration $configuration,
         EventDispatcherInterface $dispatcher,
         LoggerInterface $logger,
         TokenManager $token
     ) {
-        //====================================================================//
-        // Link to entity manager Service
-        $this->entityManager = $doctrine->getManager($config["entity_manager"]);
         //====================================================================//
         // Link to Symfony Logger
         $this->logger = $logger;
@@ -130,89 +96,14 @@ class TasksManager
         // Link to Symfony Event Dispatcher
         $this->dispatcher = $dispatcher;
         //====================================================================//
-        // Link to Tasks Repository
-        $taskRepository = $this->entityManager->getRepository(Task::class);
-        if (!($taskRepository instanceof TaskRepository)) {
-            throw new Exception("Wrong repository class");
-        }
-        $this->taskRepository = $taskRepository;
-        //====================================================================//
         // Link to Token Manager
         $this->token = $token;
         //====================================================================//
-        // Init Parameters
-        $this->config = new ArrayObject($config, ArrayObject::ARRAY_AS_PROPS);
+        // Ensure Configuration is Ready
+        $configuration->isReady();
         //==============================================================================
         // Store Static Instance for Access as Static
         static::$staticInstance = $this;
-    }
-
-    //====================================================================//
-    //  SubServices Access
-    //====================================================================//
-
-    /**
-     * Get Tasking Entity Manager
-     *
-     * @return ObjectManager
-     */
-    public function getManager(): ObjectManager
-    {
-        return $this->entityManager;
-    }
-
-    /**
-     * Get Tasks Repository
-     *
-     * @throws Exception
-     *
-     * @return TaskRepository
-     */
-    public function getTasksRepository(): TaskRepository
-    {
-        $repository = $this->entityManager->getRepository(Task::class);
-
-        if (!($repository instanceof TaskRepository)) {
-            throw new Exception("Unable to Load Tasks Repository");
-        }
-
-        return $repository;
-    }
-
-    /**
-     * Get Worker Repository
-     *
-     * @throws Exception
-     *
-     * @return WorkerRepository
-     */
-    public function getWorkerRepository(): WorkerRepository
-    {
-        $repository = $this->entityManager->getRepository(Worker::class);
-
-        if (!($repository instanceof WorkerRepository)) {
-            throw new Exception("Unable to Load Worker Repository");
-        }
-
-        return $repository;
-    }
-
-    /**
-     * Get Token Repository
-     *
-     * @throws Exception
-     *
-     * @return TokenRepository
-     */
-    public function getTokenRepository(): TokenRepository
-    {
-        $repository = $this->entityManager->getRepository(Token::class);
-
-        if (!($repository instanceof TokenRepository)) {
-            throw new Exception("Unable to Load Token Repository");
-        }
-
-        return $repository;
     }
 
     //====================================================================//
@@ -277,8 +168,8 @@ class TasksManager
      */
     public function next(?string $currentToken, bool $staticMode): ?Task
     {
-        return  $this->taskRepository->getNextTask(
-            $this->config->tasks,
+        return  Configuration::getTasksRepository()->getNextTask(
+            Configuration::getTasksConfiguration(),
             $currentToken,
             $staticMode
         );
@@ -287,21 +178,27 @@ class TasksManager
     /**
      * Clean Task Buffer to remove old Finished Tasks
      *
+     * @throws Exception
+     *
      * @return int
      */
     public function cleanUp() : int
     {
         //====================================================================//
         // Delete Old Tasks from Database
-        $cleanCounter = $this->taskRepository->clean($this->config->tasks['max_age']);
+        $cleanCounter = Configuration::getTasksRepository()->clean(Configuration::getTasksDeleteDelay());
         //====================================================================//
         // User Information
         if ($cleanCounter > 0) {
             $this->logger->info('Task Manager: Cleaned '.$cleanCounter.' Tasks');
         }
         //====================================================================//
+        // Delete Old Token from Database
+        $cleanCounter = Configuration::getTokenRepository()->clean(Configuration::getTokenDeleteDelay());
+
+        //====================================================================//
         // Reload Repository Data
-        $this->entityManager->clear();
+        Configuration::getEntityManager()->clear();
 
         return $cleanCounter;
     }
@@ -351,7 +248,7 @@ class TasksManager
             Timer::msSleep($msSteps);
             //==============================================================================
             // Get Number of Pending Tasks
-            $pending = $this->taskRepository->getPendingTasksCount($token, $md5, $key1, $key2);
+            $pending = Configuration::getTasksRepository()->getPendingTasksCount($token, $md5, $key1, $key2);
             //==============================================================================
             // Check If Tasks Completed
             if ((0 == $pending) && (0 == $lastPending)) {
@@ -391,7 +288,7 @@ class TasksManager
         $staticTaskList = $this->getStaticTasks();
         //====================================================================//
         // Get List of Static Tasks in Database
-        $database = $this->taskRepository->getStaticTasks();
+        $database = Configuration::getTasksRepository()->getStaticTasks();
         //====================================================================//
         // Loop on All Database Tasks to Identify Static Tasks
         foreach ($database as $task) {
@@ -408,8 +305,8 @@ class TasksManager
             }
             //====================================================================//
             // Task Not to Run (Doesn't Exists) => Delete from Database
-            $this->entityManager->remove($task);
-            $this->entityManager->flush();
+            Configuration::getEntityManager()->remove($task);
+            Configuration::getEntityManager()->flush();
         }
 
         //====================================================================//
@@ -598,12 +495,15 @@ class TasksManager
      * Insert Tasks in DataBase
      *
      * @param Task $task Task Item to Insert
+     *
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     private function insert(Task $task): void
     {
         //====================================================================//
         // Ensure no Similar Task Already Waiting
-        $count = $this->taskRepository->getWaitingTasksCount(
+        $count = Configuration::getTasksRepository()->getWaitingTasksCount(
             $task->getJobToken(),
             $task->getDiscriminator(),
             $task->getJobIndexKey1(),
@@ -614,8 +514,8 @@ class TasksManager
         }
         //====================================================================//
         // Persist New Task to Db
-        $this->entityManager->persist($task);
-        $this->entityManager->flush();
+        Configuration::getEntityManager()->persist($task);
+        Configuration::getEntityManager()->flush();
     }
 
     /**
@@ -632,7 +532,7 @@ class TasksManager
         $listingEvent = new StaticTasksListingEvent();
         //====================================================================//
         // Fetch List of Static Tasks from Parameters
-        $listingEvent->setArguments($this->config->static);
+        $listingEvent->setArguments(Configuration::getStaticTasksConfiguration());
         //====================================================================//
         // Complete List of Static Tasks via Event Listener
         /** @var StaticTasksListingEvent $resultEvent */
@@ -679,6 +579,8 @@ class TasksManager
      * Dispatch an Event with Args Detection
      *
      * @param GenericEvent $event
+     *
+     * @throws ReflectionException
      *
      * @return null|AddEvent|CheckEvent|InsertEvent
      */

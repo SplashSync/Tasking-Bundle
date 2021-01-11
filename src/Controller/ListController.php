@@ -18,7 +18,7 @@ namespace Splash\Tasking\Controller;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
-use Splash\Tasking\Services\TasksManager;
+use Splash\Tasking\Services\Configuration;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -30,19 +30,17 @@ class ListController extends Controller
     /**
      * Display List of All Tasks
      *
-     * @param TasksManager $manager
-     * @param null|string  $key1    Your Custom Index Key 1
-     * @param null|string  $key2    Your Custom Index Key 2
-     * @param array        $orderBy List Ordering
-     * @param int          $limit   Limit Number of Items
-     * @param int          $offset  Page Offset
+     * @param null|string $key1    Your Custom Index Key 1
+     * @param null|string $key2    Your Custom Index Key 2
+     * @param array       $orderBy List Ordering
+     * @param int         $limit   Limit Number of Items
+     * @param int         $offset  Page Offset
      *
      * @throws Exception
      *
      * @return Response
      */
     public function allAction(
-        TasksManager $manager,
         string $key1 = null,
         string $key2 = null,
         array $orderBy = array(),
@@ -55,26 +53,24 @@ class ListController extends Controller
         //==============================================================================
         // Render All Tasks List
         return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(
-            'tasks' => $manager->getTasksRepository()->findBy($filters, $orderBy, $limit, $offset),
+            'tasks' => Configuration::getTasksRepository()->findBy($filters, $orderBy, $limit, $offset),
         ));
     }
 
     /**
      * Display List of All Waiting Tasks
      *
-     * @param TasksManager $manager
-     * @param null|string  $key1    Your Custom Index Key 1
-     * @param null|string  $key2    Your Custom Index Key 2
-     * @param array        $orderBy List Ordering
-     * @param int          $limit   Limit Number of Items
-     * @param int          $offset  Page Offset
+     * @param null|string $key1    Your Custom Index Key 1
+     * @param null|string $key2    Your Custom Index Key 2
+     * @param array       $orderBy List Ordering
+     * @param int         $limit   Limit Number of Items
+     * @param int         $offset  Page Offset
      *
      * @throws Exception
      *
      * @return Response
      */
     public function waitingAction(
-        TasksManager $manager,
         string $key1 = null,
         string $key2 = null,
         array $orderBy = array(),
@@ -89,26 +85,24 @@ class ListController extends Controller
         //==============================================================================
         // Render All Tasks List
         return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(
-            'tasks' => $manager->getTasksRepository()->findBy($filters, $orderBy, $limit, $offset),
+            'tasks' => Configuration::getTasksRepository()->findBy($filters, $orderBy, $limit, $offset),
         ));
     }
 
     /**
      * Display List of All Actives Tasks
      *
-     * @param TasksManager $manager
-     * @param null|string  $key1    Your Custom Index Key 1
-     * @param null|string  $key2    Your Custom Index Key 2
-     * @param array        $orderBy List Ordering
-     * @param int          $limit   Limit Number of Items
-     * @param int          $offset  Page Offset
+     * @param null|string $key1    Your Custom Index Key 1
+     * @param null|string $key2    Your Custom Index Key 2
+     * @param array       $orderBy List Ordering
+     * @param int         $limit   Limit Number of Items
+     * @param int         $offset  Page Offset
      *
      * @throws Exception
      *
      * @return Response
      */
     public function activeAction(
-        TasksManager $manager,
         string $key1 = null,
         string $key2 = null,
         array $orderBy = array(),
@@ -122,26 +116,24 @@ class ListController extends Controller
         //==============================================================================
         // Render All Tasks List
         return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(
-            'tasks' => $manager->getTasksRepository()->findBy($filters, $orderBy, $limit, $offset),
+            'tasks' => Configuration::getTasksRepository()->findBy($filters, $orderBy, $limit, $offset),
         ));
     }
 
     /**
      * Display List of All Waiting Tasks
      *
-     * @param TasksManager $manager
-     * @param null         $key1    Your Custom Index Key 1
-     * @param null|string  $key2    Your Custom Index Key 2
-     * @param array        $orderBy List Ordering
-     * @param int          $limit   Limit Number of Items
-     * @param int          $offset  Page Offset
+     * @param null        $key1    Your Custom Index Key 1
+     * @param null|string $key2    Your Custom Index Key 2
+     * @param array       $orderBy List Ordering
+     * @param int         $limit   Limit Number of Items
+     * @param int         $offset  Page Offset
      *
      * @throws Exception
      *
      * @return Response
      */
     public function completedAction(
-        TasksManager $manager,
         $key1 = null,
         string $key2 = null,
         array $orderBy = array(),
@@ -156,8 +148,7 @@ class ListController extends Controller
         //==============================================================================
         // Render All Tasks List
         return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(
-            'tasks' => $manager
-                ->getTasksRepository()
+            'tasks' => Configuration::getTasksRepository()
                 ->findBy($filters, $orderBy, $limit, $offset),
         ));
     }
@@ -165,23 +156,20 @@ class ListController extends Controller
     /**
      * Display Summary of All Tasks with Indexes Filters
      *
-     * @param TasksManager $manager
-     * @param null|string  $key1    Your Custom Index Key 1
-     * @param null|string  $key2    Your Custom Index Key 2
+     * @param null|string $key1 Your Custom Index Key 1
+     * @param null|string $key2 Your Custom Index Key 2
      *
      * @throws NoResultException
      * @throws NonUniqueResultException
-     * @throws Exception
      *
      * @return Response
      */
-    public function summaryAction(TasksManager $manager, string $key1 = null, string $key2 = null): Response
+    public function summaryAction(string $key1 = null, string $key2 = null): Response
     {
         //==============================================================================
         // Render Tasks Summary
         return $this->render('SplashTaskingBundle:List:summary.html.twig', array(
-            'summary' => $manager
-                ->getTasksRepository()
+            'summary' => Configuration::getTasksRepository()
                 ->getTasksSummary($key1, $key2),
         ));
     }
@@ -189,19 +177,17 @@ class ListController extends Controller
     /**
      * Display Tasks Status List
      *
-     * @param TasksManager $manager
-     * @param null|string  $key1    Your Custom Index Key 1
-     * @param null|string  $key2    Your Custom Index Key 2
-     * @param array        $orderBy List Ordering
-     * @param int          $limit   Limit Number of Items
-     * @param int          $offset  Page Offset
+     * @param null|string $key1    Your Custom Index Key 1
+     * @param null|string $key2    Your Custom Index Key 2
+     * @param array       $orderBy List Ordering
+     * @param int         $limit   Limit Number of Items
+     * @param int         $offset  Page Offset
      *
      * @throws Exception
      *
      * @return Response
      */
     public function statusAction(
-        TasksManager $manager,
         $key1 = null,
         string $key2 = null,
         array $orderBy = array(),
@@ -211,8 +197,7 @@ class ListController extends Controller
         //==============================================================================
         // Render Tasks Summary
         return $this->render('SplashTaskingBundle:List:status.html.twig', array(
-            'status' => $manager
-                ->getTasksRepository()
+            'status' => Configuration::getTasksRepository()
                 ->getTasksStatus($key1, $key2, $orderBy, $limit, $offset),
         ));
     }

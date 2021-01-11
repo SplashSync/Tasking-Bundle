@@ -18,6 +18,7 @@ namespace Splash\Tasking\Entity;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Exception;
+use Splash\Tasking\Services\Configuration;
 
 /**
  * System Global DBAL Task Token
@@ -32,20 +33,6 @@ class Token
     //==============================================================================
     //  Constants Definition
     //==============================================================================
-
-    /**
-     * Token Validity Delay in Seconds
-     *
-     * @var int
-     */
-    const SELFRELEASE_DELAY = 360;
-
-    /**
-     * Delay Between two DB Write Tentatives in Milliseconds
-     *
-     * @var int
-     */
-    const DB_LOCKED_DELAY = 1;
 
     /**
      * Token Maximum Inactivity Time in Hours
@@ -179,7 +166,7 @@ class Token
 
         //====================================================================//
         // Verify if Token Validity
-        $maxAge = new DateTime("-".self::SELFRELEASE_DELAY." Seconds");
+        $maxAge = new DateTime("-".Configuration::getTokenSelfReleaseDelay()." Seconds");
 
         return $this->lockedAt > $maxAge;
     }

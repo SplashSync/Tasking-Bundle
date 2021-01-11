@@ -15,10 +15,8 @@
 
 namespace Splash\Tasking\Services;
 
-use ArrayObject;
 use Psr\Log\LoggerInterface;
 use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Entity\Worker;
 use Splash\Tasking\Tools\Timer;
 
 /**
@@ -51,13 +49,6 @@ class ProcessManager
     private $logger;
 
     /**
-     * Tasking Service Configuration Array
-     *
-     * @var ArrayObject
-     */
-    private $config;
-
-    /**
      * Sf Project Root Dir
      *
      * @var string
@@ -72,10 +63,9 @@ class ProcessManager
      * Class Constructor
      *
      * @param string          $rootDir
-     * @param array           $configuration
      * @param LoggerInterface $logger
      */
-    public function __construct(string $rootDir, array $configuration, LoggerInterface $logger)
+    public function __construct(string $rootDir, LoggerInterface $logger)
     {
         //====================================================================//
         // Link to Symfony Logger
@@ -83,7 +73,6 @@ class ProcessManager
         //====================================================================//
         // Init Parameters
         $this->projectDir = dirname($rootDir);
-        $this->config = new ArrayObject($configuration, ArrayObject::ARRAY_AS_PROPS);
     }
 
     //==============================================================================
@@ -98,17 +87,17 @@ class ProcessManager
     public function checkCrontab(): string
     {
         //====================================================================//
-        // Check Crontab Management is ACtivated
-        if (!$this->config["server"]["force_crontab"]) {
+        // Check Crontab Management is Activated
+        if (!Configuration::isServerForceCrontab()) {
             $this->logger->debug("Process Manager: Crontab is Disabled.");
 
             return Task::CRONTAB_DISABLED;
         }
         //====================================================================//
         // Compute Expected Cron Tab Command
-        $command = self::CRON." ".$this->config["server"]["php_version"]." ";
+        $command = self::CRON." ".Configuration::getServerPhpVersion()." ";
         $command .= " ".$this->projectDir."/".self::CMD_CONSOLE;
-        $command .= " ".self::CHECK." --env=".$this->config["environement"]." ".self::CMD_SUFIX;
+        $command .= " ".self::CHECK." --env=".Configuration::getEnvironmentName()." ".self::CMD_SUFIX;
         //====================================================================//
         // Read Current Cron Tab Configuration
         $cronTab = array();
@@ -133,20 +122,20 @@ class ProcessManager
     /**
      * Start a Process on Local Machine (Server Node)
      *
-     * @param string $command      Symfony Command to Execute (i.e tasking:start)
-     * @param string $environement Force Symfnoy Environement for this Command
+     * @param string      $command     Symfony Command to Execute (i.e tasking:start)
+     * @param null|string $environment Force Symfony Environment for this Command
      *
      * @return bool
      */
-    public function start(string $command, string $environement = null) : bool
+    public function start(string $command, string $environment = null) : bool
     {
         //====================================================================//
-        // Select Environement
-        $env = is_null($environement) ? $this->config["environement"] : $environement;
+        // Select Environment
+        $env = is_null($environment) ? Configuration::getEnvironmentName() : $environment;
 
         //====================================================================//
         // Finalize Command
-        $rawCmd = self::CMD_NOHUP.$this->config["server"]["php_version"]." ";
+        $rawCmd = self::CMD_NOHUP.Configuration::getServerPhpVersion()." ";
         $rawCmd .= $this->projectDir."/".self::CMD_CONSOLE;
         $rawCmd .= $command." --env=".$env.self::CMD_SUFIX;
 
@@ -173,20 +162,20 @@ class ProcessManager
     /**
      * Check if a Similar Process Exists on Local Machine (Server Node)
      *
-     * @param string $command
-     * @param string $environement
+     * @param string      $command
+     * @param null|string $environment
      *
      * @return int Count of Process for This Command
      */
-    public function exists(string $command, string $environement = null) : int
+    public function exists(string $command, string $environment = null) : int
     {
         //====================================================================//
-        // Select Environement
-        $env = is_null($environement) ? $this->config["environement"] : $environement;
+        // Select Environment
+        $env = is_null($environment) ? Configuration::getEnvironmentName() : $environment;
 
         //====================================================================//
         // Find Command
-        $listCommand = $this->config["server"]["php_version"]." ";
+        $listCommand = Configuration::getServerPhpVersion()." ";
         $listCommand .= $this->projectDir."/".self::CMD_CONSOLE;
         $listCommand .= $command." --env=".$env;
 

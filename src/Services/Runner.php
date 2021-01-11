@@ -15,7 +15,6 @@
 
 namespace Splash\Tasking\Services;
 
-use ArrayObject;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Exception;
@@ -24,7 +23,7 @@ use Sentry;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
-use Splash\Tasking\Repository\TaskRepository;
+use Splash\Tasking\Tools\Status;
 use Splash\Tasking\Tools\Timer;
 use Symfony\Component\DependencyInjection\ContainerInterface as Container;
 
@@ -57,32 +56,11 @@ class Runner
     private $registry;
 
     /**
-     * Tasks Repository
-     *
-     * @var TaskRepository
-     */
-    private $taskRepository;
-
-    /**
      * Token Manager Service
      *
      * @var TokenManager
      */
     private $token;
-
-    /**
-     * Tasking Service Configuration Array
-     *
-     * @var ArrayObject
-     */
-    private $config;
-
-    /**
-     * Tasks Max Try Count
-     *
-     * @var int
-     */
-    private $maxTry = 10;
 
     /**
      * Current Task Class to Execute
@@ -99,17 +77,15 @@ class Runner
     /**
      * Service Constructor
      *
-     * @param array           $config
      * @param Container       $container
      * @param LoggerInterface $logger
-     * @param Registry        $doctrine
+     * @param Registry        $registry
      * @param TokenManager    $token
      */
     public function __construct(
-        array $config,
         Container $container,
         LoggerInterface $logger,
-        Registry $doctrine,
+        Registry $registry,
         TokenManager $token
     ) {
         //====================================================================//
@@ -120,22 +96,10 @@ class Runner
         $this->logger = $logger;
         //====================================================================//
         // Link to entity manager Service
-        $this->registry = $doctrine;
-        $entityManager = $doctrine->getManager($config["entity_manager"]);
-        //====================================================================//
-        // Link to Tasks Repository
-        $taskRepository = $entityManager->getRepository(Task::class);
-        if (!($taskRepository instanceof TaskRepository)) {
-            throw new Exception("Wrong repository class");
-        }
-        $this->taskRepository = $taskRepository;
+        $this->registry = $registry;
         //====================================================================//
         // Link to Token Manager
         $this->token = $token;
-        //====================================================================//
-        // Init Parameters
-        $this->config = new ArrayObject($config, ArrayObject::ARRAY_AS_PROPS) ;
-        $this->maxTry = $config['tasks']["try_count"];
     }
 
     //==============================================================================
@@ -144,6 +108,8 @@ class Runner
 
     /**
      * Ask Runner to Execute Next Available Task
+     *
+     * @throws Exception
      *
      * @return bool True if A Task was Executed
      */
@@ -154,7 +120,7 @@ class Runner
         Timer::start();
         //==============================================================================
         // Clear Current Entity Manager
-        $this->taskRepository->clear();
+        Configuration::getTasksRepository()->clear();
         //==============================================================================
         // Clear Global Entity Manager
         $this->registry->getManager()->clear();
@@ -202,6 +168,8 @@ class Runner
      *
      * @param bool $staticMode Execute Static Tasks
      *
+     * @throws Exception
+     *
      * @return boolean
      */
     private function runNextTask(bool $staticMode) : bool
@@ -234,29 +202,29 @@ class Runner
             $this->task->setTry($this->task->getTry() + 1);
             //==============================================================================
             // Save Status in Db
-            $this->taskRepository->flush($this->task);
+            Configuration::getTasksRepository()->flush($this->task);
 
             return true;
         }
 
         //==============================================================================
         // Save Status in Db
-        $this->taskRepository->flush($this->task);
+        Configuration::getTasksRepository()->flush($this->task);
 
         //====================================================================//
-        // Exectue Task
+        // Execute Task
         //====================================================================//
         $this->executeJob($this->task);
 
         //==============================================================================
         // Do Post Execution Actions
-        $this->closeJob($this->task, $this->maxTry);
+        $this->closeJob($this->task, Configuration::getTasksMaxRetry());
         $this->clearEntityManagers();
 
         //==============================================================================
         // Save Status in Db
         if ($this->task instanceof Task) {
-            $this->taskRepository->flush($this->task);
+            Configuration::getTasksRepository()->flush($this->task);
         }
 
         //====================================================================//
@@ -268,6 +236,8 @@ class Runner
      * Load Next Available Tasks with Potential Existing Token
      *
      * @param bool $staticMode Execute Static Tasks
+     *
+     * @throws Exception
      */
     private function loadNextTask(bool $staticMode) : void
     {
@@ -279,8 +249,8 @@ class Runner
 
         //====================================================================//
         // Load Next Task To Run with Current Token
-        $this->task = $this->taskRepository->getNextTask(
-            $this->config->tasks,
+        $this->task = Configuration::getTasksRepository()->getNextTask(
+            Configuration::getTasksConfiguration(),
             $currentToken,
             $staticMode
         );
@@ -355,6 +325,9 @@ class Runner
 
             return false;
         }
+        //====================================================================//
+        // Init Task Status Manager
+        Status::setJobStarted();
         //====================================================================//
         // Init User Job
         $this->job->__set("inputs", $task->getJobInputs());
@@ -435,13 +408,13 @@ class Runner
         // Execute Job Action
         $result = (bool) $this->job->{$task->getJobAction()}();
         if ((false === $result) && (null == $task->getFaultStr())) {
-            $task->setFaultStr("An error occured when executing this Job.");
+            $task->setFaultStr("An error occurred when executing this Job.");
         }
         //==============================================================================
         // Execute Job Self Finalize & Close Methods
         if (!$this->job->finalize() || !$this->job->close()) {
             if (null == $task->getFaultStr()) {
-                $task->setFaultStr("An error occured when closing this Job.");
+                $task->setFaultStr("An error occurred when closing this Job.");
             }
         }
 
@@ -453,9 +426,14 @@ class Runner
      *
      * @param Task $task
      * @param int  $maxTry Max number of retry. Once reached, task is forced to finished.
+     *
+     * @throws Exception
      */
     private function closeJob(Task &$task, int $maxTry): void
     {
+        //====================================================================//
+        // Init Task Status Manager
+        Status::setJobFinished();
         //==============================================================================
         // End of Task Execution
         $task->setRunning(false);
@@ -501,7 +479,7 @@ class Runner
     private function clearEntityManagers(): void
     {
         foreach (array_keys($this->registry->getManagerNames()) as $managerName) {
-            if ($managerName != $this->config->entity_manager) {
+            if ($managerName != Configuration::getEntityManagerName()) {
                 $this->registry->getManager($managerName)->clear();
             }
         }

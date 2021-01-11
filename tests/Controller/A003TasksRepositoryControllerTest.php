@@ -18,6 +18,7 @@ namespace Splash\Tasking\Tests\Controller;
 use Exception;
 use PHPUnit\Framework\Assert;
 use Splash\Tasking\Entity\Task;
+use Splash\Tasking\Services\Configuration;
 use Splash\Tasking\Tests\Jobs\TestJob;
 
 /**
@@ -59,6 +60,7 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
         //====================================================================//
         // Delete All Tasks
         $this->deleteAllTasks();
+        $this->deleteAllTokens();
     }
 
     /**
@@ -355,7 +357,7 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
     {
         //====================================================================//
         // Load Tasks Parameters
-        $options = $this->getContainer()->getParameter("splash_tasking")["tasks"];
+        $options = Configuration::getTasksConfiguration();
         $options["try_delay"] = $options["error_delay"] = 10;
         $noErrorsOptions = $options;
         $noErrorsOptions["error_delay"] = -1;

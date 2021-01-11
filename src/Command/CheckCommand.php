@@ -65,7 +65,7 @@ class CheckCommand extends Command
     {
         //====================================================================//
         // Check Local Supervisor is Running
-        // Check Crontab is Setuped (if Activated)
+        // Check Crontab is Setup (if Activated)
         // Check Remotes Supervisors Are Running (if Activated)
         $this->manager->checkSupervisor();
 

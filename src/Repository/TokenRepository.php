@@ -23,6 +23,8 @@ use Doctrine\ORM\ORMException;
 use Doctrine\ORM\PessimisticLockException;
 use Exception;
 use Splash\Tasking\Entity\Token;
+use Splash\Tasking\Services\Configuration;
+use Splash\Tasking\Tools\Status;
 use Splash\Tasking\Tools\Timer;
 
 /**
@@ -33,7 +35,7 @@ use Splash\Tasking\Tools\Timer;
 class TokenRepository extends EntityRepository
 {
     /**
-     * Token Acquire Mode => Normal => No coucurency management
+     * Token Acquire Mode => Normal => No concurrency management
      *
      * @var string
      */
@@ -58,15 +60,27 @@ class TokenRepository extends EntityRepository
      *
      * @param string $tokenName Token Name to Acquire
      *
+     * @throws Exception
+     *
      * @return null|Token Null if Token not found or already Locked, $token Entity if Lock Acquired
      */
     public function acquire(string $tokenName): ?Token
     {
         switch ($this->mode) {
             case self::MODE_NORMAL:
-                return $this->acquireNormal($tokenName);
+                $token = $this->acquireNormal($tokenName);
+
+                break;
             case self::MODE_OPTIMISTIC:
-                return $this->acquireOptimistic($tokenName);
+            default:
+                $token = $this->acquireOptimistic($tokenName);
+
+                break;
+        }
+        if ($token) {
+            Status::setTokenAcquired($tokenName);
+
+            return $token;
         }
 
         return null;
@@ -77,15 +91,29 @@ class TokenRepository extends EntityRepository
      *
      * @param string $tokenName Token Name to Acquire
      *
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws PessimisticLockException
+     *
      * @return bool
      */
     public function release(string $tokenName): bool
     {
         switch ($this->mode) {
             case self::MODE_NORMAL:
-                return $this->releaseNormal($tokenName);
+                $result = $this->releaseNormal($tokenName);
+
+                break;
             case self::MODE_OPTIMISTIC:
-                return $this->releaseOptimistic($tokenName);
+            default:
+                $result = $this->releaseOptimistic($tokenName);
+
+                break;
+        }
+        if ($result) {
+            Status::setTokenReleased();
+
+            return true;
         }
 
         return false;
@@ -95,6 +123,8 @@ class TokenRepository extends EntityRepository
      * Initialize a Specific Token before Task Creation
      *
      * @param string $tokenName Token Name
+     *
+     * @throws ORMException
      *
      * @return bool
      */
@@ -121,6 +151,8 @@ class TokenRepository extends EntityRepository
      *
      * @param string $tokenName Token Name to Acquire
      *
+     * @throws ORMException
+     *
      * @return bool
      */
     public function delete(string $tokenName) : bool
@@ -146,14 +178,15 @@ class TokenRepository extends EntityRepository
     /**
      * Delete all Token Unused for more than given delay
      *
-     * @param int $maxAge Max Age for Tokens in Hours
+     * @param null|int $maxAge Max Age for Tokens in Hours
      *
      * @throws Exception
      *
      * @return int Count of Deleted Tasks
      */
-    public function clean(int $maxAge = Token::DELETE_DELAY) : int
+    public function clean(int $maxAge = null) : int
     {
+        $maxAge = $maxAge ? $maxAge : Configuration::getTokenDeleteDelay();
         //==============================================================================
         // Prepare Max Age DateTime
         $maxDate = new DateTime("-".$maxAge."Hours");
@@ -173,6 +206,8 @@ class TokenRepository extends EntityRepository
      * No Locking Mode
      *
      * @param string $tokenName Token Name to Acquire
+     *
+     * @throws Exception
      *
      * @return null|Token Null if Token not found or already Locked, $token Entity if Lock Acquired
      */
@@ -197,7 +232,7 @@ class TokenRepository extends EntityRepository
         }
         //====================================================================//
         // Set Token As Locked
-        $token->Acquire();
+        $token->acquire();
         //====================================================================//
         // Save Changes
         $this->_em->flush();
@@ -229,7 +264,7 @@ class TokenRepository extends EntityRepository
         }
         //====================================================================//
         // Set Token As Unlocked
-        $token->Release();
+        $token->release();
         //====================================================================//
         // Save Changes
         $this->_em->flush();
@@ -243,7 +278,7 @@ class TokenRepository extends EntityRepository
      *
      * @param string $tokenName Token Name to Acquire
      *
-     * @throws ORMException
+     * @throws Exception
      *
      * @return null|Token Null if Token not found or already Locked, $token Entity if Lock Acquired
      *
@@ -278,7 +313,7 @@ class TokenRepository extends EntityRepository
             $this->_em->lock($token, LockMode::OPTIMISTIC, $token->getVersion());
             //====================================================================//
             // Set Token As Locked
-            $token->Acquire();
+            $token->acquire();
             //====================================================================//
             // Save Changes
             $this->_em->flush();
@@ -296,7 +331,7 @@ class TokenRepository extends EntityRepository
      *
      * @param string $tokenName Token Name to Acquire
      *
-     * @throws ORMException
+     * @throws Exception
      * @throws PessimisticLockException
      *
      * @return bool

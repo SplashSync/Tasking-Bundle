@@ -46,7 +46,7 @@ class SupervisorsManager extends WorkersManager
     {
         //====================================================================//
         // Load Config Value
-        $maxWorkers = $this->config->supervisor['max_workers'];
+        $maxWorkers = Configuration::getSupervisorMaxWorkers();
         //====================================================================//
         // Safety Checks
         if (!is_int($maxWorkers) || ($maxWorkers <= 0)) {
@@ -93,7 +93,7 @@ class SupervisorsManager extends WorkersManager
     {
         //====================================================================//
         // Wait
-        Timer::msSleep((int) $this->config->supervisor["refresh_delay"]);
+        Timer::msSleep(Configuration::getSupervisorRefreshDelay());
     }
 
     //==============================================================================
@@ -120,10 +120,10 @@ class SupervisorsManager extends WorkersManager
     protected function getWorkerMaxDate(): DateTime
     {
         $this->logger->info(
-            "Supervisor Manager: This Worker will die in ".$this->config->supervisor['max_age']." Seconds"
+            "Supervisor Manager: This Worker will die in ".Configuration::getSupervisorMaxAge()." Seconds"
         );
 
-        return new DateTime("+".$this->config->supervisor['max_age']."Seconds");
+        return new DateTime("+".Configuration::getSupervisorMaxAge()."Seconds");
     }
 
     /**
@@ -133,6 +133,6 @@ class SupervisorsManager extends WorkersManager
      */
     protected function getWorkerMaxMemory(): int
     {
-        return (int) $this->config->supervisor["max_memory"];
+        return Configuration::getSupervisorMaxMemory();
     }
 }

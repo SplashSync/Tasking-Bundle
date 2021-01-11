@@ -15,49 +15,121 @@
 
 namespace Splash\Tasking\Services;
 
-use ArrayObject;
 use Doctrine\Bundle\DoctrineBundle\Registry;
-use Doctrine\Persistence\ObjectManager;
+use Exception;
+use Splash\Tasking\Model\Configuration as ConfigurationTraits;
 
 class Configuration
 {
-    /**
-     * Tasking Doctrine Entity Manager
-     *
-     * @var ObjectManager
-     */
-    private static $entityManager;
+    use ConfigurationTraits\CoreParametersGettersTrait;
+    use ConfigurationTraits\ServerParametersGettersTrait;
+    use ConfigurationTraits\DoctrineGettersTrait;
+    use ConfigurationTraits\SupervisorParametersGettersTrait;
+    use ConfigurationTraits\WorkersParametersGettersTrait;
+    use ConfigurationTraits\StaticParametersGettersTrait;
+    use ConfigurationTraits\TokenParametersGettersTrait;
+    use ConfigurationTraits\TasksParametersGettersTrait;
 
     /**
      * Tasking Service Configuration Array
      *
-     * @var ArrayObject
+     * @var array
      */
-    private static $config;
+    protected static $config;
 
     /**
      * Class Constructor
      *
-     * @param array    $config
-     * @param Registry $doctrine
+     * @param array    $configuration
+     * @param Registry $registry
+     *
+     * @throws Exception
      */
-    public function __construct(array $config, Registry $doctrine)
+    public function __construct(array $configuration, Registry $registry)
     {
         //====================================================================//
-        // Link to entity manager Service
-        self::$entityManager = $doctrine->getManager($config["entity_manager"]);
+        // Complete & Store Configuration
+        self::loadConfiguration($configuration);
         //====================================================================//
-        // Store Original Configuration
-        self::$config = new ArrayObject($config, ArrayObject::ARRAY_AS_PROPS);
+        // Setup Doctrine Services
+        self::setupEntityManager($registry);
     }
 
     /**
-     * Get Entity Manger for Tasking
+     * Check if Configuration is ready
      *
-     * @return ObjectManager
+     * @throws Exception
+     *
+     * @return bool
      */
-    public static function getEntityManager(): ObjectManager
+    public function isReady(): bool
     {
-        return self::$entityManager;
+        if (!isset(self::$config)) {
+            throw new Exception("Tasking Bundle Configuration is NOT Loaded");
+        }
+
+        return true;
+    }
+
+    /**
+     * Get Raw Configuration for Tasking
+     *
+     * @param array $configuration
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
+    public static function loadConfiguration(array $configuration): array
+    {
+        //====================================================================//
+        // Validate Configuration
+        $validation = self::validateConfiguration($configuration);
+        if (!is_null($validation)) {
+            throw new Exception($validation);
+        }
+        //====================================================================//
+        // Complete & Store Configuration
+        self::$config = self::completeConfiguration($configuration);
+
+        return self::$config;
+    }
+
+    /**
+     * Validate Initial Configuration for Tasking
+     *
+     * @return null|string
+     */
+    private static function validateConfiguration(array $configuration): ?string
+    {
+        //====================================================================//
+        // Validate Number of Workers
+        if (empty($configuration['supervisor']['max_workers']) || (0 >= $configuration['supervisor']['max_workers'])) {
+            return "Number of Workers must by above 0";
+        }
+        //====================================================================//
+        // Validate Watchdog delay
+        if ($configuration['watchdog_delay'] <= $configuration['refresh_delay']) {
+            return "Watchdog delay MUST be greater than Refresh delay";
+        }
+
+        return null;
+    }
+
+    /**
+     * Complete Initial Configuration for Tasking
+     *
+     * @return array
+     */
+    private static function completeConfiguration(array $configuration): array
+    {
+        //====================================================================//
+        // Compute Tasks Parameters
+        self::completeTasksConfiguration($configuration);
+        //====================================================================//
+        // Compute Token Parameters
+        self::completeTokenConfiguration($configuration);
+
+        return $configuration;
     }
 }

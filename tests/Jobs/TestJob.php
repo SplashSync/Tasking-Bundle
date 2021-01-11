@@ -98,7 +98,9 @@ class TestJob extends AbstractJob
     //==============================================================================
 
     /**
-     * Overide this function to validate you Input parameters
+     * Override this function to validate you Input parameters
+     *
+     * @throws Exception
      *
      * @return bool
      */
@@ -131,7 +133,9 @@ class TestJob extends AbstractJob
     }
 
     /**
-     * Overide this function to prepare your class for it's execution
+     * Override this function to prepare your class for it's execution
+     *
+     * @throws Exception
      *
      * @return bool
      */
@@ -149,7 +153,9 @@ class TestJob extends AbstractJob
     }
 
     /**
-     * Overide this function to perform your task
+     * Override this function to perform your task
+     *
+     * @throws Exception
      *
      * @return bool
      */
@@ -171,7 +177,9 @@ class TestJob extends AbstractJob
     }
 
     /**
-     * Overide this function to validate results of your task or perform post-actions
+     * Override this function to validate results of your task or perform post-actions
+     *
+     * @throws Exception
      *
      * @return bool
      */
@@ -189,7 +197,9 @@ class TestJob extends AbstractJob
     }
 
     /**
-     * Overide this function to close your task
+     * Override this function to close your task
+     *
+     * @throws Exception
      *
      * @return bool
      */
@@ -287,7 +297,7 @@ class TestJob extends AbstractJob
      *
      * @param string $methodName
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function doThrowException(string $methodName): void
     {
@@ -297,7 +307,7 @@ class TestJob extends AbstractJob
         //====================================================================//
         // Trow exception if requested!
         if (isset($this->inputs[$parameterId]) && (true == $this->inputs[$parameterId])) {
-            throw new Exception(sprintf("You requeted Job to Fail on %s Method.", $methodName));
+            throw new Exception(sprintf("You requested Job to Fail on %s Method.", $methodName));
         }
     }
 }

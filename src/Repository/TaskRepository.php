@@ -25,6 +25,7 @@ use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\Mapping\MappingException;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Token;
+use Splash\Tasking\Services\Configuration;
 
 /**
  * Splash Background Tasks Repository.
@@ -74,7 +75,7 @@ class TaskRepository extends EntityRepository
         //====================================================================//
         // Setup Query Token Parameters
         if (null == $tokenName) {
-            $this->builder->setParameter('TokenExpireDate', ($timestamp - Token::SELFRELEASE_DELAY));
+            $this->builder->setParameter('TokenExpireDate', ($timestamp - Configuration::getTokenSelfReleaseDelay()));
         } else {
             $this->builder->setParameter('TokenName', $tokenName);
         }
@@ -501,7 +502,7 @@ class TaskRepository extends EntityRepository
                 'task.try = 0 AND task.running = 0',
                 // If Task has Already been tried, but failed
                 "task.try > 0 AND task.try < :MaxTry AND task.running = 0 AND task.startedAtTimeStamp <  :MaxDate",
-                // If Task Timeout Exeeded
+                // If Task Timeout Exceeded
                 "task.try < :MaxTry AND task.running = 1 AND task.startedAtTimeStamp < :ErrorDate"
             ))
             //====================================================================//

@@ -306,7 +306,6 @@ class C001TasksExecutionControllerTest extends AbstractTestController
         //====================================================================//
         // Wait Unit get this Task Executed
         $watchDog = 0;
-        $queue = 0;
         do {
             usleep((int) (500 * 1E3));  // 500Ms
             $watchDog++;

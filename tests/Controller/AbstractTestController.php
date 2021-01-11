@@ -19,11 +19,10 @@ use Doctrine\Persistence\ObjectManager;
 use Exception;
 use ReflectionClass;
 use ReflectionException;
-use Splash\Tasking\Entity\Token;
-use Splash\Tasking\Entity\Worker;
 use Splash\Tasking\Repository\TaskRepository;
 use Splash\Tasking\Repository\TokenRepository;
 use Splash\Tasking\Repository\WorkerRepository;
+use Splash\Tasking\Services\Configuration;
 use Splash\Tasking\Services\ProcessManager;
 use Splash\Tasking\Services\Runner;
 use Splash\Tasking\Services\TasksManager;
@@ -105,16 +104,16 @@ abstract class AbstractTestController extends WebTestCase
         self::bootKernel();
         //====================================================================//
         // Link to entity manager Services
-        $this->entityManager = $this->getTasksManager()->getManager();
+        $this->entityManager = Configuration::getEntityManager();
         //====================================================================//
         // Link to Tasks Repository
-        $this->tasksRepository = $this->getTasksManager()->getTasksRepository();
+        $this->tasksRepository = Configuration::getTasksRepository();
         //====================================================================//
         // Link to Token Repository
-        $this->tokenRepository = $this->getTasksManager()->getTokenRepository();
+        $this->tokenRepository = Configuration::getTokenRepository();
         //====================================================================//
         // Link to Workers Repository
-        $this->workersRepository = $this->getTasksManager()->getWorkerRepository();
+        $this->workersRepository = Configuration::getWorkerRepository();
         //====================================================================//
         // Generate a Fake Output
         $this->output = new NullOutput();

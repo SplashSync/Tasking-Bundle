@@ -15,14 +15,10 @@
 
 namespace Splash\Tasking\Services;
 
-use ArrayObject;
-use Doctrine\Bundle\DoctrineBundle\Registry;
-use Doctrine\Persistence\ObjectManager;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Token;
-use Splash\Tasking\Repository\TokenRepository;
 
 /**
  * Token Management Service
@@ -32,27 +28,6 @@ class TokenManager
     //==============================================================================
     //  Variables Definition
     //==============================================================================
-
-    /**
-     * Doctrine Entity Manager
-     *
-     * @var ObjectManager
-     */
-    public $entityManager;
-
-    /**
-     * Tasking Service Configuration Array
-     *
-     * @var ArrayObject
-     */
-    protected $config;
-
-    /**
-     * Token Repository
-     *
-     * @var TokenRepository
-     */
-    private $tokenRepository;
 
     /**
      * @var LoggerInterface
@@ -73,30 +48,15 @@ class TokenManager
     /**
      * Class Constructor
      *
-     * @param Registry        $doctrine
      * @param LoggerInterface $logger
-     * @param array           $config
      *
      * @throws Exception
      */
-    public function __construct(array $config, Registry $doctrine, LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger)
     {
-        //====================================================================//
-        // Link to entity manager Service
-        $this->entityManager = $doctrine->getManager($config["entity_manager"]);
         //====================================================================//
         // Link to Symfony Logger
         $this->logger = $logger;
-        //====================================================================//
-        // Link to Token Repository
-        $tokenRepository = $this->entityManager->getRepository(Token::class);
-        if (!($tokenRepository instanceof TokenRepository)) {
-            throw new Exception("Wrong repository class");
-        }
-        $this->tokenRepository = $tokenRepository;
-        //====================================================================//
-        // Init Parameters
-        $this->config = new ArrayObject($config, ArrayObject::ARRAY_AS_PROPS);
     }
 
     //====================================================================//
@@ -108,6 +68,8 @@ class TokenManager
      *
      * @param Task $task Task Object
      *
+     * @throws Exception
+     *
      * @return bool
      */
     public function acquire(Task $task): bool
@@ -115,7 +77,7 @@ class TokenManager
         //==============================================================================
         // Safety Check - If Task Counter is Over => Close Directly This Task
         // This means task was aborted due to a uncached fatal error
-        if ($task->getTry() > $this->config->tasks["try_count"]) {
+        if ($task->getTry() > Configuration::getTasksMaxRetry()) {
             $task->setFaultStr("Fatal Error: Task Counter is Over!");
             $this->logger->notice("Token Manager: Task Counter is Over!");
 
@@ -148,7 +110,7 @@ class TokenManager
         }
         //==============================================================================
         // Try Acquire this Token
-        $acquiredToken = $this->tokenRepository->acquire($jobToken);
+        $acquiredToken = Configuration::getTokenRepository()->acquire($jobToken);
 
         //==============================================================================
         // Check If token is Available
@@ -170,6 +132,8 @@ class TokenManager
     /**
      * Release Lock on a Specific Token
      *
+     * @throws Exception
+     *
      * @return bool Return True only if Current Token was Released
      */
     public function release() : bool
@@ -181,7 +145,7 @@ class TokenManager
         }
         //==============================================================================
         // Release Token
-        $release = $this->tokenRepository->release($this->currentToken);
+        $release = Configuration::getTokenRepository()->release($this->currentToken);
         //==============================================================================
         // Token Released => Clear Current Token
         if (true === $release) {
@@ -197,6 +161,8 @@ class TokenManager
      *
      * @param Task $task
      *
+     * @throws Exception
+     *
      * @return bool
      */
     public function validate(Task $task): bool
@@ -206,6 +172,6 @@ class TokenManager
             return true;
         }
 
-        return $this->tokenRepository->validate($token);
+        return Configuration::getTokenRepository()->validate($token);
     }
 }

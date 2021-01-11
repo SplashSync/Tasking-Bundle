@@ -13,25 +13,26 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking;
-
-use Splash\Tasking\Services\TasksManager;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
+namespace Splash\Tasking\Model\Configuration;
 
 /**
- * Splash Tasking Bundle
- *
- * 100% PHP Advanced Tasks Scheduler for Symfony Applications
+ * Access to Server Tasking Parameters
  */
-class SplashTaskingBundle extends Bundle
+trait ServerParametersGettersTrait
 {
     /**
-     * @return void
+     * @return bool
      */
-    public function boot()
+    public static function isServerForceCrontab(): bool
     {
-        //==============================================================================
-        // Force Loading of Tasks Manager
-        $this->container->get(TasksManager::class);
+        return (bool) self::$config['server']['force_crontab'];
+    }
+
+    /**
+     * @return string
+     */
+    public static function getServerPhpVersion(): string
+    {
+        return (string) self::$config['server']['php_version'];
     }
 }

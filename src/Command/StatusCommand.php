@@ -17,7 +17,7 @@ namespace Splash\Tasking\Command;
 
 use Exception;
 use Splash\Tasking\Entity\Worker;
-use Splash\Tasking\Services\TasksManager;
+use Splash\Tasking\Services\Configuration;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -32,26 +32,6 @@ class StatusCommand extends ContainerAwareCommand
      * @var ProgressBar
      */
     private $progress;
-
-    /**
-     * Tasks Manager Service
-     *
-     * @var TasksManager
-     */
-    private $manager;
-
-    /**
-     * Class Constructor
-     *
-     * @param TasksManager $workerManager
-     */
-    public function __construct(TasksManager $workerManager)
-    {
-        parent::__construct(null);
-        //====================================================================//
-        // Link to Worker Manager Service
-        $this->manager = $workerManager;
-    }
 
     /**
      * {@inheritdoc}
@@ -79,7 +59,7 @@ class StatusCommand extends ContainerAwareCommand
         }
         //====================================================================//
         // Load Tasks Repository
-        $repo = $this->manager->getTasksRepository();
+        $repo = Configuration::getTasksRepository();
 
         while (1) {
             //====================================================================//
@@ -118,12 +98,14 @@ class StatusCommand extends ContainerAwareCommand
      * @param OutputInterface $output
      *
      * @SuppressWarnings(PHPMD.ElseExpression)
+     *
+     * @throws Exception
      */
     protected function showWorkers(OutputInterface $output): void
     {
         //====================================================================//
         // Load Tasks Repository
-        $repo = $this->manager->getWorkerRepository();
+        $repo = Configuration::getWorkerRepository();
 
         //====================================================================//
         // List Workers Status
@@ -168,7 +150,7 @@ class StatusCommand extends ContainerAwareCommand
     {
         //====================================================================//
         // Load Worker Repository
-        $workers = $this->manager->getWorkerRepository();
+        $workers = Configuration::getWorkerRepository();
         //====================================================================//
         // Fetch Workers Status
         $status = $workers->getWorkersStatus();
@@ -238,14 +220,18 @@ class StatusCommand extends ContainerAwareCommand
     {
         $message = "";
         if ($finished >= $total) {
-            $message .= ' <info>'.'All Done! '.'</info>';
-        } else {
-            $message .= ' <comment>'.($total - $finished).' Tasks Pending... '.'</comment>';
+            return ' <info>'.'All Done! '.'</info>';
         }
+        $message .= ($total - $finished).' Tasks... ';
+
         if ($token > 0) {
-            $message .= ' <comment>'.$token.' Tokens Used...'.'</comment>';
+            $message .= $token.' Tokens... ';
+        }
+        if (($finished < $total) && (Configuration::getTasksDeleteDelay() > 0)) {
+            $speed = sprintf("%.02f", 60 * $finished / Configuration::getTasksDeleteDelay());
+            $message .= $speed.' Tasks/min';
         }
 
-        return $message;
+        return ' <comment>'.$message.'</comment>';
     }
 }

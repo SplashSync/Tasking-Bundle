@@ -7,3 +7,120 @@ status:
     waiting:    Waiting
     running:    Running
     done:       Finished
+
+config:
+
+    ################################################################################
+    #    GENERAL
+    ################################################################################
+
+    title:      General Configuration
+    entity_manager:
+        title:      Entity Manager
+        desc:       "Doctrine Entity Manager to use for storing tasks, token & worker objects.
+                    On high constrain environments, it's recommended to use a separated manager for tasking"
+    environement:
+        title:      Environment
+        desc:       "Symfony environments used for running worker processes. (Default prod)"
+    refresh_delay:
+        title:      Refresh Delay
+        desc:       "Time in seconds between two status refresh of a worker. (Default 3 sec)"
+    watchdog_delay:
+        title:      Watchdog Delay
+        desc:       "Max. Time in seconds between two status refresh of a worker.
+                    If exceeded, worker is considered as faulty and restarted. (Default 30 sec)"
+    multiserver:
+        title:      Multi-server Mode
+        desc:       "Enable Multi-Server mode. Allow activation of Workers on a Pool of Servers (Default False)"
+    multiserver_path:
+        title:      Multi-server Mode
+        desc:       "Additional Path to access 'SplashTaskingBundle:Actions:start' controller action. (Default /tasking/start)"
+
+    ################################################################################
+    #    SERVER
+    ################################################################################
+
+    server:
+        title:      Server Side Parameters
+        force_crontab:
+            title:      Force Crontab
+            desc:       "Enable to force setup of users crontab. When disabled you need to manage crontab manually. (Default False)"
+        php_version:
+            title:      Php Version
+            desc:       "PHP Cli line to use for starting bash commands. (Default php)
+                        Change if you need to specify a special command line for Php, i.e. /usr/bin/php7.4."
+
+    ################################################################################
+    #    SUPERVISOR
+    ################################################################################
+
+    supervisor:
+        title:      Supervisor Process Parameters
+        max_age:
+            title:      Max Process Age
+            desc:       "Max. Age for a Supervisor Process in seconds. Supervisor Worker will stop after this delay. (Default 3600)"
+        refresh_delay:
+            title:      Worker Refresh Delay
+            desc:       "Delay between two Supervisor Worker Status checks in MilliSeconds. (Default 500 ms)"
+        max_workers:
+            title:      Max Workers Process
+            desc:       "Number of active worker on same machine. (Default 3)"
+        max_memory:
+            title:      Max Used Memory
+            desc:       "Maximum Memory usage for Supervisor. Exit when reached. (Default 100 Mo)"
+
+    ################################################################################
+    #    WORKERS
+    ################################################################################
+
+    workers:
+        title:      Worker Process Parameters
+        max_tasks:
+            title:      Max Executed Tasks
+            desc:       "Maximum task executed by a Worker. Restart when reached. (Default 100 tasks)"
+        max_age:
+            title:      Max Process Age
+            desc:       "Maximum lifetime for a Worker. Restart when reached. (Default 120 sec)"
+        max_memory:
+            title:      Max Used Memory
+            desc:       "Maximum Memory usage for Worker. Restart when reached. (Default 200 Mo)"
+
+    ################################################################################
+    #    Static
+    ################################################################################
+
+    static:
+        title:      Static Tasks Parameters
+
+
+    ################################################################################
+    #    TASKS
+    ################################################################################
+
+    tasks:
+        title:      Tasks Parameters
+        max_age:
+            title:      Delete Delay
+            desc:       "Time before a finished task is delete from Database"
+        try_count:
+            title:      Nb try
+            desc:       "Number of time a task is retried before being considered as finished."
+        try_delay:
+            title:      Retry Delay
+            desc:       "Time before an errored task is restarted. (Default 120 sec)"
+        error_delay:
+            title:      <comment>[C]</comment> Error Delay
+            desc:       "Time a running task is considered as errored. (Default 8 x Watchdog Delay)"
+
+    ################################################################################
+    #    Token
+    ################################################################################
+
+    token:
+        title:      Tasks Token Parameters
+        lock_ttl:
+            title:      <comment>[C]</comment> Lock TTL
+            desc:       "Time before a locked token is considered as released. (Default 5 x Watchdog Delay)"
+        delete_ttl:
+            title:      <comment>[C]</comment> Delete delay
+            desc:       "Time before an unused token is deleted. (Default 100 x Watchdog Delay)"

@@ -13,25 +13,20 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking;
-
-use Splash\Tasking\Services\TasksManager;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
+namespace Splash\Tasking\Model\Configuration;
 
 /**
- * Splash Tasking Bundle
- *
- * 100% PHP Advanced Tasks Scheduler for Symfony Applications
+ * Access to Static Tasking Parameters
  */
-class SplashTaskingBundle extends Bundle
+trait StaticParametersGettersTrait
 {
     /**
-     * @return void
+     * Get Static Tasks Configuration
+     *
+     * @return array
      */
-    public function boot()
+    public static function getStaticTasksConfiguration(): array
     {
-        //==============================================================================
-        // Force Loading of Tasks Manager
-        $this->container->get(TasksManager::class);
+        return self::$config['static'];
     }
 }

@@ -6,44 +6,7 @@ services:
 
     ################################################################################
     # AutoWire for Commands
-#    Splash\Tasking\Command\:
-#        resource: '../../Command'
-#        tags:    [ 'console.command' ]
-
-    splash.tasking.command.check:
-        class: Splash\Tasking\Command\CheckCommand
-        tags:    [ console.command ]
-        arguments:
-            - "@splash.tasking.workers"
-
-    splash.tasking.command.start:
-        class: Splash\Tasking\Command\StartCommand
-        tags:    [ console.command ]
-        arguments:
-            - "@splash.tasking.workers"
-
-    splash.tasking.command.stop:
-        class: Splash\Tasking\Command\StopCommand
-        tags:    [ console.command ]
-        arguments:
-            - "@splash.tasking.workers"
-
-    splash.tasking.command.status:
-        class: Splash\Tasking\Command\StatusCommand
-        tags:    [ console.command ]
-        autowire: true;
-
-    splash.tasking.command.supervisor:
-        class: Splash\Tasking\Command\SupervisorCommand
-        tags:    [ console.command ]
-        arguments:
-            - "@splash.tasking.supervisors"
-            - "@splash.tasking.tasks"
-
-    splash.tasking.command.worker:
-        class: Splash\Tasking\Command\WorkerCommand
-        tags:    [ console.command ]
-        arguments:
-            - "@splash.tasking.workers"
-            - "@splash.tasking.runner"
-        
+    Splash\Tasking\Command\:
+        resource: '../../Command'
+        autowire: true
+        tags:    [ 'console.command' ]

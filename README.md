@@ -136,7 +136,6 @@ splash_tasking:
         max_age: 180            // Time to live of a finished task in database
         try_count: 5            // Number of failed attemps for a task
         try_delay: 120          // Delay before retry of a failed task
-        error_delay: 40         // Delay to consider a started task as failed
     static:                     // Key => Class values for Static Jobs
         myStaticJob: AppBundle\Jobs\MyStaticJob          
 ```

@@ -88,8 +88,8 @@ class Configuration implements ConfigurationInterface
             ->info('Enable Multi-Server mode. Allow activation of Workers on a Pool of Servers')
             ->end()
             ->scalarNode('multiserver_path')
-            ->defaultValue("")
-            ->info('Additional Path for Multi-Server mode. ')
+            ->defaultValue("/tasking/start")
+            ->info('Additional Path for Multi-Server mode.')
             ->end()
         ;
 
@@ -224,10 +224,6 @@ class Configuration implements ConfigurationInterface
             ->integerNode('try_delay')
             ->defaultValue(120)
             ->info('Delay before restarting a task that fails. In Seconds')
-            ->end()
-            ->integerNode('error_delay')
-            ->defaultValue(40)
-            ->info('Delay before considering a running task as failled. In Seconds')
             ->end()
             ->end()
             ->end()
