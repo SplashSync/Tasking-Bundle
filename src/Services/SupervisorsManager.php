@@ -38,6 +38,8 @@ class SupervisorsManager extends WorkersManager
     /**
      * Get Max Number of Workers for Supervisor (since now)
      *
+     * @throws Exception
+     *
      * @return int
      */
     public function getMaxWorkers() : int
@@ -62,6 +64,8 @@ class SupervisorsManager extends WorkersManager
 
     /**
      * Do Pause for Supervisor between two Refresh loop
+     *
+     * @throws Exception
      */
     public function doSupervision(): void
     {
@@ -109,11 +113,15 @@ class SupervisorsManager extends WorkersManager
     /**
      * Get Max Age for Worker (since now)
      *
+     * @throws Exception
+     *
      * @return DateTime
      */
     protected function getWorkerMaxDate(): DateTime
     {
-        $this->logger->info("Supervisor Manager: This Worker will die in ".$this->config->supervisor['max_age']." Seconds");
+        $this->logger->info(
+            "Supervisor Manager: This Worker will die in ".$this->config->supervisor['max_age']." Seconds"
+        );
 
         return new DateTime("+".$this->config->supervisor['max_age']."Seconds");
     }

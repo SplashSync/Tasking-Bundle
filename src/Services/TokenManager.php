@@ -76,8 +76,10 @@ class TokenManager
      * @param Registry        $doctrine
      * @param LoggerInterface $logger
      * @param array           $config
+     *
+     * @throws Exception
      */
-    public function __construct(Registry $doctrine, LoggerInterface $logger, array $config)
+    public function __construct(array $config, Registry $doctrine, LoggerInterface $logger)
     {
         //====================================================================//
         // Link to entity manager Service
@@ -112,7 +114,7 @@ class TokenManager
     {
         //==============================================================================
         // Safety Check - If Task Counter is Over => Close Directly This Task
-        // This means task was aborded due to a uncatched fatal error
+        // This means task was aborted due to a uncached fatal error
         if ($task->getTry() > $this->config->tasks["try_count"]) {
             $task->setFaultStr("Fatal Error: Task Counter is Over!");
             $this->logger->notice("Token Manager: Task Counter is Over!");
@@ -121,16 +123,16 @@ class TokenManager
         }
 
         //==============================================================================
-        // Ckeck Token is not Empty => Skip
+        // Check Token is not Empty => Skip
         $jobToken = $task->getJobToken();
         if (null == $jobToken) {
             return true;
         }
         //==============================================================================
-        // Ckeck If we have an Active Token
+        // Check If we have an Active Token
         if (!is_null($this->currentToken)) {
             //==============================================================================
-            // Ckeck If Token is Already Took
+            // Check If Token is Already Took
             if ($this->currentToken == $jobToken) {
                 $this->logger->info('Token Manager: Token Already Took! ('.$this->currentToken.')');
 
@@ -139,7 +141,8 @@ class TokenManager
             //==============================================================================
             // CRITICAL - Release Current Token before Asking for a new one
             $this->release();
-            $this->logger->error('Token Manager: Token Not Released before Acquiring a New One! ('.$this->currentToken.')');
+            $this->logger
+                ->error('Token Manager: Token Not Released before Acquiring a New One! ('.$this->currentToken.')');
 
             return true;
         }
@@ -148,7 +151,7 @@ class TokenManager
         $acquiredToken = $this->tokenRepository->acquire($jobToken);
 
         //==============================================================================
-        // Ckeck If token is Available
+        // Check If token is Available
         if ($acquiredToken instanceof Token) {
             $this->currentToken = $acquiredToken->getName();
             $this->logger->info('Token Manager: Token Acquired! ('.$jobToken.')');
@@ -172,7 +175,7 @@ class TokenManager
     public function release() : bool
     {
         //==============================================================================
-        // Ckeck If we currently have a token
+        // Check If we currently have a token
         if (is_null($this->currentToken)) {
             return false;
         }

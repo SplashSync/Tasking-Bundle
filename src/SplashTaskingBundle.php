@@ -15,6 +15,8 @@
 
 namespace Splash\Tasking;
 
+use Splash\Tasking\Services\Configuration;
+use Splash\Tasking\Services\TasksManager;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
@@ -30,7 +32,10 @@ class SplashTaskingBundle extends Bundle
     public function boot()
     {
         //==============================================================================
+        // Force Loading of Tasking Configuration
+        $this->container->get(Configuration::class);
+        //==============================================================================
         // Force Loading of Tasks Manager
-        $this->container->get('splash.tasking.tasks');
+        $this->container->get(TasksManager::class);
     }
 }

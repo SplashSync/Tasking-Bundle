@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Controller;
 
+use ReflectionException;
 use Splash\Tasking\Services\TasksManager;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,6 +28,8 @@ class ActionsController extends Controller
 {
     /**
      * Start Tasking Supervisor on This Machine
+     *
+     * @throws ReflectionException
      *
      * @return Response
      */
@@ -52,18 +55,12 @@ class ActionsController extends Controller
         //====================================================================//
         // Stop Output Buffering
         ob_end_flush();
-
         //====================================================================//
         // Prepare for Running Test
         $command = "phpunit ";
-
         //====================================================================//
-        // Execute Test (SF 3&4 Versions)
-        try {
-            $process = Process::fromShellCommandline($command);
-        } catch (\Error $exception) {
-            $process = new Process($command);
-        }
+        // Execute Test (SF 4 Versions)
+        $process = Process::fromShellCommandline($command);
         $process->setTimeout(360);
         $process->setWorkingDirectory($process->getWorkingDirectory()."/..");
         $process->run(function ($type, $buffer): void {
@@ -76,7 +73,6 @@ class ActionsController extends Controller
             }
             flush();
         });
-
         //====================================================================//
         // Display result message
         $response = $process->isSuccessful()

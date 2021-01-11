@@ -15,10 +15,10 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use Exception;
 use ReflectionClass;
-use Splash\Tasking\Entity\Task;
+use ReflectionException;
 use Splash\Tasking\Entity\Token;
 use Splash\Tasking\Entity\Worker;
 use Splash\Tasking\Repository\TaskRepository;
@@ -61,31 +61,6 @@ abstract class AbstractTestController extends WebTestCase
     protected $tokenRepository;
 
     /**
-     * @var TasksManager
-     */
-    protected $tasks;
-
-    /**
-     * @var WorkersManager
-     */
-    protected $worker;
-
-    /**
-     * @var Runner
-     */
-    protected $runner;
-
-    /**
-     * @var ProcessManager
-     */
-    protected $process;
-
-    /**
-     * @var EventDispatcherInterface
-     */
-    protected $dispatcher;
-
-    /**
      * @var NullOutput
      */
     protected $output;
@@ -96,46 +71,50 @@ abstract class AbstractTestController extends WebTestCase
     protected $randomStr;
 
     /**
+     * @var TasksManager
+     */
+    private $tasks;
+
+    /**
+     * @var WorkersManager
+     */
+    private $worker;
+
+    /**
+     * @var Runner
+     */
+    private $runner;
+
+    /**
+     * @var ProcessManager
+     */
+    private $process;
+
+    /**
+     * @var EventDispatcherInterface
+     */
+    private $dispatcher;
+
+    /**
      * {@inheritDoc}
+     *
+     * @throws Exception
      */
     protected function setUp(): void
     {
         self::bootKernel();
-
-        //====================================================================//
-        // Load Symfony Services Container
-        $container = static::$kernel->getContainer();
-        if (null == $container) {
-            throw new Exception("Unable to Load Symfony Container");
-        }
-
-        //====================================================================//
-        // Link to Task Manager Services
-        $this->tasks = $container->get('splash.tasking.tasks');
-        //====================================================================//
-        // Link to Worker Manager Services
-        $this->worker = $container->get('splash.tasking.workers');
-        //====================================================================//
-        // Link to Task Runner Services
-        $this->runner = $container->get('splash.tasking.runner');
-        //====================================================================//
-        // Link to Task Process Manager
-        $this->process = $container->get('splash.tasking.process');
         //====================================================================//
         // Link to entity manager Services
-        $this->entityManager = $this->tasks->getManager();
+        $this->entityManager = $this->getTasksManager()->getManager();
         //====================================================================//
         // Link to Tasks Repository
-        $this->tasksRepository = $this->tasks->getTasksRepository();
+        $this->tasksRepository = $this->getTasksManager()->getTasksRepository();
         //====================================================================//
         // Link to Token Repository
-        $this->tokenRepository = $this->tasks->getTokenRepository();
+        $this->tokenRepository = $this->getTasksManager()->getTokenRepository();
         //====================================================================//
         // Link to Workers Repository
-        $this->workersRepository = $this->tasks->getWorkerRepository();
-        //====================================================================//
-        // Link to Event Dispatcher
-        $this->dispatcher = $container->get('event_dispatcher');
+        $this->workersRepository = $this->getTasksManager()->getWorkerRepository();
         //====================================================================//
         // Generate a Fake Output
         $this->output = new NullOutput();
@@ -180,14 +159,118 @@ abstract class AbstractTestController extends WebTestCase
      * @param string $methodName Method name to call
      * @param array  $parameters Array of parameters to pass into method.
      *
+     * @throws ReflectionException
+     *
      * @return mixed Method return.
      */
-    protected function invokeMethod(&$object, $methodName, array $parameters = array())
+    protected function invokeMethod(object &$object, string $methodName, array $parameters = array())
     {
         $reflection = new ReflectionClass(get_class($object));
         $method = $reflection->getMethod($methodName);
         $method->setAccessible(true);
 
         return $method->invokeArgs($object, $parameters);
+    }
+
+    /**
+     * Get Tasks Manager
+     *
+     * @throws Exception
+     *
+     * @return TasksManager
+     */
+    protected function getTasksManager(): TasksManager
+    {
+        if (!isset($this->tasks)) {
+            $tasksManager = static::$container->get(TasksManager::class);
+            if (!($tasksManager instanceof TasksManager)) {
+                throw new Exception("Unable to Load Tasks Manager");
+            }
+            $this->tasks = $tasksManager;
+        }
+
+        return $this->tasks;
+    }
+
+    /**
+     * Get Worker Manager
+     *
+     * @throws Exception
+     *
+     * @return WorkersManager
+     */
+    protected function getWorkersManager(): WorkersManager
+    {
+        if (!isset($this->worker)) {
+            $workersManager = static::$container->get(WorkersManager::class);
+            if (!($workersManager instanceof WorkersManager)) {
+                throw new Exception("Unable to Load Worker Manager");
+            }
+            $this->worker = $workersManager;
+        }
+
+        return $this->worker;
+    }
+
+    /**
+     * Get Tasks Runner
+     *
+     * @throws Exception
+     *
+     * @return Runner
+     */
+    protected function getTasksRunner(): Runner
+    {
+        if (!isset($this->runner)) {
+            $tasksRunner = static::$container->get(Runner::class);
+            if (!($tasksRunner instanceof Runner)) {
+                throw new Exception("Unable to Load Tasks Runner");
+            }
+            $this->runner = $tasksRunner;
+        }
+
+        return $this->runner;
+    }
+
+    /**
+     * Get Process Manager
+     *
+     * @throws Exception
+     *
+     * @return ProcessManager
+     */
+    protected function getProcessManager(): ProcessManager
+    {
+        if (!isset($this->process)) {
+            $processManager = static::$container->get(ProcessManager::class);
+            if (!($processManager instanceof ProcessManager)) {
+                throw new Exception("Unable to Load Process Manager");
+            }
+            $this->process = $processManager;
+        }
+
+        return $this->process;
+    }
+
+    /**
+     * Get Event Dispatcher
+     *
+     * @throws Exception
+     *
+     * @return EventDispatcherInterface
+     */
+    protected function getEventDispatcher(): EventDispatcherInterface
+    {
+        if (!isset($this->dispatcher)) {
+            //====================================================================//
+            // Load Symfony Event Dispatcher
+            $dispatcher = static::$container->get(EventDispatcherInterface::class);
+            if (!($dispatcher instanceof EventDispatcherInterface)) {
+                throw new Exception("Unable to Load Event Dispatcher");
+            }
+            $this->dispatcher = $dispatcher;
+        }
+
+        return $this->dispatcher;
     }
 }

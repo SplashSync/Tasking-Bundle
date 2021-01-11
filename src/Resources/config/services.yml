@@ -3,92 +3,103 @@ imports:
     - { resource: services/commands.yml }
     
 services:
-    
-    ########################################################################
-    #   TASKING BUNDLE LOW LEVEL SERVICES
-    ########################################################################
+
+    _defaults:
+        autowire: true
+
+    ################################################################################
+    # AutoWire for Controllers
+    Splash\Tasking\Controller\:
+        resource: '../../Controller'
+        tags: ['controller.service_arguments']
 
     ########################################################################
     # Tasks Management Service
-    splash.tasking.runner:
-        class: Splash\Tasking\Services\Runner
-        public:     true        
+    Splash\Tasking\Services\TasksManager:
+        public:     true
         arguments:
-            - "@service_container"
-            - "@logger"
-            - "@doctrine"
-            - "@splash.tasking.tokens"
-            - "%splash_tasking%"
-        tags:
-            - { name: monolog.logger, channel: Tasking }
-
-    ########################################################################
-    # Tasks Management Service
-    splash.tasking.tasks:
-        class: Splash\Tasking\Services\TasksManager
-        public:     true        
-        arguments:
-            - "@doctrine"
-            - "@event_dispatcher"
-            - "@logger"
-            - "@splash.tasking.tokens"
             - "%splash_tasking%"
         tags:
             - { name: kernel.event_listener, event: Splash\Tasking\Events\AddEvent, method: onAddAction }
             - { name: kernel.event_listener, event: Splash\Tasking\Events\InsertEvent, method: onAddAction }
             - { name: monolog.logger, channel: Tasking }
 
+    splash.tasking.tasks:
+        alias:      Splash\Tasking\Services\TasksManager
+        public:     true
+
+    ########################################################################
+    #   TASKING BUNDLE LOW LEVEL SERVICES
+    ########################################################################
+
+    ########################################################################
+    # Tasks Configuration Service
+    Splash\Tasking\Services\Configuration:
+        public:     true
+        arguments:
+            - "%splash_tasking%"
+
+    ########################################################################
+    # Tasks Management Service
+    Splash\Tasking\Services\Runner:
+        arguments:
+            - "%splash_tasking%"
+        tags:
+            - { name: monolog.logger, channel: Tasking }
+
+    splash.tasking.runner:
+        alias:      Splash\Tasking\Services\Runner
+
+
+
     ########################################################################
     # Supervisor Management Service
-    splash.tasking.supervisors:
-        class: Splash\Tasking\Services\SupervisorsManager
+    Splash\Tasking\Services\SupervisorsManager:
         public:     true        
         arguments:
-            - "@doctrine"
-            - "@logger"
-            - "@splash.tasking.process"
             - "%splash_tasking%"
         tags:
             - { name: kernel.event_listener, event: Splash\Tasking\Events\CheckEvent, method: checkSupervisor }
             - { name: kernel.event_listener, event: Splash\Tasking\Events\AddEvent, method: checkSupervisor }
             - { name: monolog.logger, channel: Tasking }
 
+    splash.tasking.supervisors:
+        alias: Splash\Tasking\Services\SupervisorsManager
+
     ########################################################################
     # Workers Management Service
-    splash.tasking.workers:
-        class: Splash\Tasking\Services\WorkersManager
+    Splash\Tasking\Services\WorkersManager:
         public:     true        
         arguments:
-            - "@doctrine"
-            - "@logger"
-            - "@splash.tasking.process"
             - "%splash_tasking%"
         tags:
             - { name: monolog.logger, channel: Tasking }
+
+    splash.tasking.workers:
+        alias: Splash\Tasking\Services\WorkersManager
 
     ########################################################################
     # Tokens Management Service
-    splash.tasking.tokens:
-        class: Splash\Tasking\Services\TokenManager
+    Splash\Tasking\Services\TokenManager:
         public:     true        
         arguments:
-            - "@doctrine"
-            - "@logger"
             - "%splash_tasking%"
         tags:
             - { name: monolog.logger, channel: Tasking }
 
+    splash.tasking.tokens:
+        class: Splash\Tasking\Services\TokenManager
+
     ########################################################################
     # Process Management Service
-    splash.tasking.process:
-        class: Splash\Tasking\Services\ProcessManager
+    Splash\Tasking\Services\ProcessManager:
         public:     true        
         arguments:
-            - "@logger"
             - "%kernel.root_dir%"
             - "%splash_tasking%"
         tags:
             - { name: kernel.event_listener, event: Splash\Tasking\Events\AddEvent, method: checkCrontab }
             - { name: monolog.logger, channel: Tasking }
 
-    
+    splash.tasking.process:
+        alias: Splash\Tasking\Services\ProcessManager

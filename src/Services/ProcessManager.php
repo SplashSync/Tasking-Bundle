@@ -71,11 +71,11 @@ class ProcessManager
     /**
      * Class Constructor
      *
-     * @param LoggerInterface $logger
      * @param string          $rootDir
      * @param array           $configuration
+     * @param LoggerInterface $logger
      */
-    public function __construct(LoggerInterface $logger, string $rootDir, array $configuration)
+    public function __construct(string $rootDir, array $configuration, LoggerInterface $logger)
     {
         //====================================================================//
         // Link to Symfony Logger

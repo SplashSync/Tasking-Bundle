@@ -17,7 +17,12 @@ namespace Splash\Tasking\Repository;
 
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\Persistence\Mapping\MappingException;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Token;
 
@@ -34,9 +39,11 @@ class TaskRepository extends EntityRepository
     /**
      * Load Next Task To Perform from Db with Filter for Used Tokens.
      *
-     * @param array  $options   Search Options
-     * @param string $tokenName Focus on a Specific Token (When Already Acquired)
-     * @param bool   $static    Search fro Static Tasks
+     * @param array       $options   Search Options
+     * @param null|string $tokenName Focus on a Specific Token (When Already Acquired)
+     * @param bool        $static    Search fro Static Tasks
+     *
+     * @throws NonUniqueResultException
      *
      * @return null|Task
      *
@@ -62,12 +69,12 @@ class TaskRepository extends EntityRepository
 
         //====================================================================//
         // Set Dates Parameters as TimeStamps
-        $nowTimeStamp = (new DateTime())->getTimestamp();
+        $timestamp = (new DateTime())->getTimestamp();
 
         //====================================================================//
         // Setup Query Token Parameters
         if (null == $tokenName) {
-            $this->builder->setParameter('TokenExpireDate', ($nowTimeStamp - Token::SELFRELEASE_DELAY));
+            $this->builder->setParameter('TokenExpireDate', ($timestamp - Token::SELFRELEASE_DELAY));
         } else {
             $this->builder->setParameter('TokenName', $tokenName);
         }
@@ -79,23 +86,29 @@ class TaskRepository extends EntityRepository
         //====================================================================//
         // Setup Query Time Parameters
         if (true == $static) {
-            $this->builder->setParameter('Now', $nowTimeStamp);
+            $this->builder->setParameter('Now', $timestamp);
         }
 
         $this->builder
-            ->setParameter('MaxTry', $options["try_count"])                         // Max. Failled Executions
-            ->setParameter('ErrorDate', ($nowTimeStamp - $options["error_delay"]))  // Delay to consider Task is In Error & Retry
-            ->setParameter('MaxDate', ($nowTimeStamp - $options["try_delay"]))      // Delay Before retry an unfinished Task
+            // Max. Failed Executions
+            ->setParameter('MaxTry', $options["try_count"])
+            // Delay to consider Task is In Error & Retry
+            ->setParameter('ErrorDate', ($timestamp - $options["error_delay"]))
+            // Delay Before retry an unfinished Task
+            ->setParameter('MaxDate', ($timestamp - $options["try_delay"]))
             ->setMaxResults(1);
 
         return $this->builder->getQuery()->getOneOrNullResult();
     }
 
     /**
-     * Load Tasks Summmary Array.
+     * Load Tasks Summary Array.
      *
-     * @param string $indexKey1 Your Custom Index Key 1
-     * @param string $indexKey2 Your Custom Index Key 2
+     * @param null|string $indexKey1 Your Custom Index Key 1
+     * @param null|string $indexKey2 Your Custom Index Key 2
+     *
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      *
      * @return array
      */
@@ -137,8 +150,9 @@ class TaskRepository extends EntityRepository
         //====================================================================//
         // Count Total of Locked Tokens
         //====================================================================//
-        $tokenQb = $this->getEntityManager()
-            ->getRepository(Token::class)
+        /** @var TokenRepository $tokenRepository */
+        $tokenRepository = $this->getEntityManager()->getRepository(Token::class);
+        $tokenQb = $tokenRepository
             ->createQueryBuilder("T")
             ->select('count(T.id)')
             ->where("T.locked = 1");
@@ -158,9 +172,9 @@ class TaskRepository extends EntityRepository
     /**
      * Load Tasks By Index Keys or Token.
      *
-     * @param string $indexKey1 Your Custom Index Key 1
-     * @param string $indexKey2 Your Custom Index Key 2
-     * @param string $tokenName Your Custom Token
+     * @param null|string $indexKey1 Your Custom Index Key 1
+     * @param null|string $indexKey2 Your Custom Index Key 2
+     * @param null|string $tokenName Your Custom Token
      *
      * @return array
      */
@@ -189,17 +203,23 @@ class TaskRepository extends EntityRepository
     /**
      * Load User Task Array, Sorted By Type.
      *
-     * @param string $key1    Your Custom Index Key 1
-     * @param string $key2    Your Custom Index Key 2
-     * @param array  $orderBy List Ordering
-     * @param int    $limit   Limit Number of Items
-     * @param int    $offset  Page Offset
-     * @param string $group   Grouping Key (Default: T.discriminator)
+     * @param null|string $key1    Your Custom Index Key 1
+     * @param null|string $key2    Your Custom Index Key 2
+     * @param array       $orderBy List Ordering
+     * @param int         $limit   Limit Number of Items
+     * @param int         $offset  Page Offset
+     * @param string      $group   Grouping Key (Default: T.discriminator)
      *
      * @return array User Task Summary Array
      */
-    public function getTasksStatus(string $key1 = null, string $key2 = null, array $orderBy = array(), int $limit = 10, int $offset = 0, string $group = "discriminator")
-    {
+    public function getTasksStatus(
+        string $key1 = null,
+        string $key2 = null,
+        array $orderBy = array(),
+        int $limit = 10,
+        int $offset = 0,
+        string $group = "discriminator"
+    ): array {
         //====================================================================//
         // Get Status for Tasks
         //====================================================================//
@@ -237,15 +257,22 @@ class TaskRepository extends EntityRepository
     /**
      * Return Number of Active Tasks.
      *
-     * @param string $tokenName Filter on a specific token Name
-     * @param string $md5       Filter on a specific Discriminator
-     * @param string $key1      Your Custom Index Key 1
-     * @param string $key2      Your Custom Index Key 2
+     * @param null|string $tokenName Filter on a specific token Name
+     * @param null|string $md5       Filter on a specific Discriminator
+     * @param null|string $key1      Your Custom Index Key 1
+     * @param null|string $key2      Your Custom Index Key 2
+     *
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      *
      * @return int
      */
-    public function getActiveTasksCount(string $tokenName = null, string $md5 = null, string $key1 = null, string $key2 = null)
-    {
+    public function getActiveTasksCount(
+        string $tokenName = null,
+        string $md5 = null,
+        string $key1 = null,
+        string $key2 = null
+    ): int {
         //====================================================================//
         // Count Active/Running Tasks
         //====================================================================//
@@ -268,15 +295,22 @@ class TaskRepository extends EntityRepository
     /**
      * Return Number of Active Tasks.
      *
-     * @param string $tokenName Filter on a specific token Name
-     * @param string $md5       Filter on a specific Discriminator
-     * @param string $key1      Your Custom Index Key 1
-     * @param string $key2      Your Custom Index Key 2
+     * @param null|string $tokenName Filter on a specific token Name
+     * @param null|string $md5       Filter on a specific Discriminator
+     * @param null|string $key1      Your Custom Index Key 1
+     * @param null|string $key2      Your Custom Index Key 2
+     *
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      *
      * @return int
      */
-    public function getWaitingTasksCount($tokenName = null, string $md5 = null, string $key1 = null, string $key2 = null): int
-    {
+    public function getWaitingTasksCount(
+        string $tokenName = null,
+        string $md5 = null,
+        string $key1 = null,
+        string $key2 = null
+    ): int {
         //====================================================================//
         // Count Active/Running Tasks
         //====================================================================//
@@ -299,15 +333,22 @@ class TaskRepository extends EntityRepository
     /**
      * Return Number of Pending Tasks.
      *
-     * @param string $tokenName Filter on a specific token Name
-     * @param string $md5       Filter on a specific Discriminator
-     * @param string $key1      Your Custom Index Key 1
-     * @param string $key2      Your Custom Index Key 2
+     * @param null|string $tokenName Filter on a specific token Name
+     * @param null|string $md5       Filter on a specific Discriminator
+     * @param null|string $key1      Your Custom Index Key 1
+     * @param null|string $key2      Your Custom Index Key 2
+     *
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      *
      * @return int
      */
-    public function getPendingTasksCount(string $tokenName = null, string $md5 = null, string $key1 = null, string $key2 = null): int
-    {
+    public function getPendingTasksCount(
+        string $tokenName = null,
+        string $md5 = null,
+        string $key1 = null,
+        string $key2 = null
+    ): int {
         //====================================================================//
         // Count Active/Running Tasks
         //====================================================================//
@@ -383,6 +424,9 @@ class TaskRepository extends EntityRepository
      * Flushes Entity Manager.
      *
      * @param Task $task Task Item to Save
+     *
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     public function flush(Task $task): void
     {
@@ -391,6 +435,8 @@ class TaskRepository extends EntityRepository
 
     /**
      * Clear Entity Manager.
+     *
+     * @throws MappingException
      */
     public function clear(): void
     {
@@ -421,7 +467,7 @@ class TaskRepository extends EntityRepository
     /**
      * Select Tasks That Have Inactive Tokens or Given Token.
      *
-     * @param string $token Filter on a Specific Token
+     * @param null|string $token Filter on a Specific Token
      *
      * @return $this
      */
@@ -453,7 +499,7 @@ class TaskRepository extends EntityRepository
             ->add('where', $this->builder->expr()->orX(
                 // Task Is Not Running
                 'task.try = 0 AND task.running = 0',
-                // If Task has Already been tried, but failled
+                // If Task has Already been tried, but failed
                 "task.try > 0 AND task.try < :MaxTry AND task.running = 0 AND task.startedAtTimeStamp <  :MaxDate",
                 // If Task Timeout Exeeded
                 "task.try < :MaxTry AND task.running = 1 AND task.startedAtTimeStamp < :ErrorDate"
@@ -482,8 +528,9 @@ class TaskRepository extends EntityRepository
             ->add('where', $this->builder->expr()->orX(
                 // Task Is Not Running
                 'task.try = 0 AND task.running = 0 AND task.finished = 0',
-                // If Task has Already been tried, but failled
-                "task.try > 0 AND task.try < :MaxTry AND task.running = 0 AND task.finished = 0 AND task.startedAtTimeStamp <  :MaxDate",
+                // If Task has Already been tried, but failed
+                "task.try > 0 AND task.try < :MaxTry AND task.running = 0
+                 AND task.finished = 0 AND task.startedAtTimeStamp <  :MaxDate",
                 // If Task Timeout Exeeded
                 "task.try < :MaxTry AND task.running = 1 AND task.startedAtTimeStamp < :ErrorDate",
                 // If Task Need Restart
@@ -501,8 +548,8 @@ class TaskRepository extends EntityRepository
      * Setup Index Keys Filter on a QueryBuilder.
      *
      * @param QueryBuilder $builder   Target QueryBuilder
-     * @param string       $indexKey1 Your Custom Index Key 1
-     * @param string       $indexKey2 Your Custom Index Key 2
+     * @param null|string  $indexKey1 Your Custom Index Key 1
+     * @param null|string  $indexKey2 Your Custom Index Key 2
      *
      * @return $this
      */
@@ -543,7 +590,7 @@ class TaskRepository extends EntityRepository
      * Setup Limit Filter on a QueryBuilder.
      *
      * @param QueryBuilder $builder Target QueryBuilder
-     * @param int          $limit   Result Limit
+     * @param null|int     $limit   Result Limit
      *
      * @return $this
      */
@@ -560,7 +607,7 @@ class TaskRepository extends EntityRepository
      * Setup Offset Filter on a QueryBuilder.
      *
      * @param QueryBuilder $builder Target QueryBuilder
-     * @param int          $offset  Pagination Offset
+     * @param null|int     $offset  Pagination Offset
      *
      * @return $this
      */
@@ -577,7 +624,7 @@ class TaskRepository extends EntityRepository
      * Setup Token Filter on a QueryBuilder.
      *
      * @param QueryBuilder $builder   Target QueryBuilder
-     * @param string       $tokenName Filter on a specific token Name
+     * @param null|string  $tokenName Filter on a specific token Name
      *
      * @return $this
      */
@@ -597,7 +644,7 @@ class TaskRepository extends EntityRepository
      * Setup Token Filter on a QueryBuilder.
      *
      * @param QueryBuilder $builder Target QueryBuilder
-     * @param string       $md5     Filter on a specific Discriminator
+     * @param null|string  $md5     Filter on a specific Discriminator
      *
      * @return $this
      */

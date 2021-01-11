@@ -87,13 +87,19 @@ class WorkersManager
     /**
      * Class Constructor
      *
+     * @param array           $config
      * @param Registry        $doctrine
      * @param LoggerInterface $logger
      * @param ProcessManager  $processManager
-     * @param array           $config
+     *
+     * @throws Exception
      */
-    public function __construct(Registry   $doctrine, LoggerInterface $logger, ProcessManager $processManager, array $config)
-    {
+    public function __construct(
+        array $config,
+        Registry   $doctrine,
+        LoggerInterface $logger,
+        ProcessManager $processManager
+    ) {
         //====================================================================//
         // Link to entity manager Service
         $this->entityManager = $doctrine->getManager($config["entity_manager"]);
@@ -128,6 +134,8 @@ class WorkersManager
      * @param int $processId Worker Process Id
      *
      * @SuppressWarnings(PHPMD.ExitExpression)
+     *
+     * @throws Exception
      */
     public function initialize(int $processId): void
     {
@@ -154,7 +162,7 @@ class WorkersManager
         //====================================================================//
         // Update pID
         $this->worker = $worker;
-        $this->worker->setPid(getmypid());
+        $this->worker->setPid((int) getmypid());
         $this->worker->setTask("Boot...");
         $this->entityManager->flush();
         //====================================================================//
@@ -201,7 +209,7 @@ class WorkersManager
         $worker->setRunning(true);
         //==============================================================================
         // Set As Running
-        $worker->setPid(getmypid());
+        $worker->setPid((int) getmypid());
         //==============================================================================
         // Set Last Seen DateTime to NOW
         $worker->setLastSeen(new DateTime());
@@ -225,6 +233,8 @@ class WorkersManager
      * Verify a Worker Process is running
      *
      * @param int $processId Worker Local Id
+     *
+     * @throws Exception
      *
      * @return bool
      */
@@ -274,6 +284,8 @@ class WorkersManager
 
     /**
      * Update Current Worker to Stopped Status
+     *
+     * @throws Exception
      */
     public function stop() : void
     {
@@ -293,7 +305,7 @@ class WorkersManager
         $this->entityManager->flush();
 
         //====================================================================//
-        // Check if Worker is to Restart Automaticaly
+        // Check if Worker is to Restart Automatically
         if ($this->worker->isEnabled()) {
             //====================================================================//
             // Ensure Supervisor is Running
@@ -315,7 +327,7 @@ class WorkersManager
         // Clear EntityManager
         $this->entityManager->clear();
         //====================================================================//
-        // Load List of All Currently Setuped Workers
+        // Load List of All Currently Setup Workers
         $workers = $this->workerRepository->findAll();
         //====================================================================//
         // Update All Actives Workers as Disabled
@@ -333,6 +345,8 @@ class WorkersManager
 
     /**
      * Count Number of Active Workers
+     *
+     * @throws Exception
      *
      * @return int
      */
@@ -400,6 +414,8 @@ class WorkersManager
      * Set Current Worker Task
      *
      * @param Task $task Current Worker Task
+     *
+     * @throws Exception
      */
     public function setCurrentTask(Task $task) : void
     {
@@ -417,6 +433,8 @@ class WorkersManager
 
     /**
      * Check All Available Supervisor are Running on All machines
+     *
+     * @throws Exception
      *
      * @return bool
      */
@@ -462,6 +480,8 @@ class WorkersManager
     /**
      * Get Max Age for Worker (since now)
      *
+     * @throws Exception
+     *
      * @return DateTime
      */
     protected function getWorkerMaxDate(): DateTime
@@ -485,6 +505,8 @@ class WorkersManager
      * Check if Worker Status is to Refresh
      *
      * @param bool $force
+     *
+     * @throws Exception
      *
      * @return bool
      */
@@ -526,11 +548,11 @@ class WorkersManager
         $worker = new Worker();
         //====================================================================//
         // Populate Worker Object
-        $worker->setPid(getmypid());
+        $worker->setPid((int) getmypid());
         $worker->setProcess($processId);
-        $worker->setNodeName($system["nodename"]);
+        $worker->setNodeName(is_array($system) ? $system["nodename"] : "Unknown");
         $worker->setNodeIp(filter_input(INPUT_SERVER, "SERVER_ADDR"));
-        $worker->setNodeInfos($system["version"]);
+        $worker->setNodeInfos(is_array($system) ? $system["version"] :  "0.0.0");
         $worker->setLastSeen(new DateTime());
         //====================================================================//
         // Persist Worker Object to Database
@@ -547,6 +569,8 @@ class WorkersManager
     /**
      * Check Supervisor is Running on this machine
      * ==> Start a Supervisor Process if needed
+     *
+     * @throws Exception
      *
      * @return bool
      */

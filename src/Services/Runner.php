@@ -99,14 +99,19 @@ class Runner
     /**
      * Service Constructor
      *
+     * @param array           $config
      * @param Container       $container
      * @param LoggerInterface $logger
      * @param Registry        $doctrine
      * @param TokenManager    $token
-     * @param array           $config
      */
-    public function __construct(Container $container, LoggerInterface $logger, Registry $doctrine, TokenManager $token, array $config)
-    {
+    public function __construct(
+        array $config,
+        Container $container,
+        LoggerInterface $logger,
+        Registry $doctrine,
+        TokenManager $token
+    ) {
         //====================================================================//
         // Link to Service Container
         $this->container = $container;
@@ -152,7 +157,7 @@ class Runner
         $this->taskRepository->clear();
         //==============================================================================
         // Clear Global Entity Manager
-        $this->container->get("doctrine")->getManager()->clear();
+        $this->registry->getManager()->clear();
         //====================================================================//
         // Run Next Normal Tasks
         if ($this->runNextTask(false)) {

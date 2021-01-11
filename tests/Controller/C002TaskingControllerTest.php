@@ -34,8 +34,6 @@ class C002TaskingControllerTest extends AbstractTestController
     public function testSimpleTask(): void
     {
         $nbTasks = 2;
-        $watchDog = 0;
-
         //====================================================================//
         // Generate a Random Token Name
         $this->randomStr = self::randomStr();
@@ -67,7 +65,7 @@ class C002TaskingControllerTest extends AbstractTestController
             } else {
                 $taskEnded = 0;
             }
-        } while (($watchDog < ($nbTasks + 2)) && ($taskEnded < 2));
+        } while ($taskEnded < 2);
 
         //====================================================================//
         //Verify All Tasks Are Finished
@@ -94,7 +92,6 @@ class C002TaskingControllerTest extends AbstractTestController
     public function testMicroTask(): void
     {
         $nbTasks = self::TEST_DETPH;
-        $watchDog = 0;
         $delay = 100;     // 30ms
 
         //====================================================================//
@@ -129,7 +126,7 @@ class C002TaskingControllerTest extends AbstractTestController
             } else {
                 $taskEnded = 0;
             }
-        } while (($watchDog < ($nbTasks + 2)) && ($taskEnded < 1000));
+        } while ($taskEnded < 1000);
 
         //====================================================================//
         //Verify All Tasks Are Finished
@@ -156,7 +153,6 @@ class C002TaskingControllerTest extends AbstractTestController
     public function testMultiMicroTask(): void
     {
         $nbTasks = self::TEST_DETPH;
-        $watchDog = 0;
         $delay = 30;        // 30ms
         $taskAFound = $taskBFound = $taskCFound = false;
 
@@ -207,7 +203,7 @@ class C002TaskingControllerTest extends AbstractTestController
             } else {
                 $taskEnded = 0;
             }
-        } while (($watchDog < ($nbTasks + 2)) && ($taskEnded < 1000));
+        } while ($taskEnded < 1000);
 
         //====================================================================//
         //Verify All Tasks Are Finished

@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
+use Exception;
 use PHPUnit\Framework\Assert;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Tests\Jobs\TestJob;
@@ -168,9 +169,12 @@ class C001TasksExecutionControllerTest extends AbstractTestController
 
     /**
      * Test Wait Until Tasks Buffer is Empty
+     *
+     * @throws Exception
      */
     public function testWaitUntilTasksCompleted(): void
     {
+        $manager = $this->getTasksManager();
         //====================================================================//
         // Delete All Tasks
         $this->deleteAllTasks();
@@ -178,23 +182,23 @@ class C001TasksExecutionControllerTest extends AbstractTestController
 
         //====================================================================//
         // Test with no Tasks in Buffer
-        Assert::assertTrue($this->tasks->waitUntilTaskCompleted());
+        Assert::assertTrue($manager->waitUntilTaskCompleted());
         Assert::assertEquals(0, $this->tasksRepository->getPendingTasksCount());
 
         //====================================================================//
         // Test with a 1 second Tasks in Buffer
         $this->addTask($this->randomStr, 1);
         Assert::assertEquals(1, $this->tasksRepository->getPendingTasksCount());
-        Assert::assertTrue($this->tasks->waitUntilTaskCompleted());
+        Assert::assertTrue($manager->waitUntilTaskCompleted());
         Assert::assertEquals(0, $this->tasksRepository->getPendingTasksCount());
 
         //====================================================================//
         // Test with a 3 second Tasks in Buffer
         $this->addTask($this->randomStr, 3);
         Assert::assertEquals(1, $this->tasksRepository->getPendingTasksCount());
-        Assert::assertFalse($this->tasks->waitUntilTaskCompleted(1));
+        Assert::assertFalse($manager->waitUntilTaskCompleted(1));
         Assert::assertEquals(1, $this->tasksRepository->getPendingTasksCount());
-        Assert::assertTrue($this->tasks->waitUntilTaskCompleted());
+        Assert::assertTrue($manager->waitUntilTaskCompleted());
         Assert::assertEquals(0, $this->tasksRepository->getPendingTasksCount());
 
         //====================================================================//
@@ -203,7 +207,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
             $this->addTask($this->randomStr, 1);
         }
         Assert::assertEquals(5, $this->tasksRepository->getPendingTasksCount());
-        Assert::assertTrue($this->tasks->waitUntilTaskCompleted(2));
+        Assert::assertTrue($manager->waitUntilTaskCompleted(2));
         Assert::assertEquals(0, $this->tasksRepository->getPendingTasksCount());
 
         //====================================================================//
@@ -212,7 +216,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
             $this->addTask($this->randomStr, 1);
         }
         Assert::assertEquals(12, $this->tasksRepository->getPendingTasksCount());
-        Assert::assertFalse($this->tasks->waitUntilTaskCompleted(1));
+        Assert::assertFalse($manager->waitUntilTaskCompleted(1));
     }
 
     /**

@@ -17,6 +17,7 @@ namespace Splash\Tasking\Entity;
 
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
+use Exception;
 
 /**
  * System Global DBAL Task Token
@@ -152,9 +153,11 @@ class Token
     /**
      * Get Token Availability
      *
+     * @throws Exception
+     *
      * @return bool
      */
-    public function isFree()
+    public function isFree(): bool
     {
         return !$this->isLocked();
     }
@@ -162,9 +165,11 @@ class Token
     /**
      * Get Token Availability
      *
+     * @throws Exception
+     *
      * @return bool
      */
-    public function isLocked()
+    public function isLocked(): bool
     {
         //====================================================================//
         // Verify if Token already in use
@@ -176,13 +181,15 @@ class Token
         // Verify if Token Validity
         $maxAge = new DateTime("-".self::SELFRELEASE_DELAY." Seconds");
 
-        return ($this->lockedAt > $maxAge)?true:false;
+        return $this->lockedAt > $maxAge;
     }
 
     /**
      * Lock Token
      *
-     * @param string $lockedBy Name of the Machine who Lock
+     * @param null|string $lockedBy Name of the Machine who Lock
+     *
+     * @throws Exception
      *
      * @return bool
      */
@@ -196,8 +203,8 @@ class Token
         //====================================================================//
         // If LockedBy is Null, Use Machine Name
         if (null == $lockedBy) {
-            $machineInfos = posix_uname();
-            $lockedBy = $machineInfos['nodename'];
+            $system = posix_uname();
+            $lockedBy = is_array($system) ? $system['nodename'] : "Unknown";
         }
         //====================================================================//
         // Set This Token as Used
@@ -231,14 +238,14 @@ class Token
     /**
      * Build Token Key Name from an Array of Parameters
      *
-     * @param array $tokenArray Token Parameters Given As Array
+     * @param null|array $tokenArray Token Parameters Given As Array
      *
      * @return string
      */
     public static function build(?array $tokenArray): string
     {
         //==============================================================================
-        // If No Token Arrray Given => Exit
+        // If No Token Array Given => Exit
         if (is_null($tokenArray)) {
             return "None";
         }
@@ -277,11 +284,11 @@ class Token
     /**
      * Set locked
      *
-     * @param boolean $locked
+     * @param bool $locked
      *
      * @return $this
      */
-    public function setLocked($locked): self
+    public function setLocked(bool $locked): self
     {
         $this->locked = $locked;
 
@@ -396,7 +403,7 @@ class Token
      *
      * @return $this
      */
-    public function setLockedAtTimeStamp(int $lockedAtTimeStamp)
+    public function setLockedAtTimeStamp(int $lockedAtTimeStamp): self
     {
         $this->lockedAtTimeStamp = $lockedAtTimeStamp;
 
@@ -444,7 +451,7 @@ class Token
      *
      * @return Token
      */
-    public function setCondition($condition)
+    public function setCondition($condition): self
     {
         $this->condition = $condition;
 

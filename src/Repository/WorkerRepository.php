@@ -16,6 +16,8 @@
 namespace Splash\Tasking\Repository;
 
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\ORMException;
+use Doctrine\Persistence\Mapping\MappingException;
 use Splash\Tasking\Entity\Worker;
 
 /**
@@ -35,16 +37,20 @@ class WorkerRepository extends EntityRepository
         $system = posix_uname();
         //====================================================================//
         // Retrieve Server Local Supervisor
-        return  $this->findOneBy(array(
-            "nodeName" => $system["nodename"],
+        $worker = $this->findOneBy(array(
+            "nodeName" => is_array($system) ? $system["nodename"] : "Unknown",
             "pID" => getmypid(),
         ));
+
+        return ($worker instanceof Worker) ? $worker : null;
     }
 
     /**
      * Identify Worker on this machine using it's Process Number
      *
      * @param int $processId Worker Process Id
+     *
+     * @throws ORMException
      *
      * @return null|Worker
      */
@@ -56,20 +62,24 @@ class WorkerRepository extends EntityRepository
         //====================================================================//
         // Retrieve Server Local Worker
         $worker = $this->findOneBy(array(
-            "nodeName" => $system["nodename"],
+            "nodeName" => is_array($system) ? $system["nodename"] : "Unknown",
             "process" => $processId,
         ));
         //====================================================================//
         // Ensure Sync with Database
         if ($worker instanceof Worker) {
             $this->_em->refresh($worker);
+
+            return $worker;
         }
 
-        return $worker;
+        return null;
     }
 
     /**
      * Count Number of Active Workers
+     *
+     * @throws MappingException
      *
      * @return int
      */

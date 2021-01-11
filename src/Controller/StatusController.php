@@ -15,8 +15,9 @@
 
 namespace Splash\Tasking\Controller;
 
-use Splash\Tasking\Repository\TaskRepository;
-use Splash\Tasking\Repository\WorkerRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
+use Splash\Tasking\Services\TasksManager;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -28,18 +29,21 @@ class StatusController extends Controller
     /**
      * Tasking Status
      *
+     * @param TasksManager $manager
+     *
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     *
      * @return JsonResponse
      */
-    public function mainAction() : JsonResponse
+    public function mainAction(TasksManager $manager) : JsonResponse
     {
         //====================================================================//
         // Load Tasks Repository
-        /** @var TaskRepository $tasks */
-        $tasks = $this->get('splash.tasking.tasks')->getTasksRepository();
+        $tasks = $manager->getTasksRepository();
         //====================================================================//
         // Load Worker Repository
-        /** @var WorkerRepository $workers */
-        $workers = $this->get('splash.tasking.tasks')->getWorkerRepository();
+        $workers = $manager->getWorkerRepository();
         //==============================================================================
         // Build Status Array
         $status = array(

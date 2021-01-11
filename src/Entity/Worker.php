@@ -159,7 +159,7 @@ class Worker
         $system = posix_uname();
         //==============================================================================
         // If We Are NOT on Worker Real Machine
-        if ($system["nodename"] !== $this->getNodeName()) {
+        if (!$system || ($system["nodename"] !== $this->getNodeName())) {
             return true;
         }
         //==============================================================================

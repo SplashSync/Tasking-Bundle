@@ -15,9 +15,9 @@
 
 namespace Splash\Tasking\Command;
 
+use Exception;
 use Splash\Tasking\Entity\Worker;
-use Splash\Tasking\Repository\TaskRepository;
-use Splash\Tasking\Repository\WorkerRepository;
+use Splash\Tasking\Services\TasksManager;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -32,6 +32,26 @@ class StatusCommand extends ContainerAwareCommand
      * @var ProgressBar
      */
     private $progress;
+
+    /**
+     * Tasks Manager Service
+     *
+     * @var TasksManager
+     */
+    private $manager;
+
+    /**
+     * Class Constructor
+     *
+     * @param TasksManager $workerManager
+     */
+    public function __construct(TasksManager $workerManager)
+    {
+        parent::__construct(null);
+        //====================================================================//
+        // Link to Worker Manager Service
+        $this->manager = $workerManager;
+    }
 
     /**
      * {@inheritdoc}
@@ -59,8 +79,7 @@ class StatusCommand extends ContainerAwareCommand
         }
         //====================================================================//
         // Load Tasks Repository
-        /** @var TaskRepository $repo */
-        $repo = $this->getContainer()->get("splash.tasking.tasks")->getTasksRepository();
+        $repo = $this->manager->getTasksRepository();
 
         while (1) {
             //====================================================================//
@@ -104,8 +123,7 @@ class StatusCommand extends ContainerAwareCommand
     {
         //====================================================================//
         // Load Tasks Repository
-        /** @var WorkerRepository $repo */
-        $repo = $this->getContainer()->get("splash.tasking.tasks")->getWorkerRepository();
+        $repo = $this->manager->getWorkerRepository();
 
         //====================================================================//
         // List Workers Status
@@ -142,16 +160,15 @@ class StatusCommand extends ContainerAwareCommand
     /**
      * Get Worker Status String
      *
-     * @return string
+     * @throws Exception
      *
-     * @SuppressWarnings(PHPMD.ElseExpression)
+     * @return string
      */
-    protected function getWorkersStatusStr()
+    protected function getWorkersStatusStr(): string
     {
         //====================================================================//
         // Load Worker Repository
-        /** @var WorkerRepository $workers */
-        $workers = $this->getContainer()->get("splash.tasking.tasks")->getWorkerRepository();
+        $workers = $this->manager->getWorkerRepository();
         //====================================================================//
         // Fetch Workers Status
         $status = $workers->getWorkersStatus();
@@ -182,8 +199,13 @@ class StatusCommand extends ContainerAwareCommand
      * @param string          $status
      * @param string          $workers
      */
-    private function updateProgressBarr(OutputInterface $output, int $pending, int $total, string $status, string $workers) : void
-    {
+    private function updateProgressBarr(
+        OutputInterface $output,
+        int $pending,
+        int $total,
+        string $status,
+        string $workers
+    ) : void {
         //====================================================================//
         // delete current progress bar
         if (isset($this->progress)) {

@@ -119,7 +119,7 @@ class Task extends AbstractTask
         $system = posix_uname();
         //====================================================================//
         // Return machine Name
-        return $system["nodename"];
+        return is_array($system) ? $system["nodename"] : "Unknown";
     }
 
     /**

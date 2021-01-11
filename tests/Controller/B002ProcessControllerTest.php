@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
+use Exception;
 use PHPUnit\Framework\Assert;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Worker;
@@ -27,6 +28,8 @@ class B002ProcessControllerTest extends AbstractTestController
 {
     /**
      * Test of Linux Crontab management
+     *
+     * @throws Exception
      */
     public function testCronTab(): void
     {
@@ -35,8 +38,8 @@ class B002ProcessControllerTest extends AbstractTestController
         //====================================================================//
         $config = $this->getContainer()->getParameter('splash_tasking');
         if (!$config["server"]["force_crontab"]) {
-            Assert::assertNotEmpty($this->process->checkCrontab());
-            Assert::assertTrue($this->worker->checkSupervisor());
+            Assert::assertNotEmpty($this->getProcessManager()->checkCrontab());
+            Assert::assertTrue($this->getWorkersManager()->checkSupervisor());
             sleep(5);
 
             return;
@@ -52,7 +55,7 @@ class B002ProcessControllerTest extends AbstractTestController
         // CHECK CRONTAB CONFIG
         //====================================================================//
 
-        $this->process->checkCrontab();
+        $this->getProcessManager()->checkCrontab();
 
         //====================================================================//
         // VERIFY ALL PROCESS ARE STOPPED
@@ -63,7 +66,7 @@ class B002ProcessControllerTest extends AbstractTestController
         $cronTab = array();
         exec("crontab -l", $cronTab);
         Assert::assertCount(1, $cronTab);
-        Assert::assertInternalType("string", array_shift($cronTab));
+        Assert::assertIsString(array_shift($cronTab));
     }
 
     /**
@@ -82,7 +85,7 @@ class B002ProcessControllerTest extends AbstractTestController
         //====================================================================//
 
         //====================================================================//
-        // Load Worker Reprository
+        // Load Worker Repository
         $workers = $this->workersRepository->findAll();
 
         //====================================================================//
@@ -102,15 +105,18 @@ class B002ProcessControllerTest extends AbstractTestController
     }
 
     /**
-     * Test of Tasking Worker Process Aativation
+     * Test of Tasking Worker Process Activation
+     *
+     * @throws Exception
      */
     public function testSupervisorIsRunning(): void
     {
+        $manager = $this->getWorkersManager();
         //====================================================================//
         // REQUEST START OF SUPERVISOR
         //====================================================================//
 
-        $this->worker->checkSupervisor();
+        $manager->checkSupervisor();
         sleep(3);
 
         //====================================================================//
@@ -148,16 +154,19 @@ class B002ProcessControllerTest extends AbstractTestController
             $this->entityManager->refresh($refreshedWorker);
             Assert::assertTrue($refreshedWorker->isRunning());
             Assert::assertNotEmpty($refreshedWorker->getLastSeen());
-            Assert::assertTrue($this->worker->isRunning($refreshedWorker->getProcess()));
+            Assert::assertTrue($manager->isRunning($refreshedWorker->getProcess()));
             Assert::assertTrue($this->doCheckProcessIsAlive($refreshedWorker->getPid()));
         }
     }
 
     /**
      * Test of Worker Disable Feature
+     *
+     * @throws Exception
      */
     public function testWorkerIsDisabled(): void
     {
+        $manager = $this->getWorkersManager();
         //====================================================================//
         // DISABLE & STOP ALL WORKERS
         //====================================================================//
@@ -172,7 +181,7 @@ class B002ProcessControllerTest extends AbstractTestController
         // RESTART ALL WORKERS
         //====================================================================//
 
-        $this->worker->checkSupervisor();
+        $manager->checkSupervisor();
         sleep(2);
 
         //====================================================================//
@@ -201,7 +210,7 @@ class B002ProcessControllerTest extends AbstractTestController
 
             Assert::assertInstanceOf(Worker::class, $refreshedWorker);
             $this->entityManager->refresh($refreshedWorker);
-            Assert::assertTrue($this->worker->isRunning($refreshedWorker->getProcess()));
+            Assert::assertTrue($manager->isRunning($refreshedWorker->getProcess()));
             Assert::assertFalse($refreshedWorker->isEnabled());
             Assert::assertFalse($this->doCheckProcessIsAlive($refreshedWorker->getPid()));
             Assert::assertFalse($worker->isRunning());
@@ -212,7 +221,7 @@ class B002ProcessControllerTest extends AbstractTestController
         //====================================================================//
 
         $this->doStopCommand(false);
-        $this->worker->checkSupervisor();
+        $manager->checkSupervisor();
         sleep(2);
     }
 
@@ -228,11 +237,7 @@ class B002ProcessControllerTest extends AbstractTestController
         $command = "php bin/console tasking:stop --env=test -vv".($noRestart? " --no-restart" : null);
         //====================================================================//
         // Execute Test (SF 4 Versions)
-        try {
-            $process = Process::fromShellCommandline($command);
-        } catch (\Error $exception) {
-            $process = new Process($command);
-        }
+        $process = Process::fromShellCommandline($command);
         //====================================================================//
         // Clean Working Dir
         $workingDirectory = (string) $process->getWorkingDirectory();
@@ -259,10 +264,10 @@ class B002ProcessControllerTest extends AbstractTestController
         // Init Result Array
         $list = array();
         //====================================================================//
-        // Execute Seach Command
+        // Execute Search Command
         exec("ps ".$pid, $list);
         //====================================================================//
         // Check Result
-        return (count($list) > 1) ? true : false;
+        return count($list) > 1;
     }
 }

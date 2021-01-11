@@ -3,13 +3,19 @@
 ########################################################################
 
 services:
-    
+
+    ################################################################################
+    # AutoWire for Commands
+#    Splash\Tasking\Command\:
+#        resource: '../../Command'
+#        tags:    [ 'console.command' ]
+
     splash.tasking.command.check:
         class: Splash\Tasking\Command\CheckCommand
         tags:    [ console.command ]
         arguments:
             - "@splash.tasking.workers"
-        
+
     splash.tasking.command.start:
         class: Splash\Tasking\Command\StartCommand
         tags:    [ console.command ]

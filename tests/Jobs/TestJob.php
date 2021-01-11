@@ -215,7 +215,8 @@ class TestJob extends AbstractJob
     {
         //====================================================================//
         // Simulate Wrong Action Name
-        if (isset($this->inputs, $this->inputs["Error-Wrong-Action"]) && (true === $this->inputs["Error-Wrong-Action"])) {
+        if (isset($this->inputs, $this->inputs["Error-Wrong-Action"])
+            && (true === $this->inputs["Error-Wrong-Action"])) {
             return "WrongAction";
         }
 
@@ -231,7 +232,8 @@ class TestJob extends AbstractJob
     {
         //====================================================================//
         // Simulate Wrong Priority Format
-        if (isset($this->inputs, $this->inputs["Error-Wrong-Priority"]) && (true === $this->inputs["Error-Wrong-Priority"])) {
+        if (isset($this->inputs, $this->inputs["Error-Wrong-Priority"])
+            && (true === $this->inputs["Error-Wrong-Priority"])) {
             return -1;
         }
 

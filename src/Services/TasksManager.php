@@ -17,6 +17,8 @@ namespace Splash\Tasking\Services;
 
 use ArrayObject;
 use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ObjectManager;
 use Exception;
 use Psr\Log\LoggerInterface;
@@ -103,14 +105,21 @@ class TasksManager
     /**
      * Class Constructor
      *
+     * @param array                    $config
      * @param Registry                 $doctrine
      * @param EventDispatcherInterface $dispatcher
      * @param LoggerInterface          $logger
      * @param TokenManager             $token
-     * @param array                    $config
+     *
+     * @throws Exception
      */
-    public function __construct(Registry $doctrine, EventDispatcherInterface $dispatcher, LoggerInterface $logger, TokenManager $token, array $config)
-    {
+    public function __construct(
+        array $config,
+        Registry $doctrine,
+        EventDispatcherInterface $dispatcher,
+        LoggerInterface $logger,
+        TokenManager $token
+    ) {
         //====================================================================//
         // Link to entity manager Service
         $this->entityManager = $doctrine->getManager($config["entity_manager"]);
@@ -155,6 +164,8 @@ class TasksManager
     /**
      * Get Tasks Repository
      *
+     * @throws Exception
+     *
      * @return TaskRepository
      */
     public function getTasksRepository(): TaskRepository
@@ -171,6 +182,8 @@ class TasksManager
     /**
      * Get Worker Repository
      *
+     * @throws Exception
+     *
      * @return WorkerRepository
      */
     public function getWorkerRepository(): WorkerRepository
@@ -186,6 +199,8 @@ class TasksManager
 
     /**
      * Get Token Repository
+     *
+     * @throws Exception
      *
      * @return TokenRepository
      */
@@ -256,6 +271,8 @@ class TasksManager
      * @param null|string $currentToken
      * @param bool        $staticMode
      *
+     * @throws NonUniqueResultException
+     *
      * @return null|Task
      */
     public function next(?string $currentToken, bool $staticMode): ?Task
@@ -283,7 +300,7 @@ class TasksManager
             $this->logger->info('Task Manager: Cleaned '.$cleanCounter.' Tasks');
         }
         //====================================================================//
-        // Reload Reprository Data
+        // Reload Repository Data
         $this->entityManager->clear();
 
         return $cleanCounter;
@@ -292,16 +309,24 @@ class TasksManager
     /**
      * Wait Until All Tasks are Completed
      *
-     * @param int    $timeout TimeOut in Seconds
-     * @param string $token   Filter on a specific token Name
-     * @param string $md5     Filter on a specific Discriminator
-     * @param string $key1    Your Custom Index Key 1
-     * @param string $key2    Your Custom Index Key 2
+     * @param int         $timeout TimeOut in Seconds
+     * @param null|string $token   Filter on a specific token Name
+     * @param null|string $md5     Filter on a specific Discriminator
+     * @param null|string $key1    Your Custom Index Key 1
+     * @param null|string $key2    Your Custom Index Key 2
+     *
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      *
      * @return bool True if Ok, False if Exited on Timout
      */
-    public function waitUntilTaskCompleted(int $timeout = 10, string $token = null, string $md5 = null, string $key1 = null, string $key2 = null): bool
-    {
+    public function waitUntilTaskCompleted(
+        int $timeout = 10,
+        string $token = null,
+        string $md5 = null,
+        string $key1 = null,
+        string $key2 = null
+    ): bool {
         //==============================================================================
         // Init Time Counters
         $msSteps = 10;                  // 10 ms

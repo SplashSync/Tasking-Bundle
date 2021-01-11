@@ -19,6 +19,9 @@ use DateTime;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
+use Doctrine\ORM\PessimisticLockException;
+use Exception;
 use Splash\Tasking\Entity\Token;
 use Splash\Tasking\Tools\Timer;
 
@@ -98,7 +101,8 @@ class TokenRepository extends EntityRepository
     public function validate(string $tokenName) : bool
     {
         //==============================================================================
-        // Ckeck If Token Exists
+        // Check If Token Exists
+        /** @var null|Token $token */
         $token = $this->findOneBy(array("name" => $tokenName));
 
         //==============================================================================
@@ -122,7 +126,7 @@ class TokenRepository extends EntityRepository
     public function delete(string $tokenName) : bool
     {
         //==============================================================================
-        // Ckeck If this token Exists Token Key Name
+        // Check If this token Exists Token Key Name
         $token = $this->findOneBy(array("name" => $tokenName));
         //==============================================================================
         // Create token if necessary
@@ -143,6 +147,8 @@ class TokenRepository extends EntityRepository
      * Delete all Token Unused for more than given delay
      *
      * @param int $maxAge Max Age for Tokens in Hours
+     *
+     * @throws Exception
      *
      * @return int Count of Deleted Tasks
      */
@@ -173,7 +179,8 @@ class TokenRepository extends EntityRepository
     private function acquireNormal(string $tokenName): ?Token
     {
         //==============================================================================
-        // Ckeck If this token Exists Token Key Name
+        // Check If this token Exists Token Key Name
+        /** @var null|Token $token */
         $token = $this->findOneBy(array("name" => $tokenName));
 
         //==============================================================================
@@ -204,12 +211,16 @@ class TokenRepository extends EntityRepository
      *
      * @param string $tokenName Token Name to Acquire
      *
+     * @throws ORMException
+     * @throws OptimisticLockException
+     *
      * @return bool False is Token could not be Released
      */
     private function releaseNormal(string $tokenName) : bool
     {
         //==============================================================================
-        // Ckeck If this token Exists Token Key Name
+        // Check If this token Exists Token Key Name
+        /** @var null|Token $token */
         $token = $this->findOneBy(array("name" => $tokenName));
         //==============================================================================
         //If Token Doesn't Exists
@@ -232,6 +243,8 @@ class TokenRepository extends EntityRepository
      *
      * @param string $tokenName Token Name to Acquire
      *
+     * @throws ORMException
+     *
      * @return null|Token Null if Token not found or already Locked, $token Entity if Lock Acquired
      *
      * @SuppressWarnings(PHPMD.ExitExpression)
@@ -239,7 +252,8 @@ class TokenRepository extends EntityRepository
     private function acquireOptimistic(string $tokenName): ?Token
     {
         //==============================================================================
-        // Ckeck If this token Exists Token Key Name
+        // Check If this token Exists Token Key Name
+        /** @var null|Token $token */
         $token = $this->findOneBy(array("name" => $tokenName));
         //==============================================================================
         // Create token if necessary
@@ -282,12 +296,16 @@ class TokenRepository extends EntityRepository
      *
      * @param string $tokenName Token Name to Acquire
      *
+     * @throws ORMException
+     * @throws PessimisticLockException
+     *
      * @return bool
      */
     private function releaseOptimistic(string $tokenName): bool
     {
         //==============================================================================
-        // Ckeck If this token Exists Token Key Name
+        // Check If this token Exists Token Key Name
+        /** @var null|Token $token */
         $token = $this->findOneBy(array("name" => $tokenName));
         //==============================================================================
         //If Token Doesn't Exists

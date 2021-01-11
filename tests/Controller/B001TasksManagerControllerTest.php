@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
+use Exception;
 use PHPUnit\Framework\Assert;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Tests\Jobs\TestJob;
@@ -27,40 +28,46 @@ class B001TasksManagerControllerTest extends AbstractTestController
 {
     /**
      * Test of Task Event Listener Job Validate Function
+     *
+     * @throws Exception
      */
     public function testJobValidate(): void
     {
+        $tasksManager = $this->getTasksManager();
         //====================================================================//
         // Test Standard Result
         $testJob = new TestJob();
         Assert::assertTrue(
-            $this->invokeMethod($this->tasks, "validate", array($testJob))
+            $this->invokeMethod($tasksManager, "validate", array($testJob))
         );
 
         //====================================================================//
         // Detect Wrong Action
         $testJob->setInputs(array("Error-Wrong-Action" => true));
         Assert::assertFalse(
-            $this->invokeMethod($this->tasks, "validate", array($testJob))
+            $this->invokeMethod($tasksManager, "validate", array($testJob))
         );
 
         //====================================================================//
         // Detect Wrong Priority
         $testJob->setInputs(array("Error-Wrong-Priority" => true));
         Assert::assertFalse(
-            $this->invokeMethod($this->tasks, "validate", array($testJob))
+            $this->invokeMethod($tasksManager, "validate", array($testJob))
         );
     }
 
     /**
      * Test of Task Event Listener Job Validate Function
+     *
+     * @throws Exception
      */
     public function testJobPrepare(): void
     {
+        $tasksManager = $this->getTasksManager();
         //====================================================================//
         // Convert Generic Job to Task
         $job = new TestJob();
-        $task = $this->invokeMethod($this->tasks, "prepare", array($job));
+        $task = $this->invokeMethod($tasksManager, "prepare", array($job));
 
         //====================================================================//
         // Verify Generic Job Result
@@ -82,7 +89,7 @@ class B001TasksManagerControllerTest extends AbstractTestController
         //====================================================================//
         // Convert Static Job to Task
         $staticJob = new TestStaticJob();
-        $staticTask = $this->invokeMethod($this->tasks, "prepare", array($staticJob));
+        $staticTask = $this->invokeMethod($tasksManager, "prepare", array($staticJob));
 
         //====================================================================//
         // Verify Static Job Result

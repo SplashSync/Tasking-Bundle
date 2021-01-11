@@ -11,7 +11,8 @@ parameters:
         universalObjectCratesClasses:
                 - ArrayObject
         symfony:
-                container_xml_path: %currentWorkingDirectory%/var/cache/dev/testContainer.xml # or srcDevDebugProjectContainer.xml for Symfony 4+
+#                container_xml_path: %currentWorkingDirectory%/var/cache/dev/testContainer.xml # or srcDevDebugProjectContainer.xml for Symfony 4+
+                container_xml_path: %currentWorkingDirectory%/var/cache/test/appAppKernelTestDebugContainer.xml # or srcDevDebugProjectContainer.xml for Symfony 4+
 #                container_xml_path: %currentWorkingDirectory%/var/cache/test/appAppKernelTestDebugContainer.xml # or srcDevDebugProjectContainer.xml for Symfony 4+
         ignoreErrors:
                 # Allow Int Compare oin While Loops 

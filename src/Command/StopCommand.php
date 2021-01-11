@@ -16,6 +16,7 @@
 namespace Splash\Tasking\Command;
 
 use DateTime;
+use Exception;
 use Splash\Tasking\Services\WorkersManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -62,15 +63,23 @@ class StopCommand extends Command
         $this
             ->setName('tasking:stop')
             ->setDescription('Tasking Service : Stop All Supervisors & Workers Process on All Machines')
-            ->addOption('no-restart', null, InputOption::VALUE_OPTIONAL, 'Do you want to Restart Workers After Stop?', false)
+            ->addOption(
+                'no-restart',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Do you want to Restart Workers After Stop?',
+                false
+            )
         ;
         parent::configure();
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @throws Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         //====================================================================//
         // User Information

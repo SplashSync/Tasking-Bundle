@@ -15,26 +15,29 @@
 
 namespace Splash\Tasking\DependencyInjection;
 
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
  * This is the class that validates and merges configuration from your app/config files
- *
- * To learn more see {@link http://symfony.com/doc/current/cookbook/bundles/extension.html#cookbook-bundles-extension-config-class}
  */
 class Configuration implements ConfigurationInterface
 {
+    /**
+     * @var ArrayNodeDefinition
+     */
     private $treeNode;
 
     /**
      * {@inheritdoc}
      */
-    public function getConfigTreeBuilder()
+    public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('splash_tasking');
 
+        // @phpstan-ignore-next-line
         $this->treeNode = $rootNode->children();
 
         $this->configureCommonParameters();
@@ -54,6 +57,7 @@ class Configuration implements ConfigurationInterface
      */
     private function configureCommonParameters(): self
     {
+        // @phpstan-ignore-next-line
         $this->treeNode
             //====================================================================//
             // COMMON Parameters
@@ -74,15 +78,18 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->integerNode('watchdog_delay')
             ->defaultValue(30)
-            ->info('Max. Time in seconds between two status refresh of a worker. If exeeded, worker is considered as faulty and restarted.')
+            ->info(
+                'Max. Time in seconds between two status refresh of a worker. 
+                If exceeded, worker is considered as faulty and restarted.'
+            )
             ->end()
             ->booleanNode('multiserver')
             ->defaultValue(false)
-            ->info('Enable Multi-Server mode. Allow ativation of Workers on a Pool of Servers')
+            ->info('Enable Multi-Server mode. Allow activation of Workers on a Pool of Servers')
             ->end()
             ->scalarNode('multiserver_path')
             ->defaultValue("")
-            ->info('Aditionnal Path for Multi-Server mode. ')
+            ->info('Additional Path for Multi-Server mode. ')
             ->end()
         ;
 
@@ -96,6 +103,7 @@ class Configuration implements ConfigurationInterface
      */
     private function configureServerParameters(): self
     {
+        // @phpstan-ignore-next-line
         $this->treeNode
             //====================================================================//
             // SERVER Parameters
@@ -105,7 +113,7 @@ class Configuration implements ConfigurationInterface
             ->children()
             ->booleanNode('force_crontab')
             ->defaultValue(false)
-            ->info('Enable this mode to force setup of users crontab. When disabled you need to manage crontab manaully')
+            ->info('Enable to force setup of users crontab. When disabled you need to manage crontab manually')
             ->end()
             ->scalarNode('php_version')
             ->defaultValue("php")
@@ -125,6 +133,7 @@ class Configuration implements ConfigurationInterface
      */
     private function configureSupervisorParameters(): self
     {
+        // @phpstan-ignore-next-line
         $this->treeNode
             //====================================================================//
             // SUPERVISOR Parameters
@@ -162,6 +171,7 @@ class Configuration implements ConfigurationInterface
      */
     private function configureWorkersParameters(): self
     {
+        // @phpstan-ignore-next-line
         $this->treeNode
             //====================================================================//
             // WORKERS Parameters
@@ -195,6 +205,7 @@ class Configuration implements ConfigurationInterface
      */
     private function configureTasksParameters(): self
     {
+        // @phpstan-ignore-next-line
         $this->treeNode
             //====================================================================//
             // TASKS Parameters
@@ -232,6 +243,7 @@ class Configuration implements ConfigurationInterface
      */
     private function configureStaticTasksParameters(): self
     {
+        // @phpstan-ignore-next-line
         $this->treeNode
             //====================================================================//
             // STATIC TASKS Parameters

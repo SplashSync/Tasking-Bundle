@@ -15,6 +15,7 @@
 
 namespace Splash\Tasking\Tests\Controller;
 
+use Exception;
 use PHPUnit\Framework\Assert;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Worker;
@@ -27,6 +28,8 @@ class Z001ProcessCloseControllerTest extends AbstractTestController
 {
     /**
      * Test of Task Inputs
+     *
+     * @throws Exception
      */
     public function testStopCommand(): void
     {
@@ -69,11 +72,7 @@ class Z001ProcessCloseControllerTest extends AbstractTestController
     {
         //====================================================================//
         // Create Sub-Process (SF 4 Versions)
-        try {
-            $process = Process::fromShellCommandline("php bin/console tasking:stop -vv");
-        } catch (\Error $exception) {
-            $process = new Process("php bin/console tasking:stop -vv");
-        }
+        $process = Process::fromShellCommandline("php bin/console tasking:stop -vv");
 
         //====================================================================//
         // Clean Working Dir

@@ -47,11 +47,7 @@ class A001InitialisationControllerTest extends KernelTestCase
 
         //====================================================================//
         // Create Process (SF 4 Versions)
-        try {
-            $process = Process::fromShellCommandline("php bin/console tasking:stop --no-restart");
-        } catch (\Error $exception) {
-            $process = new Process("php bin/console tasking:stop --no-restart");
-        }
+        $process = Process::fromShellCommandline("php bin/console tasking:stop --no-restart");
         //====================================================================//
         // Clean Working Dir
         $workingDirectory = (string) $process->getWorkingDirectory();
