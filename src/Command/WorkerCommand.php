@@ -85,7 +85,7 @@ class WorkerCommand extends ContainerAwareCommand
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         //====================================================================//
         // Init Console Command & Worker
@@ -118,6 +118,8 @@ class WorkerCommand extends ContainerAwareCommand
      * Initialize Worker Process
      *
      * @param InputInterface $input
+     *
+     * @throws Exception
      */
     private function boot(InputInterface $input): void
     {

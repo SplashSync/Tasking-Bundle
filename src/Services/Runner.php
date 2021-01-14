@@ -243,7 +243,7 @@ class Runner
     {
         //====================================================================//
         // Use Current Task Token or Null
-        $currentToken = isset($this->task)
+        $currentToken = isset($this->task) && (Status::getTokenLifetime() >= Configuration::getWorkerWatchdogDelay())
                 ? $this->task->getJobToken()
                 : null;
 
