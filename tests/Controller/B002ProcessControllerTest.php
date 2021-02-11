@@ -37,6 +37,7 @@ class B002ProcessControllerTest extends AbstractTestController
         // CHECK if Crontab Management is Active
         //====================================================================//
         $config = $this->getContainer()->getParameter('splash_tasking');
+        Assert::assertIsArray($config);
         if (!$config["server"]["force_crontab"]) {
             Assert::assertNotEmpty($this->getProcessManager()->checkCrontab());
             Assert::assertTrue($this->getWorkersManager()->checkSupervisor());
@@ -133,7 +134,10 @@ class B002ProcessControllerTest extends AbstractTestController
         // CHECK EXPECTED WORKERS are RUNNING
         //====================================================================//
 
-        $config = $this->getContainer()->getParameter('splash_tasking')["supervisor"];
+        $config = $this->getContainer()->getParameter('splash_tasking');
+        Assert::assertIsArray($config);
+        $config = $config["supervisor"];
+        Assert::assertIsArray($config);
 
         //====================================================================//
         // Load Workers for Local Supervisor
