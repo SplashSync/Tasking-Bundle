@@ -393,7 +393,7 @@ class TasksManager
     }
 
     /**
-     * Take Given Job Parameters ans convert it on a Task for Storage
+     * Take Given Job Parameters and convert it on a Task for Storage
      *
      * @param AbstractJob $job User Job Object
      *

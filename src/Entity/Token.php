@@ -62,7 +62,7 @@ class Token
      *
      * @var string
      *
-     * @ORM\Column(name="Name", type="string", length=250)
+     * @ORM\Column(name="Name", type="string", length=250, unique=true)
      */
     private $name;
 
