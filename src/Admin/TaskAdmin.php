@@ -20,11 +20,10 @@ use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Show\ShowMapper;
-
-//use Sonata\Bundle\DemoBundle\Entity\Inspection;
+use Sonata\Form\Type\DateTimePickerType;
 
 /**
- * @author Thomas Rabaix <thomas.rabaix@sonata-project.org>
+ * Sonata Admin Management for Tasks
  */
 class TaskAdmin extends Admin
 {
@@ -112,7 +111,6 @@ class TaskAdmin extends Admin
         $formMapper
             ->with('General', array('class' => 'col-md-6'))
             ->add('name')
-//                ->add('user', 'sonata_type_model_list')
             ->add('running')
             ->add('finished')
             ->add('try')
@@ -126,9 +124,8 @@ class TaskAdmin extends Admin
             ->add('jobInputs')
             ->end()
             ->with('Static Tasks', array('class' => 'col-md-6'))
-            ->add('jobIsStatic')
             ->add('jobFrequency')
-//                ->add('plannedAt', "datetime", [ "required" => False ])
+            ->add('plannedAt', DateTimePickerType::class, array("required" => false))
             ->end()
             ->with('Indexes', array('class' => 'col-md-6'))
             ->add('jobIndexKey1')
