@@ -27,14 +27,14 @@
     },
     
     "require": {
-        "php":                                          "^7.2",
+        "php":                                          "^7.2|^8.0",
         "ext-posix":                                    "*",
         "ext-curl":                                     "*",
 
         "symfony/symfony":                              "~4.0",
         "symfony/monolog-bundle":                       ">=2.1",
         
-        "doctrine/doctrine-bundle":                     "^1.6",
+        "doctrine/doctrine-bundle":                     "^1.6|^2.0",
         "doctrine/doctrine-cache-bundle":               "^1.2",
         
         "sonata-project/admin-bundle":                  ">3.0",
