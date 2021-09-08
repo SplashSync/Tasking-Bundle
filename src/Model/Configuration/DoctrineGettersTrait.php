@@ -15,7 +15,7 @@
 
 namespace Splash\Tasking\Model\Configuration;
 
-use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\Persistence\ManagerRegistry as Registry;
 use Doctrine\Persistence\ObjectManager;
 use Exception;
 use Splash\Tasking\Entity\Task;

@@ -16,7 +16,7 @@
 namespace Splash\Tasking\Services;
 
 use DateTime;
-use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\Persistence\ManagerRegistry as Registry;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Sentry;

@@ -116,15 +116,13 @@ abstract class AbstractJob implements ContainerAwareInterface
      * @param string $property
      * @param mixed  $value
      *
-     * @return $this
+     * @return void
      */
-    public function __set(string $property, $value): self
+    public function __set(string $property, $value): void
     {
         if (property_exists($this, $property)) {
             $this->{$property} = $value;
         }
-
-        return $this;
     }
 
     //==============================================================================
