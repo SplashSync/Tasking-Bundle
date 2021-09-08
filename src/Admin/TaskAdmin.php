@@ -15,7 +15,7 @@
 
 namespace Splash\Tasking\Admin;
 
-use Sonata\AdminBundle\Admin\Admin;
+use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
@@ -25,7 +25,7 @@ use Sonata\Form\Type\DateTimePickerType;
 /**
  * Sonata Admin Management for Tasks
  */
-class TaskAdmin extends Admin
+class TaskAdmin extends AbstractAdmin
 {
     /**
      * {@inheritdoc}

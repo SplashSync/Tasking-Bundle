@@ -15,18 +15,16 @@
 
 namespace Splash\Tasking\Admin;
 
-use Sonata\AdminBundle\Admin\Admin;
+use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Show\ShowMapper;
 
-//use Sonata\Bundle\DemoBundle\Entity\Inspection;
-
 /**
  * @author Bernard Paquier <eshop.bpaquier@gmail.com>
  */
-class TokenAdmin extends Admin
+class TokenAdmin extends AbstractAdmin
 {
     /**
      * {@inheritdoc}

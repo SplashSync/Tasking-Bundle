@@ -15,17 +15,15 @@
 
 namespace Splash\Tasking\Admin;
 
-use Sonata\AdminBundle\Admin\Admin;
+use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Show\ShowMapper;
 
-//use Sonata\Bundle\DemoBundle\Entity\Inspection;
-
 /**
  * @author Thomas Rabaix <thomas.rabaix@sonata-project.org>
  */
-class WorkerAdmin extends Admin
+class WorkerAdmin extends AbstractAdmin
 {
     /**
      * {@inheritdoc}
