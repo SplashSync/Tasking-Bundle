@@ -16,11 +16,12 @@
 namespace Splash\Tasking\Tests\Jobs;
 
 use Splash\Tasking\Entity\Task;
+use Splash\Tasking\Model\AbstractBatchJob;
 
 /**
- * Demonstartion fo Simple Background Jobs
+ * Demonstration for Simple Batch Jobs
  */
-class TestStaticJob extends \Splash\Tasking\Model\AbstractBatchJob
+class TestBatchJob extends AbstractBatchJob
 {
     //==============================================================================
     //  Constants Definition
@@ -34,20 +35,13 @@ class TestStaticJob extends \Splash\Tasking\Model\AbstractBatchJob
     protected static $priority = Task::DO_LOWEST;
 
     /**
-     * Job Inputs => Load here all inputs parameters for your task
-     *
-     * @var array
-     */
-    protected $inputs = array("delay" => 1);
-
-    /**
-     * Job Token is Used for concurency Management
+     * Job Token is Used for concurrency Management
      * You can set it directly by overriding this constant
      * or by writing an array of parameters to setJobToken()
      *
      * @var string
      */
-    protected $token = "JOB_STATIC";
+    protected $token = "JOB_BATCH";
 
     /**
      * Job Frequency => How often (in Seconds) shall this task be executed
@@ -63,7 +57,7 @@ class TestStaticJob extends \Splash\Tasking\Model\AbstractBatchJob
      */
     protected $settings = array(
         "label" => "Test Batch Job",
-        "description" => "Demonstration of a Static Job",
+        "description" => "Demonstration of a Batch Job",
         "translation_domain" => false,
         "translation_params" => array(),
     );
@@ -73,13 +67,42 @@ class TestStaticJob extends \Splash\Tasking\Model\AbstractBatchJob
     //==============================================================================
 
     /**
-     * Set Static Job Repeat Delay
+     * Set Batch Job Options
      *
-     * @param int $delay
+     * @param int $nbTasks
+     * @param int $msDelay
+     *
+     * @return self
      */
-    public function setDelay(int $delay): void
+    public function setup(int $nbTasks = 100, int $msDelay = 100): self
     {
-        $this->setInputs(array("delay" => $delay));
+        $this->setInputs(array(
+            "nbTasks" => $nbTasks,
+            "msDelay" => $msDelay,
+        ));
+
+        return $this;
+    }
+
+    /**
+     * Override this function to generate list of your batch tasks inputs
+     *
+     * @return array
+     */
+    public function configure() : array
+    {
+        $inputs = $this->getInputs();
+        $batchList = array();
+        for ($i = 0; $i < ($inputs["nbTasks"] ?: 10); $i++) {
+            $batchList[] = array(
+                "name" => "Job ".$i,
+                "msDelay" => $inputs["msDelay"] ?: 100,
+            );
+        }
+
+        self::$state["totalDelay"] = 0;
+
+        return $batchList;
     }
 
     //==============================================================================
@@ -93,8 +116,8 @@ class TestStaticJob extends \Splash\Tasking\Model\AbstractBatchJob
     {
         $inputs = $this->getInputs();
         echo "Batch Job => Validate Inputs </br>";
-        if (is_integer($inputs["delay"])) {
-            echo "Batch Job => Delay is a Integer </br>";
+        if (is_integer($inputs["msDelay"])) {
+            echo "Batch Job => Ms Delay is a Integer </br>";
         }
 
         return true;
@@ -113,11 +136,12 @@ class TestStaticJob extends \Splash\Tasking\Model\AbstractBatchJob
     /**
      * {@inheritdoc}
      */
-    public function execute() : bool
+    public function execute(array $inputs = array()): bool
     {
-        $inputs = $this->getInputs();
-        echo "Batch Job => Execute a ".$inputs["delay"]." Second Pause </br>";
-        sleep($inputs["delay"]);
+        $msDelay = (int) (1E3 * $inputs["msDelay"]);
+        echo "Batch Job => Execute a ".$inputs["msDelay"]." Microsecond Pause </br>";
+        usleep($msDelay);
+        $this->incStateItem("totalDelay", $msDelay);
 
         return true;
     }

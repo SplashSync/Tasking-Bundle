@@ -112,17 +112,17 @@ abstract class AbstractBatchJob extends AbstractJob
     //==============================================================================
 
     /**
-     * Overide this function to generate list of your batch tasks inputs
+     * Override this function to generate list of your batch tasks inputs
      *
      * @return array
      */
     public function configure() : array
     {
         $batchList = array();
-        for ($i = 1; $i < 3; $i++) {
+        for ($i = 1; $i <= 3; $i++) {
             $batchList[] = array(
                 "name" => "Job ".$i,
-                "delay" => $i ,
+                "delay" => 1,
             );
         }
 
@@ -130,7 +130,7 @@ abstract class AbstractBatchJob extends AbstractJob
     }
 
     /**
-     * Overide this function to perform your task
+     * Override this function to perform your task
      *
      * @param array $inputs
      *
@@ -140,7 +140,7 @@ abstract class AbstractBatchJob extends AbstractJob
     {
         echo "<h4>Default Batch Action : ".$inputs["name"]."</h4>";
         echo " => Delay of : ".$inputs["delay"]." Seconds</br>";
-        echo "Overide Execute function to define your own Batch Action </br>";
+        echo "Override Execute function to define your own Batch Action </br>";
         sleep($inputs["delay"]);
 
         return true;
@@ -185,16 +185,15 @@ abstract class AbstractBatchJob extends AbstractJob
             return false;
         }
         //==============================================================================
-        //      Safety Ckeck - Ensure Execute Method Exists
+        //      Safety Check - Ensure Execute Method Exists
         if (!method_exists($this, static::$batchAction)) {
             $this->setStateItem("isCompleted", true);
 
             return true;
         }
         //====================================================================//
-        // Load Current Batch State
-        $state = $this->getState();
-        ++$state["tasksCount"];
+        // Increment Current Batch State
+        $this->incStateItem("tasksCount");
 
         //==============================================================================
         //      Execute Batch Tasks
@@ -202,8 +201,8 @@ abstract class AbstractBatchJob extends AbstractJob
 
         //====================================================================//
         // Init Task Planification Counters
-        $taskStart = $state["currentJob"];
-        $taskMax = $state["jobsCount"];
+        $taskStart = $this->getStateItem("currentJob");
+        $taskMax = $this->getStateItem("jobsCount");
         $taskEnd = (static::$paginate > 0) ? ($taskStart + static::$paginate) : $taskMax;
         if ($taskEnd > $taskMax) {
             $taskEnd = $taskMax;
@@ -214,10 +213,10 @@ abstract class AbstractBatchJob extends AbstractJob
         for ($index = $taskStart; $index < $taskEnd; $index++) {
             //==============================================================================
             //      Update State
-            ++$state["currentJob"];
+            $this->incStateItem("currentJob");
 
             //==============================================================================
-            //      Safety Ckeck - Ensure Input Array Exists
+            //      Safety Check - Ensure Input Array Exists
             $jobInputs = $this->getJobInputs($index);
             if (is_null($jobInputs)) {
                 $this->setStateItem("isCompleted", true);
@@ -231,11 +230,8 @@ abstract class AbstractBatchJob extends AbstractJob
 
             //==============================================================================
             //      Update State
-            ++$state["jobsCompleted"];
-            $jobsResult
-                    ? ++$state["jobsSuccess"]
-                    : ++$state["jobsError"];
-            $this->setState($state);
+            $this->incStateItem("jobsCompleted");
+            $this->incStateItem(($jobsResult ? "jobsSuccess" : "jobsError"));
 
             //==============================================================================
             //      Manage Stop on Error
@@ -248,7 +244,7 @@ abstract class AbstractBatchJob extends AbstractJob
 
         //==============================================================================
         //      Manage Stop on Error
-        if ($state["currentJob"] >= $state["jobsCount"]) {
+        if ($this->getStateItem("currentJob") >= $this->getStateItem("jobsCount")) {
             $this->setStateItem("isCompleted", true);
         }
 
@@ -256,7 +252,7 @@ abstract class AbstractBatchJob extends AbstractJob
     }
 
     /**
-     * Load Jobs Batch Actions Inputs fro User function
+     * Load Jobs Batch Actions Inputs for User function
      *
      * @return bool
      */
@@ -286,7 +282,7 @@ abstract class AbstractBatchJob extends AbstractJob
 
         //==============================================================================
         //      Init Batch State
-        $state = static::$state;
+        $state = self::$state;
         $state["isListLoaded"] = true;
         $state["jobsCount"] = count($jobsInputs);
         $this->setState($state);
@@ -311,7 +307,7 @@ abstract class AbstractBatchJob extends AbstractJob
      */
     public function hasErrors() : bool
     {
-        return $this->inputs["state"]["jobsError"] ? true : false;
+        return (bool) $this->inputs["state"]["jobsError"];
     }
 
     //==============================================================================
@@ -353,7 +349,7 @@ abstract class AbstractBatchJob extends AbstractJob
     {
         //==============================================================================
         //  Init State Array using OptionResolver
-        $resolver = (new OptionsResolver())->setDefaults(static::$state);
+        $resolver = (new OptionsResolver())->setDefaults(self::$state);
         //==============================================================================
         //  Update State Array using OptionResolver
         try {
@@ -361,9 +357,9 @@ abstract class AbstractBatchJob extends AbstractJob
             //==============================================================================
         //  Invalid Field Definition Array
         } catch (UndefinedOptionsException $ex) {
-            $this->inputs["state"] = static::$state;
+            $this->inputs["state"] = self::$state;
         } catch (InvalidOptionsException $ex) {
-            $this->inputs["state"] = static::$state;
+            $this->inputs["state"] = self::$state;
         }
 
         return $this;
@@ -402,6 +398,23 @@ abstract class AbstractBatchJob extends AbstractJob
         return $this;
     }
 
+    /**
+     * Increment Batch Action State Item
+     *
+     * @param string $index
+     * @param int    $offset
+     *
+     * @return self
+     */
+    public function incStateItem(string $index, int $offset = 1): self
+    {
+        $this->setStateItem(
+            $index,
+            (int) $this->getStateItem($index) + $offset
+        );
+
+        return $this;
+    }
     /**
      * Get Batch Action State Item
      *
