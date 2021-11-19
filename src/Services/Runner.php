@@ -23,6 +23,7 @@ use Sentry;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
+use Splash\Tasking\Model\AbstractMassJob;
 use Splash\Tasking\Tools\Status;
 use Splash\Tasking\Tools\Timer;
 use Symfony\Component\DependencyInjection\ContainerInterface as Container;
@@ -32,6 +33,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface as Container;
  *
  * Load Available Tasks from database, Acquire Token & Execute
  * Look so simple... but!
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Runner
 {
@@ -150,7 +153,9 @@ class Runner
     }
 
     /**
-     * Ensure We released The Current Tokan
+     * Ensure We released The Current Token
+     *
+     * @throws Exception
      *
      * @return bool
      */
@@ -305,6 +310,8 @@ class Runner
      *
      * @param Task $task
      *
+     * @throws Exception
+     *
      * @return bool
      */
     private function prepareJob(Task &$task): bool
@@ -454,17 +461,18 @@ class Runner
             return;
         }
         //==============================================================================
-        // IF Batch Job
-        if (isset($this->job) && is_a($this->job, AbstractBatchJob::class)) {
+        // IF Batch Job or Mass Job
+        $job = $this->getBatchOrMassJob();
+        if ($job) {
             //==============================================================================
             // If Batch Task Not Completed => Setup For Next Execution
-            if (false == $this->job->getStateItem("isCompleted")) {
+            if (false == $job->getStateItem("isCompleted")) {
                 $task->setTry(0);
                 $task->setFinished(false);
             }
             //==============================================================================
             // Backup Inputs Parameters For Next Actions
-            $task->setJobInputs($this->job->__get("inputs"));
+            $task->setJobInputs($job->__get("inputs"));
         }
         //====================================================================//
         // User Information
@@ -483,5 +491,23 @@ class Runner
                 $this->registry->getManager($managerName)->clear();
             }
         }
+    }
+
+    /**
+     * Check if Batch or Mass Job
+     *
+     * @return null|AbstractBatchJob|AbstractMassJob
+     */
+    private function getBatchOrMassJob(): ?AbstractJob
+    {
+        if (!isset($this->job)) {
+            return null;
+        }
+
+        if (is_a($this->job, AbstractBatchJob::class) || is_a($this->job, AbstractMassJob::class)) {
+            return $this->job;
+        }
+
+        return null;
     }
 }

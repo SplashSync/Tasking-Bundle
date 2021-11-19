@@ -16,15 +16,19 @@
 namespace Splash\Tasking\Model;
 
 use Splash\Tasking\Entity\Task;
-use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
-use Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException;
-use Symfony\Component\OptionsResolver\OptionsResolver;
+use Splash\Tasking\Model\Jobs\InputsStateTrait;
 
 /**
  * Base Class for Background Batch Jobs Definition
+ *
+ * A Batch Job defines a list of Jobs to be Executed
+ * At the beginning, a list of Jobs is Build
+ * Then each job is executed subsequently
  */
 abstract class AbstractBatchJob extends AbstractJob
 {
+    use InputsStateTrait;
+
     //==============================================================================
     //  Constants Definition
     //==============================================================================
@@ -72,30 +76,6 @@ abstract class AbstractBatchJob extends AbstractJob
      * @var int
      */
     protected static $paginate = 1;
-
-    /**
-     * Define Initial State for a Batch Action
-     *
-     * @var array
-     */
-    protected static $state = array(
-        //==============================================================================
-        //  General Status Flags
-        'isCompleted' => false,
-        'isListLoaded' => false,
-
-        //==============================================================================
-        //  Batch Counters
-        'tasksCount' => 0,
-        'jobsCount' => 0,
-        'jobsCompleted' => 0,
-        'jobsSuccess' => 0,
-        'jobsError' => 0,
-
-        //==============================================================================
-        //  Batch Execution
-        "currentJob" => 0,
-    );
 
     /**
      * Class Constructor
@@ -259,7 +239,7 @@ abstract class AbstractBatchJob extends AbstractJob
     public function batchLoadJobsList() : bool
     {
         //==============================================================================
-        //      Safety Ckeck - Ensure Configure Method Exists
+        //      Safety Check - Ensure Configure Method Exists
         if (!method_exists($this, static::$batchList)) {
             return false;
         }
@@ -282,154 +262,15 @@ abstract class AbstractBatchJob extends AbstractJob
 
         //==============================================================================
         //      Init Batch State
-        $state = self::$state;
-        $state["isListLoaded"] = true;
-        $state["jobsCount"] = count($jobsInputs);
-        $this->setState($state);
+        $this->setStateItem("isListLoaded", true);
+        $this->setStateItem("jobsCount", count($jobsInputs));
 
         return true;
-    }
-
-    /**
-     * Check if batch actions are completed or task needs to be executed again (pagination)
-     *
-     * @return bool
-     */
-    public function isCompleted() : bool
-    {
-        return $this->inputs["state"]["isCompleted"];
-    }
-
-    /**
-     * Check if Errors have occured during batch action
-     *
-     * @return bool
-     */
-    public function hasErrors() : bool
-    {
-        return (bool) $this->inputs["state"]["jobsError"];
     }
 
     //==============================================================================
     //      Specific Getters & Setters
     //==============================================================================
-
-    /**
-     * Set Job User Inputs
-     *
-     * @param array $inputs
-     *
-     * @return $this
-     */
-    public function setInputs(array $inputs): AbstractJob
-    {
-        $this->inputs["inputs"] = $inputs;
-
-        return $this;
-    }
-
-    /**
-     * Get Job User Inputs
-     *
-     * @return array
-     */
-    public function getInputs(): array
-    {
-        return $this->inputs["inputs"];
-    }
-
-    /**
-     * Set Job Status
-     *
-     * @param array $state
-     *
-     * @return $this
-     */
-    public function setState(array $state): self
-    {
-        //==============================================================================
-        //  Init State Array using OptionResolver
-        $resolver = (new OptionsResolver())->setDefaults(self::$state);
-        //==============================================================================
-        //  Update State Array using OptionResolver
-        try {
-            $this->inputs["state"] = $resolver->resolve($state);
-            //==============================================================================
-        //  Invalid Field Definition Array
-        } catch (UndefinedOptionsException $ex) {
-            $this->inputs["state"] = self::$state;
-        } catch (InvalidOptionsException $ex) {
-            $this->inputs["state"] = self::$state;
-        }
-
-        return $this;
-    }
-
-    /**
-     * Get Job Status
-     *
-     * @return array
-     */
-    public function getState(): array
-    {
-        return $this->inputs["state"];
-    }
-
-    /**
-     * Set Batch Action State Item
-     *
-     * @param string $index
-     * @param mixed  $value
-     *
-     * @return self
-     */
-    public function setStateItem(string $index, $value): self
-    {
-        //==============================================================================
-        // Read Full State Array
-        $state = $this->getState();
-        //==============================================================================
-        // Update Item
-        $state[$index] = $value;
-        //==============================================================================
-        // Update Full State Array
-        $this->setState($state);
-
-        return $this;
-    }
-
-    /**
-     * Increment Batch Action State Item
-     *
-     * @param string $index
-     * @param int    $offset
-     *
-     * @return self
-     */
-    public function incStateItem(string $index, int $offset = 1): self
-    {
-        $this->setStateItem(
-            $index,
-            (int) $this->getStateItem($index) + $offset
-        );
-
-        return $this;
-    }
-    /**
-     * Get Batch Action State Item
-     *
-     * @param string $index
-     *
-     * @return mixed
-     */
-    public function getStateItem(string $index)
-    {
-        if (isset($this->inputs["state"][$index])) {
-            return $this->inputs["state"][$index];
-        }
-
-        return null;
-    }
 
     /**
      * Set Jobs List

@@ -19,24 +19,24 @@ use DateTime;
 use Exception;
 use PHPUnit\Framework\Assert;
 use Splash\Tasking\Services\Configuration;
-use Splash\Tasking\Tests\Jobs\TestBatchJob;
+use Splash\Tasking\Tests\Jobs\TestMassJob;
 
 /**
- * Test of Batch Jobs
+ * Test of Mass Jobs
  */
-class C005BatchJobControllerTest extends AbstractTestController
+class C006MassJobControllerTest extends AbstractTestController
 {
     /**
-     * Test of a Batch Job Execution
+     * Test of A Mass Job Execution
      *
      * @throws Exception
      */
-    public function testBatchJob() : void
+    public function testMassJob() : void
     {
         //====================================================================//
         // Start a Long Job
         $startedAt = new DateTime();
-        Assert::assertInstanceOf(TestBatchJob::class, $this->addTask());
+        Assert::assertInstanceOf(TestMassJob::class, $this->addTask());
         //====================================================================//
         // Wait for Job Finished
         Assert::assertTrue(
@@ -51,15 +51,15 @@ class C005BatchJobControllerTest extends AbstractTestController
     }
 
     /**
-     * Add a New Test Batch Task & Run
+     * Add a New Test Mass Task & Run
      *
-     * @return TestBatchJob
+     * @return TestMassJob
      */
-    private function addTask(): TestBatchJob
+    private function addTask(): TestMassJob
     {
         //====================================================================//
         // Create a New Test Job
-        $job = new TestBatchJob();
+        $job = new TestMassJob();
         //====================================================================//
         // Setup Task Parameters
         $job

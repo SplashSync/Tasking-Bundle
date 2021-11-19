@@ -5,9 +5,9 @@
 
 tasking_start:
     path:     /start
-    defaults: { _controller: SplashTaskingBundle:Actions:start }
+    defaults: { _controller: Splash\Tasking\Controller\ActionsController::startAction}
 
 tasking_test:
     path:     /test
-    defaults: { _controller: SplashTaskingBundle:Actions:test }
+    defaults: { _controller: Splash\Tasking\Controller\ActionsController::testActions }
 

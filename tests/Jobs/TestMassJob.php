@@ -16,12 +16,12 @@
 namespace Splash\Tasking\Tests\Jobs;
 
 use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Model\AbstractBatchJob;
+use Splash\Tasking\Model\AbstractMassJob;
 
 /**
  * Demonstration for Simple Batch Jobs
  */
-class TestBatchJob extends AbstractBatchJob
+class TestMassJob extends AbstractMassJob
 {
     //==============================================================================
     //  Constants Definition
@@ -41,14 +41,7 @@ class TestBatchJob extends AbstractBatchJob
      *
      * @var string
      */
-    protected $token = "JOB_BATCH";
-
-    /**
-     * Job Frequency => How often (in Seconds) shall this task be executed
-     *
-     * @var int
-     */
-    protected $frequency = 10;
+    protected $token = "JOB_MASS";
 
     /**
      * Job Display Settings
@@ -56,11 +49,15 @@ class TestBatchJob extends AbstractBatchJob
      * @var array
      */
     protected $settings = array(
-        "label" => "Test Batch Job",
-        "description" => "Demonstration of a Batch Job",
+        "label" => "Test Mass Job",
+        "description" => "Demonstration of a Mass Job",
         "translation_domain" => false,
         "translation_params" => array(),
     );
+
+    //==============================================================================
+    //      Job Setup
+    //==============================================================================
 
     /**
      * Set Batch Job Options
@@ -80,25 +77,6 @@ class TestBatchJob extends AbstractBatchJob
         return $this;
     }
 
-    /**
-     * Override this function to generate list of your batch tasks inputs
-     *
-     * @return array
-     */
-    public function configure() : array
-    {
-        $inputs = $this->getInputs();
-        $batchList = array();
-        for ($i = 0; $i < ($inputs["nbTasks"] ?: 10); $i++) {
-            $batchList[] = array(
-                "name" => "Job ".$i,
-                "msDelay" => $inputs["msDelay"] ?: 100,
-            );
-        }
-
-        return $batchList;
-    }
-
     //==============================================================================
     //      Task Execution Management
     //==============================================================================
@@ -109,15 +87,15 @@ class TestBatchJob extends AbstractBatchJob
     public function validate() : bool
     {
         $inputs = $this->getInputs();
-        echo "Batch Job => Validate Inputs </br>";
+        echo "Mass Job => Validate Inputs </br>";
         if (!is_integer($inputs["nbTasks"])) {
             return false;
         }
-        echo "Batch Job => Nb Tasks is a Integer </br>";
+        echo "Mass Job => Nb Tasks is a Integer </br>";
         if (!is_integer($inputs["msDelay"])) {
             return false;
         }
-        echo "Batch Job => Ms Delay is a Integer </br>";
+        echo "Mass Job => Ms Delay is a Integer </br>";
 
         return true;
     }
@@ -127,9 +105,21 @@ class TestBatchJob extends AbstractBatchJob
      */
     public function prepare() : bool
     {
-        echo "Batch Job => Prepare for Action </br>";
+        echo "Mass Job => Prepare for Action </br>";
 
         return true;
+    }
+
+    /**
+     * Override this function to count number of remaining loops to perform
+     *
+     * @param array $inputs
+     *
+     * @return int
+     */
+    public function count(array $inputs = array()) : int
+    {
+        return (int) $inputs["nbTasks"] - (int) $this->getStateItem("jobsCompleted");
     }
 
     /**
@@ -138,7 +128,7 @@ class TestBatchJob extends AbstractBatchJob
     public function execute(array $inputs = array()): bool
     {
         $msDelay = (int) (1E3 * $inputs["msDelay"]);
-        echo "Batch Job => Execute a ".$inputs["msDelay"]." Microsecond Pause </br>";
+        echo "Mass Job => Execute a ".$inputs["msDelay"]." Microsecond Pause </br>";
         usleep($msDelay);
         $this->incStateItem("totalDelay", $msDelay);
 
@@ -150,7 +140,7 @@ class TestBatchJob extends AbstractBatchJob
      */
     public function finalize() : bool
     {
-        echo "Batch Job => Finalize Action </br>";
+        echo "Mass Job => Finalize Action </br>";
 
         return true;
     }
@@ -160,25 +150,8 @@ class TestBatchJob extends AbstractBatchJob
      */
     public function close() : bool
     {
-        echo "Batch Job => Close Action </br>";
+        echo "Mass Job => Close Action </br>";
 
         return true;
-    }
-
-    //==============================================================================
-    //      Job Setup
-    //==============================================================================
-
-    /**
-     * Get Default State
-     *
-     * @return array
-     */
-    protected static function getDefaultState(): array
-    {
-        return array_merge(
-            parent::getDefaultState(),
-            array("totalDelay" => 0)
-        );
     }
 }
