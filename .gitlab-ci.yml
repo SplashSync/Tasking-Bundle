@@ -40,6 +40,10 @@ stages:
         - Dedicated
     services:
         - mysql:5.7
+    artifacts:
+        when: always
+        reports:
+            junit: "$CI_PROJECT_DIR/*-report.xml"
     ################################################################################
     # Install & Configure Environment
     before_script:
@@ -58,7 +62,7 @@ stages:
         # Execute Grumphp Testsuite
         - curl -s https://raw.githubusercontent.com/BadPixxel/Php-Sdk/main/ci/grumphp.sh  | sh
         # Execute PhpUnit Tests
-        - vendor/bin/phpunit
+        - vendor/bin/phpunit --log-junit $CI_PROJECT_DIR/test-report.xml
 
     ################################################################################
     # Run After Script
