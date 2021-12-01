@@ -31,7 +31,7 @@ use Splash\Tasking\Services\Configuration;
  * Splash Background Tasks Repository.
  *
  * @method null|Task find(int $id)
- * @method Task[] findBy(array $criteria)
+ * @method Task[]    findBy(array $criteria, ?array $orderBy = null, int $limit = null, int $offset = null)
  * @method null|Task findOneBy(array $criteria)
  */
 class TaskRepository extends EntityRepository
