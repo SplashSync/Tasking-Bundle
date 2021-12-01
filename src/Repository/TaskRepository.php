@@ -46,7 +46,7 @@ class TaskRepository extends EntityRepository
      *
      * @param array       $options   Search Options
      * @param null|string $tokenName Focus on a Specific Token (When Already Acquired)
-     * @param bool        $static    Search fro Static Tasks
+     * @param bool        $static    Search for Static Tasks
      *
      * @throws NonUniqueResultException
      *
