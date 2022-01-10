@@ -372,7 +372,7 @@ class Runner
             $task->setFaultTrace($exception->getTraceAsString());
             //==============================================================================
             // Push Exception to Sentry if Installed
-            if (true == $this->container->has('Sentry\State\HubInterface')) {
+            if (function_exists('Sentry\captureException')) {
                 Sentry\captureException($exception);
             }
             //====================================================================//
