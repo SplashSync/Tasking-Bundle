@@ -207,14 +207,14 @@ class Runner
             $this->task->setTry($this->task->getTry() + 1);
             //==============================================================================
             // Save Status in Db
-            Configuration::getTasksRepository()->flush($this->task);
+            Configuration::getTasksRepository()->flush();
 
             return true;
         }
 
         //==============================================================================
         // Save Status in Db
-        Configuration::getTasksRepository()->flush($this->task);
+        Configuration::getTasksRepository()->flush();
 
         //====================================================================//
         // Execute Task
@@ -229,7 +229,7 @@ class Runner
         //==============================================================================
         // Save Status in Db
         if ($this->task instanceof Task) {
-            Configuration::getTasksRepository()->flush($this->task);
+            Configuration::getTasksRepository()->flush();
         }
 
         //====================================================================//

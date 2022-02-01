@@ -428,14 +428,12 @@ class TaskRepository extends EntityRepository
     /**
      * Flushes Entity Manager.
      *
-     * @param Task $task Task Item to Save
-     *
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    public function flush(Task $task): void
+    public function flush(): void
     {
-        $this->_em->flush($task);
+        $this->_em->flush();
     }
 
     /**
