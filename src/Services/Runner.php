@@ -21,11 +21,13 @@ use Exception;
 use Psr\Log\LoggerInterface;
 use Sentry;
 use Splash\Tasking\Entity\Task;
+use Splash\Tasking\Handler\TaskHandler;
 use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
 use Splash\Tasking\Model\AbstractMassJob;
 use Splash\Tasking\Tools\Status;
 use Splash\Tasking\Tools\Timer;
+use Symfony\Bridge\Monolog\Logger;
 use Symfony\Component\DependencyInjection\ContainerInterface as Container;
 
 /**
@@ -38,6 +40,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface as Container;
  */
 class Runner
 {
+    /**
+     * @var TaskHandler
+     */
+    protected $taskHandler;
     /**
      * Symfony Service Container
      * Used for On-Demand Injection in Task
@@ -97,6 +103,12 @@ class Runner
         //====================================================================//
         // Link to Symfony Logger
         $this->logger = $logger;
+        //====================================================================//
+        // Setup Tasks Logger
+        $this->taskHandler = new TaskHandler();
+        if ($this->logger instanceof Logger) {
+            $this->logger->pushHandler($this->taskHandler);
+        }
         //====================================================================//
         // Link to entity manager Service
         $this->registry = $registry;
@@ -326,6 +338,9 @@ class Runner
         $task->clearOutputs();
         $task->setFaultStr(null);
         //====================================================================//
+        // Reset Tasks Log Handler
+        $this->taskHandler->reset();
+        //====================================================================//
         // Safety Check
         if ($task->isFinished() && !$task->isStaticJob()) {
             $task->setFaultStr("Your try to Start an Already Finished Task!!");
@@ -477,6 +492,10 @@ class Runner
         //====================================================================//
         // User Information
         $this->logger->info('Runner: Task Delay = '.$task->getDuration()." Milliseconds </info>");
+        //====================================================================//
+        // Import Tasks Log Handler
+        $task->appendOutputs($this->taskHandler->getLogAsString());
+        $this->taskHandler->reset();
     }
 
     /**
