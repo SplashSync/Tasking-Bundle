@@ -142,6 +142,10 @@ class TaskHandler extends AbstractHandler
      */
     public function getLogAsString(): string
     {
-        return implode(" <br />", $this->buffer);
+        if (0 === $this->bufferSize) {
+            return "";
+        }
+
+        return "<br />".implode(" <br />", $this->buffer);
     }
 }

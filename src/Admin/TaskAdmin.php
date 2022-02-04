@@ -33,13 +33,6 @@ class TaskAdmin extends AbstractAdmin
     protected function configureShowFields(ShowMapper $showMapper): void
     {
         $showMapper
-            ->with('Status', array('class' => 'col-md-12'))
-            ->add('running')
-            ->add('finished')
-            ->add('try')
-            ->add('faultStr')
-            ->add('faultTrace')
-            ->end()
             ->with('General', array('class' => 'col-md-6'))
             ->add('name')
             ->add('jobClass')
@@ -48,6 +41,16 @@ class TaskAdmin extends AbstractAdmin
             ->add('staticJob', 'boolean')
             ->add('jobFrequency')
             ->add('plannedAt')
+            ->end()
+            ->with('Status', array('class' => 'col-md-6'))
+            ->add('running')
+            ->add('finished')
+            ->add('try')
+            ->add('faultStr')
+            ->add('faultTrace')
+            ->end()
+            ->with('Outputs', array('class' => 'col-md-12'))
+            ->add('outputs', null, array('safe' => true))
             ->end()
             ->with('Indexes', array('class' => 'col-md-6'))
             ->add('discriminator')
@@ -65,9 +68,7 @@ class TaskAdmin extends AbstractAdmin
             ->with('Inputs', array('class' => 'col-md-6'))
             ->add('jobInputsStr', null, array('safe' => true))
             ->end()
-            ->with('Outputs', array('class' => 'col-md-6'))
-            ->add('outputs', null, array('safe' => true))
-            ->end()
+
         ;
     }
 
