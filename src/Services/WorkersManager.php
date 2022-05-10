@@ -416,10 +416,11 @@ class WorkersManager
         }
         //====================================================================//
         // Retrieve List of All Supervisors
-        $list = Configuration::getWorkerRepository()->findBy(array("process" => 0));
+        /** @var Worker[] $workers */
+        $workers = Configuration::getWorkerRepository()->findBy(array("process" => 0));
         //====================================================================//
         // Check All Supervisors
-        foreach ($list as $supervisor) {
+        foreach ($workers as $supervisor) {
             $result = $result && $this->checkRemoteSupervisorsAreRunning($supervisor);
         }
 
