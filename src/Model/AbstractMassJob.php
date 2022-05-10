@@ -134,7 +134,7 @@ abstract class AbstractMassJob extends AbstractJob
             $this->setStateItem("isListLoaded", true);
             $this->setStateItem("jobsCount", $jobsCount);
             if (empty($jobsCount)) {
-                return $this->setCompleted(false);
+                return $this->setCompleted(true);
             }
         }
         //====================================================================//
