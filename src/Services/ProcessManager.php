@@ -46,14 +46,14 @@ class ProcessManager
     /**
      * @var LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Sf Project Root Dir
      *
      * @var string
      */
-    private $projectDir;
+    private string $projectDir;
 
     //====================================================================//
     //  CONSTRUCTOR

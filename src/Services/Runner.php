@@ -43,45 +43,46 @@ class Runner
     /**
      * @var TaskHandler
      */
-    protected $taskHandler;
+    protected TaskHandler $taskHandler;
+
     /**
      * Symfony Service Container
      * Used for On-Demand Injection in Task
      *
      * @var Container
      */
-    private $container;
+    private Container $container;
 
     /**
      * @var LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Doctrine Registry
      *
      * @var Registry
      */
-    private $registry;
+    private Registry $registry;
 
     /**
      * Token Manager Service
      *
      * @var TokenManager
      */
-    private $token;
+    private TokenManager $token;
 
     /**
      * Current Task Class to Execute
      *
      * @var null|Task
      */
-    private $task;
+    private ?Task $task;
 
     /**
      * @var AbstractJob
      */
-    private $job;
+    private AbstractJob $job;
 
     /**
      * Service Constructor

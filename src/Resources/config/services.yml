@@ -62,3 +62,7 @@ services:
         tags:
             - { name: kernel.event_listener, event: Splash\Tasking\Events\AddEvent, method: checkCrontab }
             - { name: monolog.logger, channel: Tasking }
+
+    ########################################################################
+    # System Management Service
+    Splash\Tasking\Services\SystemManager: ~

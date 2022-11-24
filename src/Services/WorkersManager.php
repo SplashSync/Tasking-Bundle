@@ -37,26 +37,26 @@ class WorkersManager
     /**
      * @var ProcessManager
      */
-    protected $process;
+    protected ProcessManager $process;
 
     /**
      * @var LoggerInterface
      */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * Worker Object
      *
      * @var Worker
      */
-    private $worker;
+    private Worker $worker;
 
     /**
      * Script Max End Date
      *
      * @var DateTime
      */
-    private $endDate;
+    private DateTime $endDate;
 
     //====================================================================//
     //  CONSTRUCTOR
@@ -365,7 +365,7 @@ class WorkersManager
         //====================================================================//
         // Check Worker is Not Alone with this Number
         if ($this->process->exists($this->getWorkerCommandName()) > 1) {
-            $this->logger->warning("Worker Manager: Exit on Duplicate Worker Deteted");
+            $this->logger->warning("Worker Manager: Exit on Duplicate Worker Deleted");
 
             return true;
         }

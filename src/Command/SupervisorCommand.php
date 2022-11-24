@@ -15,44 +15,57 @@
 
 namespace Splash\Tasking\Command;
 
-use Splash\Tasking\Entity\Worker;
+use Exception;
 use Splash\Tasking\Services\SupervisorsManager;
+use Splash\Tasking\Services\SystemManager;
 use Splash\Tasking\Services\TasksManager;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Supervisor Command - Manager Workers
  */
-class SupervisorCommand extends ContainerAwareCommand
+class SupervisorCommand extends Command
 {
     /**
      * Supervisor Manager Service
      *
      * @var SupervisorsManager
      */
-    private $manager;
+    private SupervisorsManager $manager;
+
+    /**
+     * @var SystemManager
+     */
+    private SystemManager $system;
 
     /**
      * Tasks Manager Service
      *
      * @var TasksManager
      */
-    private $tasks;
+    private TasksManager $tasks;
 
     /**
      * Class Constructor
      *
      * @param SupervisorsManager $supervisorsManager
+     * @param SystemManager      $system
      * @param TasksManager       $tasksManager
      */
-    public function __construct(SupervisorsManager $supervisorsManager, TasksManager $tasksManager)
-    {
-        parent::__construct();
+    public function __construct(
+        SupervisorsManager $supervisorsManager,
+        SystemManager $system,
+        TasksManager $tasksManager
+    ) {
+        parent::__construct('tasking:supervisor');
         //====================================================================//
         // Link to Supervisor Manager Service
         $this->manager = $supervisorsManager;
+        //====================================================================//
+        // Link to System Manager Service
+        $this->system = $system;
         //====================================================================//
         // Link to Tasks Manager
         $this->tasks = $tasksManager;
@@ -75,8 +88,10 @@ class SupervisorCommand extends ContainerAwareCommand
      * {@inheritdoc}
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     *
+     * @throws Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         //====================================================================//
         // Initialize Supervisor Worker
@@ -84,16 +99,20 @@ class SupervisorCommand extends ContainerAwareCommand
 
         //====================================================================//
         // Run Supervisor Loop
-        while (!$this->manager->isToKill(null)) {
+        while (!$this->isToKill($output)) {
             //====================================================================//
-            // Refresh Status of Each Worker
-            $this->manager->doSupervision();
-            //====================================================================//
-            // Clean All Old Tasks
-            $this->tasks->cleanUp();
-            //====================================================================//
-            // Refresh Worker Status (WatchDog)
-            $this->manager->refresh(false);
+            // Ensure System is NOT Paused
+            if (!$this->system->hasPauseSignal()) {
+                //====================================================================//
+                // Refresh Status of Each Worker
+                $this->manager->doSupervision();
+                //====================================================================//
+                // Clean All Old Tasks
+                $this->tasks->cleanUp();
+                //====================================================================//
+                // Refresh Worker Status (WatchDog)
+                $this->manager->refresh(false);
+            }
             //====================================================================//
             // Wait
             $this->manager->doPause();
@@ -107,6 +126,8 @@ class SupervisorCommand extends ContainerAwareCommand
 
     /**
      * Init Supervisor & Services
+     *
+     * @throws Exception
      */
     private function boot(): void
     {
@@ -120,5 +141,25 @@ class SupervisorCommand extends ContainerAwareCommand
         //====================================================================//
         // Setup PHP Error Reporting Level
         error_reporting(E_ERROR);
+    }
+
+    /**
+     * Check if Worker is to Kill
+     *
+     * @param OutputInterface $output
+     *
+     * @throws Exception
+     *
+     * @return bool
+     */
+    private function isToKill(OutputInterface $output): bool
+    {
+        if ($this->system->hasStopSignal()) {
+            $output->writeln("<comment>Stop Signal Received</comment>");
+
+            return true;
+        }
+
+        return $this->manager->isToKill(null);
     }
 }

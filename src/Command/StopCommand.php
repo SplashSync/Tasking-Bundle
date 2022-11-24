@@ -33,14 +33,14 @@ class StopCommand extends Command
      *
      * @var WorkersManager
      */
-    private $manager;
+    private WorkersManager $manager;
 
     /**
      * Timeout for Worker Stop
      *
      * @var DateTime
      */
-    private $timeout;
+    private DateTime $timeout;
 
     /**
      * Class Constructor

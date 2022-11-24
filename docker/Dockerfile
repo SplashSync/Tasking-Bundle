@@ -19,7 +19,8 @@ FROM php:7.4-apache
 
 # Install additionnal PHP extensions
 RUN apt-get update && apt-get install -y \
-    && docker-php-ext-install pdo_mysql
+    && docker-php-ext-install pdo_mysql \
+    && docker-php-ext-install pcntl
 
 ENV APACHE_DOCUMENT_ROOT /project/web
 

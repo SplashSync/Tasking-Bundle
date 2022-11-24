@@ -17,8 +17,9 @@ namespace Splash\Tasking\Command;
 
 use Exception;
 use Splash\Tasking\Services\Runner;
+use Splash\Tasking\Services\SystemManager;
 use Splash\Tasking\Services\WorkersManager;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -26,7 +27,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Worker Command - Execute Tasks Actions
  */
-class WorkerCommand extends ContainerAwareCommand
+class WorkerCommand extends Command
 {
     //====================================================================//
     // Managers & Tasks Counters
@@ -37,34 +38,43 @@ class WorkerCommand extends ContainerAwareCommand
      *
      * @var int
      */
-    private $taskTotal = 0;
+    private int $taskTotal = 0;
 
     /**
      * Workers Manager Service
      *
      * @var WorkersManager
      */
-    private $manager;
+    private WorkersManager $manager;
+
+    /**
+     * @var SystemManager
+     */
+    private SystemManager $system;
 
     /**
      * Task Runner Service
      *
      * @var Runner
      */
-    private $runner;
+    private Runner $runner;
 
     /**
      * Class Constructor
      *
      * @param WorkersManager $workerManager
+     * @param SystemManager  $system
      * @param Runner         $james
      */
-    public function __construct(WorkersManager $workerManager, Runner $james)
+    public function __construct(WorkersManager $workerManager, SystemManager $system, Runner $james)
     {
         parent::__construct('tasking:worker');
         //====================================================================//
         // Link to Worker Manager Service
         $this->manager = $workerManager;
+        //====================================================================//
+        // Link to System Manager Service
+        $this->system = $system;
         //====================================================================//
         // Link to Task Runner Service
         $this->runner = $james;
@@ -84,6 +94,8 @@ class WorkerCommand extends ContainerAwareCommand
 
     /**
      * {@inheritdoc}
+     *
+     * @throws Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -93,7 +105,7 @@ class WorkerCommand extends ContainerAwareCommand
 
         //====================================================================//
         // Worker Tasks Execution Loop
-        while (!$this->manager->isToKill($this->taskTotal)) {
+        while (!$this->isToKill($output)) {
             //====================================================================//
             // Run Next Normal or Static Tasks
             if (true === $this->runner->run()) {
@@ -137,5 +149,25 @@ class WorkerCommand extends ContainerAwareCommand
         //====================================================================//
         // Setup PHP Error Reporting Level
         error_reporting(E_ERROR);
+    }
+
+    /**
+     * Check if Worker is to Kill
+     *
+     * @param OutputInterface $output
+     *
+     * @throws Exception
+     *
+     * @return bool
+     */
+    private function isToKill(OutputInterface $output): bool
+    {
+        if ($this->system->hasStopOrPauseSignal()) {
+            $output->writeln("<comment>Stop or Pause Signal Received</comment>");
+
+            return true;
+        }
+
+        return $this->manager->isToKill($this->taskTotal);
     }
 }

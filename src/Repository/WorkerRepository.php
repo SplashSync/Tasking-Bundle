@@ -116,7 +116,7 @@ class WorkerRepository extends EntityRepository
     {
         //====================================================================//
         // Get List of Workers
-        $this->clear();
+        $this->_em->clear();
         $workers = $this->findAll();
         //====================================================================//
         // Init Counters

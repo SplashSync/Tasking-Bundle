@@ -18,20 +18,45 @@ namespace Splash\Tasking\Command;
 use Exception;
 use Splash\Tasking\Entity\Worker;
 use Splash\Tasking\Services\Configuration;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Splash\Tasking\Services\SystemManager;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 /**
  * Status Command - Render Live Status of Workers, Tokens & Tasks
  */
-class StatusCommand extends ContainerAwareCommand
+class StatusCommand extends Command
 {
     /**
      * @var ProgressBar
      */
-    private $progress;
+    private ProgressBar $progress;
+
+    /**
+     * @var bool
+     */
+    private bool $hasRunningWorkers = true;
+
+    /**
+     * @var SystemManager
+     */
+    private SystemManager $systemManager;
+
+    /**
+     * Class Constructor
+     *
+     * @param SystemManager $systemManager
+     */
+    public function __construct(SystemManager $systemManager)
+    {
+        parent::__construct('tasking:status');
+        //====================================================================//
+        // Link to System Manager Service
+        $this->systemManager = $systemManager;
+    }
 
     /**
      * {@inheritdoc}
@@ -48,8 +73,10 @@ class StatusCommand extends ContainerAwareCommand
      * {@inheritdoc}
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     *
+     * @throws Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         //====================================================================//
         // User Information
@@ -60,23 +87,36 @@ class StatusCommand extends ContainerAwareCommand
         //====================================================================//
         // Load Tasks Repository
         $repo = Configuration::getTasksRepository();
-
-        while (1) {
+        $isToKill = false;
+        while (!$isToKill) {
             //====================================================================//
-            // Fetch Tasks Summary
-            $repo->clear();
-            $status = $repo->getTasksSummary();
-            //====================================================================//
-            // Update Tasking Progress Bar
-            $this->updateProgressBarr(
-                $output,
-                $status['Finished'],
-                $status['Total'],
-                $this->getTasksStatusStr($status['Finished'], $status['Total'], $status['Token']),
-                $this->getWorkersStatusStr()
-            );
+            // Ensure System is NOT Paused
+            try {
+                //====================================================================//
+                // Fetch Tasks Summary
+                $repo->clear();
+                $status = $repo->getTasksSummary();
+                //====================================================================//
+                // Update Tasking Progress Bar
+                $this->updateProgressBarr(
+                    $output,
+                    $status['Finished'],
+                    $status['Total'],
+                    $this->getTasksStatusStr($status['Finished'], $status['Total'], $status['Token']),
+                    $this->getWorkersStatusStr()
+                );
+            } catch (Throwable $ex) {
+                sleep(1);
+            }
             sleep(1);
+            //====================================================================//
+            // Update To Kill Flag
+            if ($this->systemManager->hasStopSignal() && !$this->hasRunningWorkers) {
+                $isToKill = true;
+            }
         }
+
+        return 0;
     }
 
     /**
@@ -155,21 +195,26 @@ class StatusCommand extends ContainerAwareCommand
         // Fetch Workers Status
         $status = $workers->getWorkersStatus();
         //====================================================================//
+        // Generate Signals String
+        $signalsStatus = $this->systemManager->getSignalsStatus();
+        //====================================================================//
         // IF No Worker is Running
         if ($status["running"] < 1) {
-            return ' <error>No Worker Running!</error>';
+            $this->hasRunningWorkers = false;
+
+            return ' <error>No Worker Running!</error>'.$signalsStatus;
         }
         //====================================================================//
         // IF No Supervisor is Running
         if ($status["supervisor"] < 1) {
-            return ' <error>No Supervisor Running!</error>';
+            return ' <error>No Supervisor Running!</error>'.$signalsStatus;
         }
         //====================================================================//
         // Generate Response String
         $response = $status["running"].'/'.$status["total"].' Workers ';
         $response .= $status["supervisor"].' Supervisors';
 
-        return ' <info>'.$response.'</info>';
+        return ' <info>'.$response.'</info>'.$signalsStatus;
     }
 
     /**
