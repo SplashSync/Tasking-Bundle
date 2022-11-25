@@ -36,11 +36,6 @@ class StatusCommand extends Command
     private ProgressBar $progress;
 
     /**
-     * @var bool
-     */
-    private bool $hasRunningWorkers = true;
-
-    /**
      * @var SystemManager
      */
     private SystemManager $systemManager;
@@ -87,8 +82,7 @@ class StatusCommand extends Command
         //====================================================================//
         // Load Tasks Repository
         $repo = Configuration::getTasksRepository();
-        $isToKill = false;
-        while (!$isToKill) {
+        while (!$this->systemManager->hasStopSignal()) {
             //====================================================================//
             // Ensure System is NOT Paused
             try {
@@ -109,11 +103,6 @@ class StatusCommand extends Command
                 sleep(1);
             }
             sleep(1);
-            //====================================================================//
-            // Update To Kill Flag
-            if ($this->systemManager->hasStopSignal() && !$this->hasRunningWorkers) {
-                $isToKill = true;
-            }
         }
 
         return 0;
@@ -200,8 +189,6 @@ class StatusCommand extends Command
         //====================================================================//
         // IF No Worker is Running
         if ($status["running"] < 1) {
-            $this->hasRunningWorkers = false;
-
             return ' <error>No Worker Running!</error>'.$signalsStatus;
         }
         //====================================================================//
