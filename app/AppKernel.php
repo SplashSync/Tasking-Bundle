@@ -38,6 +38,10 @@ class AppKernel extends Kernel
             new Splash\Tasking\SplashTaskingBundle(),
         );
 
+        if (class_exists(BadPixxel\Paddock\Core\PaddockCoreBundle::class)) {
+            $bundles[] = new BadPixxel\Paddock\Core\PaddockCoreBundle();
+        }
+
         if (in_array($this->getEnvironment(), array('dev', 'test'), true)) {
             $bundles[] = new Symfony\Bundle\DebugBundle\DebugBundle();
 
