@@ -147,6 +147,9 @@ class WorkerCommand extends Command
         // Init Worker
         $this->manager->initialize((int) $processId);
         //====================================================================//
+        // Init System Manager
+        $this->system->initSignalHandlers();
+        //====================================================================//
         // Setup PHP Error Reporting Level
         error_reporting(E_ERROR);
     }

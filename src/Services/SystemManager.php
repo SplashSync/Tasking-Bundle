@@ -60,15 +60,26 @@ class SystemManager
         //====================================================================//
         // Link to Symfony Logger
         $this->logger = $logger;
-        //====================================================================//
-        // Register Signals Handlers
-        $this->registerStopSignalHandlers();
-        $this->registerPauseSignalHandlers();
     }
 
     //====================================================================//
     // GLOBAL METHODS
     //====================================================================//
+
+    /**
+     * Class Constructor
+     *
+     * @throws Exception
+     */
+    public function initSignalHandlers(): self
+    {
+        //====================================================================//
+        // Register Signals Handlers
+        $this->registerStopSignalHandlers();
+        $this->registerPauseSignalHandlers();
+
+        return $this;
+    }
 
     /**
      * Get Signal Status String

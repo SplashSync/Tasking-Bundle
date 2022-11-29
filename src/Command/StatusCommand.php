@@ -38,7 +38,7 @@ class StatusCommand extends Command
     /**
      * @var SystemManager
      */
-    private SystemManager $systemManager;
+    private SystemManager $system;
 
     /**
      * Class Constructor
@@ -50,7 +50,7 @@ class StatusCommand extends Command
         parent::__construct('tasking:status');
         //====================================================================//
         // Link to System Manager Service
-        $this->systemManager = $systemManager;
+        $this->system = $systemManager;
     }
 
     /**
@@ -74,6 +74,9 @@ class StatusCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         //====================================================================//
+        // Init System Manager
+        $this->system->initSignalHandlers();
+        //====================================================================//
         // User Information
         if ($output->isVerbose()) {
             $this->showHead($output);
@@ -82,7 +85,7 @@ class StatusCommand extends Command
         //====================================================================//
         // Load Tasks Repository
         $repo = Configuration::getTasksRepository();
-        while (!$this->systemManager->hasStopSignal()) {
+        while (!$this->system->hasStopSignal()) {
             //====================================================================//
             // Ensure System is NOT Paused
             try {
@@ -185,7 +188,7 @@ class StatusCommand extends Command
         $status = $workers->getWorkersStatus();
         //====================================================================//
         // Generate Signals String
-        $signalsStatus = $this->systemManager->getSignalsStatus();
+        $signalsStatus = $this->system->getSignalsStatus();
         //====================================================================//
         // IF No Worker is Running
         if ($status["running"] < 1) {

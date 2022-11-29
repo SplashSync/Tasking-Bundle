@@ -136,6 +136,9 @@ class SupervisorCommand extends Command
         $this->manager->initialize(0);
         $this->manager->getMaxWorkers();
         //====================================================================//
+        // Init System Manager
+        $this->system->initSignalHandlers();
+        //====================================================================//
         // Init Static Tasks List
         $this->tasks->loadStaticTasks();
         //====================================================================//
