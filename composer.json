@@ -51,9 +51,6 @@
     
     "config": {
         "preferred-install":                        "dist",
-        "platform": {
-            "php": "8.0.0"
-        },
         "allow-plugins": {
             "phpro/grumphp": true
         }
