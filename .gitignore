@@ -56,3 +56,4 @@
 /.idea/
 /.php-cs-fixer.cache
 /.env
+/config/packages/parameters.yaml
