@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -46,16 +46,17 @@ class Token
     //==============================================================================
 
     /**
-     * @var int
+     * @var null|int
      *
      * @ORM\Id
-     * @ORM\Column(type="integer")
+     * @ORM\Column(name="id", type="integer")
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    private $id;
+    private ?int $id = null;
 
     //==============================================================================
     //      Token Informations
+    //==============================================================================
 
     /**
      * Token identifier name
@@ -64,7 +65,7 @@ class Token
      *
      * @ORM\Column(name="Name", type="string", length=250, unique=true)
      */
-    private $name;
+    private string $name;
 
     /**
      * Is This Token in Use
@@ -73,7 +74,7 @@ class Token
      *
      * @ORM\Column(name="Locked", type="boolean")
      */
-    private $locked = false;
+    private bool $locked = false;
 
     /**
      * When this token was taken
@@ -82,23 +83,23 @@ class Token
      *
      * @ORM\Column(name="LockedAt", type="datetime", nullable=TRUE)
      */
-    private $lockedAt;
+    private ?DateTime $lockedAt = null;
 
     /**
      * When this token was taken as TimeStamp
      *
-     * @var int
+     * @var null|int
      *
      * @ORM\Column(name="LockedAtTimeStamp", type="integer", nullable=TRUE)
      */
-    private $lockedAtTimeStamp;
+    private ?int $lockedAtTimeStamp = null;
 
     /**
      * @var null|string
      *
      * @ORM\Column(name="LockedBy", type="string", length=250, nullable=TRUE)
      */
-    private $lockedBy;
+    private ?string $lockedBy = null;
 
     //==============================================================================
     //      Audit
@@ -108,7 +109,7 @@ class Token
      *
      * @ORM\Column(name="CreatedAt", type="datetime")
      */
-    private $createdAt;
+    private DateTime $createdAt;
 
     /**
      * @ORM\Version
@@ -116,12 +117,12 @@ class Token
      *
      * @var int
      */
-    private $version;
+    private int $version;
 
     /**
      * @var string
      */
-    private $condition;
+    private string $condition;
 
     //==============================================================================
     //      Object Operations
@@ -160,7 +161,7 @@ class Token
     {
         //====================================================================//
         // Verify if Token already in use
-        if (false == $this->locked) {
+        if (!$this->locked) {
             return false;
         }
 
@@ -259,13 +260,13 @@ class Token
     //==============================================================================
 
     /**
-     * Get id
+     * Get Id
      *
-     * @return integer
+     * @return null|int
      */
-    public function getId()
+    public function getId(): ?int
     {
-        return $this->id;
+        return $this->id ?? null;
     }
 
     /**
@@ -400,11 +401,11 @@ class Token
     /**
      * Get lockedAtTimeStamp
      *
-     * @return integer
+     * @return null|int
      */
-    public function getLockedAtTimeStamp(): int
+    public function getLockedAtTimeStamp(): ?int
     {
-        return $this->lockedAtTimeStamp;
+        return $this->lockedAtTimeStamp ?? null;
     }
 
     /**
@@ -438,7 +439,7 @@ class Token
      *
      * @return Token
      */
-    public function setCondition($condition): self
+    public function setCondition(string $condition): self
     {
         $this->condition = $condition;
 
@@ -450,7 +451,7 @@ class Token
      *
      * @return string
      */
-    public function getCondition()
+    public function getCondition(): string
     {
         return $this->condition;
     }

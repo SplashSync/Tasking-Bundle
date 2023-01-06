@@ -12,7 +12,7 @@
     convertWarningsToExceptions     = "true"
     processIsolation                = "false"
     stopOnFailure                   = "true"
-    bootstrap                       = "app/autoload.php"
+    bootstrap                       = "vendor/autoload.php"
 >
 
     <testsuites>
@@ -22,8 +22,8 @@
     </testsuites>
 
     <php>
-        <server name="KERNEL_CLASS"                 value="AppKernel" />
-        <server name="KERNEL_DIR"                   value="app/" />
+        <server name="KERNEL_CLASS"                 value="Kernel" />
+        <server name="KERNEL_DIR"                   value="tests/" />
         <env    name="SYMFONY_DEPRECATIONS_HELPER"  value="disabled" />
     </php>
 

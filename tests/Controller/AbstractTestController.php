@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +29,6 @@ use Splash\Tasking\Services\TasksManager;
 use Splash\Tasking\Services\WorkersManager;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Console\Output\NullOutput;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -42,22 +41,22 @@ abstract class AbstractTestController extends WebTestCase
     /**
      * @var ObjectManager
      */
-    protected $entityManager;
+    protected ObjectManager $entityManager;
 
     /**
      * @var TaskRepository
      */
-    protected $tasksRepository;
+    protected TaskRepository $tasksRepository;
 
     /**
      * @var WorkerRepository
      */
-    protected $workersRepository;
+    protected WorkerRepository $workersRepository;
 
     /**
      * @var TokenRepository
      */
-    protected $tokenRepository;
+    protected TokenRepository $tokenRepository;
 
     /**
      * @var NullOutput
@@ -67,32 +66,32 @@ abstract class AbstractTestController extends WebTestCase
     /**
      * @var string
      */
-    protected $randomStr;
+    protected string $randomStr;
 
     /**
-     * @var TasksManager
+     * @var null|TasksManager
      */
-    private $tasks;
+    private ?TasksManager $tasks;
 
     /**
      * @var WorkersManager
      */
-    private $worker;
+    private WorkersManager $worker;
 
     /**
      * @var Runner
      */
-    private $runner;
+    private Runner $runner;
 
     /**
      * @var ProcessManager
      */
-    private $process;
+    private ProcessManager $process;
 
     /**
      * @var EventDispatcherInterface
      */
-    private $dispatcher;
+    private EventDispatcherInterface $dispatcher;
 
     /**
      * {@inheritDoc}
@@ -120,25 +119,6 @@ abstract class AbstractTestController extends WebTestCase
         //====================================================================//
         // Generate a Random Token Name
         $this->randomStr = self::randomStr();
-    }
-
-    /**
-     * Safe Get Container
-     *
-     * @throws Exception
-     *
-     * @return ContainerInterface
-     */
-    protected function getContainer(): ContainerInterface
-    {
-        //====================================================================//
-        // Load Symfony Services Container
-        $container = static::$kernel->getContainer();
-        if (null == $container) {
-            throw new Exception("Unable to Load Symfony Container");
-        }
-
-        return $container;
     }
 
     /**
@@ -181,7 +161,7 @@ abstract class AbstractTestController extends WebTestCase
     protected function getTasksManager(): TasksManager
     {
         if (!isset($this->tasks)) {
-            $tasksManager = static::$container->get(TasksManager::class);
+            $tasksManager = static::getContainer()->get(TasksManager::class);
             if (!($tasksManager instanceof TasksManager)) {
                 throw new Exception("Unable to Load Tasks Manager");
             }

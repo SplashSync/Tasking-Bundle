@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,27 +28,19 @@ class TestMassJob extends AbstractMassJob
     //==============================================================================
 
     /**
-     * Job Priority
-     *
-     * @var int
+     * {@inheritdoc}
      */
-    protected static $priority = Task::DO_LOWEST;
+    protected static int $priority = Task::DO_LOWEST;
 
     /**
-     * Job Token is Used for concurrency Management
-     * You can set it directly by overriding this constant
-     * or by writing an array of parameters to setJobToken()
-     *
-     * @var string
+     * {@inheritdoc}
      */
-    protected $token = "JOB_MASS";
+    protected ?string $token = "JOB_MASS";
 
     /**
-     * Job Display Settings
-     *
-     * @var array
+     * {@inheritdoc}
      */
-    protected $settings = array(
+    protected array $settings = array(
         "label" => "Test Mass Job",
         "description" => "Demonstration of a Mass Job",
         "translation_domain" => false,

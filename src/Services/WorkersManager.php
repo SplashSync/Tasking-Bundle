@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -512,10 +512,12 @@ class WorkersManager
         $worker = new Worker();
         //====================================================================//
         // Populate Worker Object
+        /** @var scalar $serverIp */
+        $serverIp = filter_input(INPUT_SERVER, "SERVER_ADDR");
         $worker->setPid((int) getmypid());
         $worker->setProcess($processId);
         $worker->setNodeName(is_array($system) ? $system["nodename"] : "Unknown");
-        $worker->setNodeIp(filter_input(INPUT_SERVER, "SERVER_ADDR"));
+        $worker->setNodeIp((string) $serverIp);
         $worker->setNodeInfos(is_array($system) ? $system["version"] :  "0.0.0");
         $worker->setLastSeen(new DateTime());
         //====================================================================//

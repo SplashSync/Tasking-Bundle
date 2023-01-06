@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -37,7 +37,7 @@ abstract class AbstractMassJob extends AbstractJob
      *
      * @var string
      */
-    protected static $action = "run";
+    protected static string $action = "run";
 
     /**
      * Parameter - Stop on Errors
@@ -45,14 +45,14 @@ abstract class AbstractMassJob extends AbstractJob
      *
      * @var bool
      */
-    protected static $stopOnError = true;
+    protected static bool $stopOnError = true;
 
     /**
      * Job Priority
      *
      * @var int
      */
-    protected static $priority = Task::DO_LOWEST;
+    protected static int $priority = Task::DO_LOWEST;
 
     /**
      * Parameter - Batch Action Pagination.
@@ -60,7 +60,7 @@ abstract class AbstractMassJob extends AbstractJob
      *
      * @var int
      */
-    protected static $paginate = 1;
+    protected static int $paginate = 1;
 
     /**
      * Class Constructor
@@ -165,7 +165,7 @@ abstract class AbstractMassJob extends AbstractJob
             }
             //==============================================================================
             //      Manage End of Task by Job Overloads
-            if ($this->getStateItem("currentJob") > (1.5 * $this->getStateItem("jobsCount"))) {
+            if ($this->getStateItem("currentJob") > (1.5 * (int) $this->getStateItem("jobsCount"))) {
                 return $this->setCompleted(true);
             }
         }

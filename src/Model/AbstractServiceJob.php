@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +31,7 @@ abstract class AbstractServiceJob extends AbstractJob
      *
      * @var array
      */
-    protected $inputs = array(
+    protected array $inputs = array(
         "Service" => null,
         "Method" => null,
         "Inputs" => array(),
@@ -42,7 +42,7 @@ abstract class AbstractServiceJob extends AbstractJob
      *
      * @var array
      */
-    protected $settings = array(
+    protected array $settings = array(
         "label" => "Service Job",
         "description" => "Abstract Service Job Base",
         "translation_domain" => false,
@@ -109,7 +109,7 @@ abstract class AbstractServiceJob extends AbstractJob
      */
     public function getService(): string
     {
-        return isset($this->inputs["Service"]) ? $this->inputs["Service"] : "";
+        return $this->inputs["Service"] ?? "";
     }
 
     /**
@@ -133,7 +133,7 @@ abstract class AbstractServiceJob extends AbstractJob
      */
     public function getMethod(): string
     {
-        return isset($this->inputs["Method"]) ? $this->inputs["Method"] : "";
+        return $this->inputs["Method"] ?? "";
     }
 
     /**

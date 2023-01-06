@@ -9,5 +9,5 @@ tasking_start:
 
 tasking_test:
     path:     /test
-    defaults: { _controller: Splash\Tasking\Controller\ActionsController::testActions }
+    defaults: { _controller: Splash\Tasking\Controller\ActionsController::testAction }
 

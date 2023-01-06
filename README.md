@@ -9,7 +9,6 @@ Key features
 - Multi-server compatible: tokens are stored in a central SQL Table.
 - Optimized memory footprint: create a dedicated Symfony environnement to reduce memory impacts.
 
-[![Build Status](https://travis-ci.org/SplashSync/Tasking-Bundle.png?branch=master)](https://travis-ci.org/SplashSync/Tasking-Bundle) 
 [![Total Downloads](https://poser.pugx.org/splash/tasking-bundle/downloads.png)](https://packagist.org/packages/splash/tasking-bundle) 
 [![Latest Stable Version](https://poser.pugx.org/splash/tasking-bundle/v/stable.png)](https://packagist.org/packages/splash/tasking-bundle)
 

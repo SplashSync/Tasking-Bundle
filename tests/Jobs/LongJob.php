@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +15,6 @@
 
 namespace Splash\Tasking\Tests\Jobs;
 
-use Exception;
 use Splash\Tasking\Model\AbstractJob;
 use Splash\Tasking\Tools\Status;
 
@@ -29,30 +28,22 @@ class LongJob extends AbstractJob
     //==============================================================================
 
     /**
-     * Job Inputs => Load here all inputs parameters for your task
-     *
-     * @var array
+     * {@inheritdoc}
      */
-    protected $inputs = array(
+    protected array $inputs = array(
         // Allow Watchdog Renewal
         "Allow-Renewal" => true,
     );
 
     /**
-     * Job Token is Used for concurrency Management
-     * You can set it directly by overriding this constant
-     * or by writing an array of parameters to setJobToken()
-     *
-     * @var string
+     * {@inheritdoc}
      */
-    protected $token = "TEST_LONG_JOB";
+    protected ?string $token = "TEST_LONG_JOB";
 
     /**
-     * Job Display Settings
-     *
-     * @var array
+     * {@inheritdoc}
      */
-    protected $settings = array(
+    protected array $settings = array(
         "label" => "Long Job for Test",
         "description" => "Custom Long Job for Bundle Testing",
         "translation_domain" => false,
@@ -64,11 +55,7 @@ class LongJob extends AbstractJob
     //==============================================================================
 
     /**
-     * Override this function to perform your task
-     *
-     * @throws Exception
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function execute() : bool
     {

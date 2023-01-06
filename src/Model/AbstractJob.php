@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -39,21 +39,21 @@ abstract class AbstractJob implements ContainerAwareInterface
      *
      * @var string
      */
-    protected static $action = "execute";
+    protected static string $action = "execute";
 
     /**
      * Job Priority
      *
      * @var int
      */
-    protected static $priority = Task::DO_NORMAL;
+    protected static int $priority = Task::DO_NORMAL;
 
     /**
      * Job Display Settings
      *
      * @var array
      */
-    protected $settings = array(
+    protected array $settings = array(
         "label" => "Unknown Job Title",
         "description" => "Unknown Job Description",
         "translation_domain" => false,
@@ -65,21 +65,21 @@ abstract class AbstractJob implements ContainerAwareInterface
      *
      * @var null|string
      */
-    protected $indexKey1;
+    protected ?string $indexKey1 = null;
 
     /**
      * Job Indexation Key 2
      *
      * @var null|string
      */
-    protected $indexKey2;
+    protected ?string $indexKey2 = null;
 
     /**
      * Job Inputs => Load here all inputs parameters for your task
      *
      * @var array
      */
-    protected $inputs = array();
+    protected array $inputs = array();
 
     /**
      * Job Token is Used for concurrency Management
@@ -88,7 +88,7 @@ abstract class AbstractJob implements ContainerAwareInterface
      *
      * @var null|string
      */
-    protected $token;
+    protected ?string $token = null;
 
     //==============================================================================
     // Magic Getters & Setters
@@ -273,13 +273,25 @@ abstract class AbstractJob implements ContainerAwareInterface
     }
 
     /**
+     * Get Job Inputs
+     *
+     * @return array
+     *
+     * @final Since 5.x
+     */
+    public function getRawInputs(): array
+    {
+        return $this->inputs;
+    }
+
+    /**
      * Get Job Token
      *
      * @return string
      */
     public function getToken(): ?string
     {
-        return $this->token;
+        return $this->token ?? null;
     }
 
     /**
@@ -299,7 +311,7 @@ abstract class AbstractJob implements ContainerAwareInterface
      */
     public function getIndexKey1(): ?string
     {
-        return $this->indexKey1;
+        return $this->indexKey1 ?? null;
     }
 
     /**
@@ -309,6 +321,6 @@ abstract class AbstractJob implements ContainerAwareInterface
      */
     public function getIndexKey2(): ?string
     {
-        return $this->indexKey2;
+        return $this->indexKey2 ?? null;
     }
 }

@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,6 +18,7 @@ namespace Splash\Tasking\Services;
 use Psr\Log\LoggerInterface;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Tools\Timer;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * Linux Process Manager
@@ -62,17 +63,17 @@ class ProcessManager
     /**
      * Class Constructor
      *
-     * @param string          $rootDir
+     * @param KernelInterface $kernel
      * @param LoggerInterface $logger
      */
-    public function __construct(string $rootDir, LoggerInterface $logger)
+    public function __construct(KernelInterface $kernel, LoggerInterface $logger)
     {
         //====================================================================//
         // Link to Symfony Logger
         $this->logger = $logger;
         //====================================================================//
         // Init Parameters
-        $this->projectDir = dirname($rootDir);
+        $this->projectDir = $kernel->getProjectDir();
     }
 
     //==============================================================================

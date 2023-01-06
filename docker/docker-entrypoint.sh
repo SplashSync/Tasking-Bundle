@@ -17,7 +17,7 @@
 ################################################################################
 #!/bin/sh
 
-if [ ! -f /project/var/install.lock ]; then
+if [ ! -f /var/www/html/var/install.lock ]; then
 
 	echo "Wait for MySql Container to Start"
 	sleep 10
@@ -26,18 +26,18 @@ if [ ! -f /project/var/install.lock ]; then
   apt update && apt install -y git
 
 	echo "Update Database Schemas"
-	cd /project/
+	cd /var/www/html/
 	php bin/console doctrine:schema:update --force
 
-  echo "OK" > /project/var/install.lock
+  echo "OK" > /var/www/html/var/install.lock
 fi
 
-rm -Rf /project/var/cache
+rm -Rf /var/www/html/var/cache
 
 php bin/console
 php bin/console --env=test
-cp /project/var/cache/test/appAppKernelTestDebugContainer.xml /project/var/cache/dev/testContainer.xml
-chown www-data:www-data -Rf /project/var
+cp /var/www/html/var/cache/test/appAppKernelTestDebugContainer.xml /project/var/cache/dev/testContainer.xml
+chown www-data:www-data -Rf /var/www/html/var
 
 echo "Setup Apache..."
 a2enmod rewrite

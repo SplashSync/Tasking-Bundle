@@ -23,7 +23,7 @@
     },
     "autoload-dev": {
         "psr-4": { "Splash\\Tasking\\Tests\\": "tests" },
-        "classmap": [ "app/AppKernel.php" ]
+        "classmap": [ "tests/Kernel.php" ]
     },
     
     "require": {
@@ -32,27 +32,27 @@
         "ext-curl":                                     "*",
         "ext-pcntl":                                    "*",
 
-        "symfony/symfony":                              "~4.0",
+        "symfony/symfony":                              "^5.4",
         "symfony/monolog-bundle":                       ">=2.1",
         
-        "doctrine/doctrine-bundle":                     "^1.6|^2.0",
+        "doctrine/doctrine-bundle":                     "^2.0",
         
-        "sonata-project/admin-bundle":                  ">3.0",
+        "sonata-project/admin-bundle":                  "^4.0",
         "sonata-project/doctrine-orm-admin-bundle":     "*"
     },
     
     "require-dev": {
-        "badpixxel/php-sdk":                            "~1.0",
+        "badpixxel/php-sdk":                            "~2.0",
         "badpixxel/paddock-core":                       "dev-main",
 
-        "symfony/phpunit-bridge":                       "^3.0",
-        "sentry/sentry-symfony":                        "^3.0||^4.0"
+        "symfony/phpunit-bridge":                       "^6.0",
+        "sentry/sentry-symfony":                        "^4.0"
     },
     
     "config": {
         "preferred-install":                        "dist",
         "platform": {
-            "php": "7.4.0"
+            "php": "8.0.0"
         },
         "allow-plugins": {
             "phpro/grumphp": true

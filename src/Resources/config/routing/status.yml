@@ -5,4 +5,4 @@
 
 tasking_status_json_main:
     path:     /tasking
-    defaults: { _controller: Splash\Tasking\Controller\StatusController::mainAction }
+    controller: Splash\Tasking\Controller\StatusController::mainAction

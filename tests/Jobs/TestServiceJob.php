@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,22 +23,18 @@ use Splash\Tasking\Model\AbstractServiceJob;
 class TestServiceJob extends AbstractServiceJob
 {
     /**
-     * Job Inputs => Load here all inputs parameters for your task
-     *
-     * @var array
+     * {@inheritdoc}
      */
-    protected $inputs = array(
+    protected array $inputs = array(
         "Service" => "tasking.sampling.service",
         "Method" => "delayTask",
         "Inputs" => array("Delay" => 1),
     );
 
     /**
-     * Job Display Settings
-     *
-     * @var array
+     * {@inheritdoc}
      */
-    protected $settings = array(
+    protected array $settings = array(
         "label" => "Service Job",
         "description" => "Abstract Service Job Base",
         "translation_domain" => false,
@@ -46,11 +42,7 @@ class TestServiceJob extends AbstractServiceJob
     );
 
     /**
-     * Job Token is Used for concurency Management
-     * You can set it directly by overriding this constant
-     * or by writing an array of parameters to setJobToken()
-     *
-     * @var string
+     * {@inheritdoc}
      */
-    protected $token = "JOB_SERVICE";
+    protected ?string $token = "JOB_SERVICE";
 }

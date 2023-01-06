@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,51 +16,54 @@
 namespace Splash\Tasking\Handler;
 
 use Monolog\Formatter\LineFormatter;
-use Monolog\Handler\AbstractHandler;
+use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 
 /**
  * Buffers all records until task is completed.
+ *
+ * @phpstan-import-type Level from \Monolog\Logger
+ * @phpstan-import-type Record from \Monolog\Logger
  */
-class TaskHandler extends AbstractHandler
+class TaskHandler extends AbstractProcessingHandler
 {
     /**
      * @var int
      */
-    protected $bufferSize = 0;
+    protected int $bufferSize = 0;
 
     /**
      * How many entries should be buffered at most, beyond that the oldest items are removed from the buffer.
      *
      * @var int
      */
-    protected $bufferLimit = 1024;
+    protected int $bufferLimit = 1024;
 
     /**
      * If true, the buffer is flushed when the max size has been reached,
-     * by default oldest entries are discarded
+     * by default the oldest entries are discarded
      *
      * @var bool
      */
-    protected $flushOnOverflow;
+    protected bool $flushOnOverflow;
 
     /**
      * @var string[]
      */
-    protected $buffer = array();
+    protected array $buffer = array();
 
     /**
      * @param int  $level           The minimum logging level at which this handler will be triggered
      * @param bool $flushOnOverflow If true, the buffer is flushed when the max size has been reached
      */
-    public function __construct($level = Logger::INFO, $flushOnOverflow = false)
+    public function __construct($level = Logger::INFO, bool $flushOnOverflow = false)
     {
+        /** @phpstan-var Level $level */
         parent::__construct($level, true);
         $this->flushOnOverflow = $flushOnOverflow;
-        $this->pushProcessor(array(
-            new LineFormatter(null, null, false, true),
-            'format'
-        ));
+        $this->setFormatter(
+            new LineFormatter(null, null, false, true)
+        );
     }
 
     /**
@@ -81,14 +84,8 @@ class TaskHandler extends AbstractHandler
             }
         }
 
-        if ($this->processors) {
-            foreach ($this->processors as $processor) {
-                $record = call_user_func($processor, $record);
-            }
-        }
-
-        $this->buffer[] = $record;
-        $this->bufferSize++;
+        /** @var Record $record */
+        $this->write($record);
 
         return false === $this->bubble;
     }
@@ -147,5 +144,16 @@ class TaskHandler extends AbstractHandler
         }
 
         return "<br />".implode(" <br />", $this->buffer);
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * @phpstan-param  Record $record
+     */
+    protected function write(array $record): void
+    {
+        $this->buffer[] = $this->processRecord($record)["message"] ?? "";
+        $this->bufferSize++;
     }
 }

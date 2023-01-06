@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -50,24 +50,24 @@ class TasksManager
      *
      * @var TokenManager
      */
-    private $token;
+    private TokenManager $token;
 
     /**
      * @var LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
      * Symfony Event Dispatcher
      *
      * @var EventDispatcherInterface
      */
-    private $dispatcher;
+    private EventDispatcherInterface $dispatcher;
 
     /**
      * @var TasksManager
      */
-    private static $staticInstance;
+    private static TasksManager $staticInstance;
 
     //====================================================================//
     //  CONSTRUCTOR
@@ -103,7 +103,7 @@ class TasksManager
         $configuration->isReady();
         //==============================================================================
         // Store Static Instance for Access as Static
-        static::$staticInstance = $this;
+        self::$staticInstance = $this;
     }
 
     //====================================================================//
@@ -314,6 +314,7 @@ class TasksManager
         foreach ($staticTaskList as $staticTask) {
             if (class_exists($staticTask["class"])) {
                 $className = "\\".$staticTask["class"];
+                /** @var AbstractStaticJob $job */
                 $job = new $className();
                 $job
                     ->setFrequency($staticTask["frequency"])
@@ -343,7 +344,12 @@ class TasksManager
         $job = $event->getSubject();
         //====================================================================//
         // Validate Job
-        if (!($job instanceof AbstractJob) || !$this->validate($job)) {
+        if (!($job instanceof AbstractJob)) {
+            $this->logger->error("Tasks Manager: Invalid Job Received >> Rejected");
+
+            return false;
+        }
+        if (!$this->validate($job)) {
             $job->setInputs(array("error" => "Invalid Job: Rejected"));
             $this->logger->error("Tasks Manager: Invalid Job Received >> Rejected");
 
@@ -404,19 +410,21 @@ class TasksManager
         //====================================================================//
         // Create a New Task
         $task = new Task();
+        /** @var class-string $jobClass */
+        $jobClass = "\\".get_class($job);
         //====================================================================//
         // Setup Task Parameters
         $task
             ->setName(get_class($job)."::".$job->getAction())
-            ->setJobClass("\\".get_class($job))
+            ->setJobClass($jobClass)
             ->setJobAction($job->getAction())
-            ->setJobInputs($job->__get("inputs"))
+            ->setJobInputs($job->getRawInputs())
             ->setJobPriority($job->getPriority())
             ->setJobToken($job->getToken())
             ->setSettings($job->getSettings())
             ->setJobIndexKey1($job->getIndexKey1())
-            ->setJobIndexKey2($job->getIndexKey2());
-
+            ->setJobIndexKey2($job->getIndexKey2())
+        ;
         //====================================================================//
         // If is a Static Job
         //====================================================================//
@@ -582,12 +590,12 @@ class TasksManager
      *
      * @throws ReflectionException
      *
-     * @return null|AddEvent|CheckEvent|InsertEvent
+     * @return null|AddEvent|CheckEvent|InsertEvent|StaticTasksListingEvent
      */
     private static function dispatch(GenericEvent $event): ?GenericEvent
     {
         try {
-            $reflection = new ReflectionMethod(static::$staticInstance->dispatcher, "dispatch");
+            $reflection = new ReflectionMethod(self::$staticInstance->dispatcher, "dispatch");
             $args = array();
             foreach ($reflection->getParameters() as $param) {
                 if ("event" == $param->getName()) {
@@ -600,7 +608,14 @@ class TasksManager
         } catch (ReflectionException $ex) {
             return null;
         }
+        $response = $reflection->invokeArgs(self::$staticInstance->dispatcher, $args);
+        if (($response instanceof AddEvent) || ($response instanceof CheckEvent)) {
+            return $response;
+        }
+        if (($response instanceof InsertEvent) || ($response instanceof StaticTasksListingEvent)) {
+            return $response;
+        }
 
-        return $reflection->invokeArgs(static::$staticInstance->dispatcher, $args);
+        return null;
     }
 }

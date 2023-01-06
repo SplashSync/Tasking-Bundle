@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,76 +32,76 @@ class Worker
     //==============================================================================
 
     /**
-     * @var int
+     * @var null|int
      *
      * @ORM\Id
      * @ORM\Column(type="integer")
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @var string
      *
      * @ORM\Column(name="Name", type="string", length=250)
      */
-    private $nodeName;
+    private string $nodeName;
 
     /**
      * @var string
      *
      * @ORM\Column(name="Ip", type="string", length=250)
      */
-    private $nodeIp;
+    private string $nodeIp;
 
     /**
      * @var string
      *
      * @ORM\Column(name="Infos", type="string", length=512)
      */
-    private $nodeInfos;
+    private string $nodeInfos;
 
     /**
      * @var string
      *
      * @ORM\Column(name="Process", type="string", length=250)
      */
-    private $process;
+    private string $process;
 
     /**
      * @var int
      *
      * @ORM\Column(name="PID", type="integer")
      */
-    private $pID;
+    private int $pID;
 
     /**
-     * @var bool
+     * @var null|bool
      *
-     * @ORM\Column(name="Enabled", type="boolean", nullable=TRUE)
+     * @ORM\Column(name="Enabled", type="boolean", nullable=true)
      */
-    private $enabled = true;
+    private ?bool $enabled = true;
 
     /**
-     * @var bool
+     * @var null|bool
      *
-     * @ORM\Column(name="Running", type="boolean", nullable=TRUE)
+     * @ORM\Column(name="Running", type="boolean", nullable=true)
      */
-    private $running;
+    private ?bool $running = false;
 
     /**
-     * @var \DateTime
+     * @var DateTime
      *
-     * @ORM\Column(name="SeenAt", type="datetime", nullable=TRUE)
+     * @ORM\Column(name="SeenAt", type="datetime", nullable=false)
      */
-    private $lastSeen;
+    private DateTime $lastSeen;
 
     /**
-     * @var string
+     * @var null|string
      *
-     * @ORM\Column(name="Task", type="string", length=250, nullable=TRUE)
+     * @ORM\Column(name="Task", type="string", length=250, nullable=true)
      */
-    private $task;
+    private ?string $task;
 
     //==============================================================================
     //      Getters & Setters
@@ -129,11 +129,11 @@ class Worker
     public function ping(): bool
     {
         //==============================================================================
-        // Ask for Process Group Id
+        // Ask for Process Group ID
         $groupId = posix_getpgid($this->getPid());
         //==============================================================================
         // Check if Process Group was Found
-        return ($groupId > 0) ? true : false;
+        return $groupId > 0;
     }
 
     /**
@@ -170,11 +170,11 @@ class Worker
     /**
      * Get id
      *
-     * @return integer
+     * @return null|int
      */
-    public function getId()
+    public function getId(): ?int
     {
-        return $this->id;
+        return $this->id ?? null;
     }
 
     /**
@@ -184,7 +184,7 @@ class Worker
      *
      * @return Worker
      */
-    public function setNodeName($nodeName)
+    public function setNodeName(string $nodeName): self
     {
         $this->nodeName = $nodeName;
 
@@ -196,7 +196,7 @@ class Worker
      *
      * @return string
      */
-    public function getNodeName()
+    public function getNodeName(): string
     {
         return $this->nodeName;
     }
@@ -208,7 +208,7 @@ class Worker
      *
      * @return Worker
      */
-    public function setNodeIp(?string $nodeIp)
+    public function setNodeIp(?string $nodeIp): self
     {
         $this->nodeIp = (null == $nodeIp) ? "127.0.0.1" : $nodeIp;
 
@@ -220,7 +220,7 @@ class Worker
      *
      * @return string
      */
-    public function getNodeIp()
+    public function getNodeIp(): string
     {
         return $this->nodeIp;
     }
@@ -232,7 +232,7 @@ class Worker
      *
      * @return Worker
      */
-    public function setNodeInfos($nodeInfos)
+    public function setNodeInfos(string $nodeInfos): self
     {
         $this->nodeInfos = $nodeInfos;
 
@@ -244,7 +244,7 @@ class Worker
      *
      * @return string
      */
-    public function getNodeInfos()
+    public function getNodeInfos(): string
     {
         return $this->nodeInfos;
     }
@@ -280,7 +280,7 @@ class Worker
      *
      * @return Worker
      */
-    public function setPid(int $pID)
+    public function setPid(int $pID): self
     {
         $this->pID = $pID;
 
@@ -304,7 +304,7 @@ class Worker
      *
      * @return Worker
      */
-    public function setRunning($running)
+    public function setRunning(bool $running): self
     {
         $this->running = $running;
 
@@ -314,11 +314,11 @@ class Worker
     /**
      * Set lastSeen
      *
-     * @param \DateTime $lastSeen
+     * @param DateTime $lastSeen
      *
      * @return Worker
      */
-    public function setLastSeen($lastSeen)
+    public function setLastSeen(DateTime $lastSeen): self
     {
         $this->lastSeen = $lastSeen;
 
@@ -328,9 +328,9 @@ class Worker
     /**
      * Get lastSeen
      *
-     * @return \DateTime
+     * @return DateTime
      */
-    public function getLastSeen()
+    public function getLastSeen(): DateTime
     {
         return $this->lastSeen;
     }
@@ -342,7 +342,7 @@ class Worker
      *
      * @return Worker
      */
-    public function setTask($task)
+    public function setTask(string $task): self
     {
         $this->task = $task;
 
@@ -354,7 +354,7 @@ class Worker
      *
      * @return string
      */
-    public function getTask()
+    public function getTask(): ?string
     {
         return $this->task;
     }
@@ -366,7 +366,7 @@ class Worker
      *
      * @return Worker
      */
-    public function setEnabled($enabled)
+    public function setEnabled(bool $enabled): self
     {
         $this->enabled = $enabled;
 
@@ -380,6 +380,6 @@ class Worker
      */
     public function isEnabled(): bool
     {
-        return $this->enabled;
+        return $this->enabled ?? false;
     }
 }

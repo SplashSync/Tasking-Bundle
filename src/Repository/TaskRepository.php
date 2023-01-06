@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,10 +19,7 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Persistence\Mapping\MappingException;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Entity\Token;
 use Splash\Tasking\Services\Configuration;
@@ -101,8 +98,10 @@ class TaskRepository extends EntityRepository
             ->setParameter('ErrorDate', ($timestamp - $options["error_delay"]))
             // Delay Before retry an unfinished Task
             ->setParameter('MaxDate', ($timestamp - $options["try_delay"]))
-            ->setMaxResults(1);
+            ->setMaxResults(1)
+        ;
 
+        /** @phpstan-ignore-next-line */
         return $this->builder->getQuery()->getOneOrNullResult();
     }
 
@@ -202,6 +201,7 @@ class TaskRepository extends EntityRepository
             $this->setupTokenFilter($tokenName);
         }
 
+        /** @phpstan-ignore-next-line */
         return $this->builder->getQuery()->getResult();
     }
 
@@ -239,14 +239,14 @@ class TaskRepository extends EntityRepository
                 'T.settings',
                 'T.jobInputs',
             ))
-            ->groupBy("T.".$group);
-
+            ->groupBy("T.".$group)
+        ;
         $this
             ->setupIndexKeys($builder, $key1, $key2)
             ->setupOrderBy($builder, $orderBy)
             ->setupLimit($builder, $limit)
-            ->setupOffset($builder, $offset);
-
+            ->setupOffset($builder, $offset)
+        ;
         $status = $builder->getQuery()->getArrayResult();
 
         //====================================================================//
@@ -284,15 +284,16 @@ class TaskRepository extends EntityRepository
         $builder = $this->createQueryBuilder("T")
             ->select('count(T.id)')
             ->where("T.running = 1")
-            ->andWhere("T.finished = 0");
-
+            ->andWhere("T.finished = 0")
+        ;
         //====================================================================//
         // Filter Tasks
         //====================================================================//
         $this
             ->setupIndexKeys($builder, $key1, $key2)
             ->setupToken($builder, $tokenName)
-            ->setupDiscriminator($builder, $md5);
+            ->setupDiscriminator($builder, $md5)
+        ;
 
         return $builder->getQuery()->getSingleScalarResult();
     }
@@ -322,15 +323,16 @@ class TaskRepository extends EntityRepository
         $builder = $this->createQueryBuilder("T")
             ->select('count(T.id)')
             ->where("T.running = 0")
-            ->andWhere("T.finished = 0");
-
+            ->andWhere("T.finished = 0")
+        ;
         //====================================================================//
         // Filter Tasks
         //====================================================================//
         $this
             ->setupIndexKeys($builder, $key1, $key2)
             ->setupToken($builder, $tokenName)
-            ->setupDiscriminator($builder, $md5);
+            ->setupDiscriminator($builder, $md5)
+        ;
 
         return $builder->getQuery()->getSingleScalarResult();
     }
@@ -359,15 +361,16 @@ class TaskRepository extends EntityRepository
         //====================================================================//
         $builder = $this->createQueryBuilder("T")
             ->select('count(T.id)')
-            ->where("T.finished = 0");
-
+            ->where("T.finished = 0")
+        ;
         //====================================================================//
         // Filter Tasks
         //====================================================================//
         $this
             ->setupIndexKeys($builder, $key1, $key2)
             ->setupToken($builder, $tokenName)
-            ->setupDiscriminator($builder, $md5);
+            ->setupDiscriminator($builder, $md5)
+        ;
 
         return $builder->getQuery()->getSingleScalarResult();
     }
@@ -395,7 +398,8 @@ class TaskRepository extends EntityRepository
             ->andWhere("t.jobIsStatic != 1")
             ->setParameter(":maxage", $maxDate)
             ->getQuery()
-            ->execute();
+            ->execute()
+        ;
 
         //==============================================================================
         // Count In Error Tasks
@@ -407,7 +411,8 @@ class TaskRepository extends EntityRepository
             ->andWhere("t.jobIsStatic != 1")
             ->setParameter(":maxage", $maxErrorDate)
             ->getQuery()
-            ->execute();
+            ->execute()
+        ;
 
         return $finished + $error;
     }
@@ -419,17 +424,17 @@ class TaskRepository extends EntityRepository
      */
     public function getStaticTasks(): array
     {
-        return $this->createQueryBuilder("t")
+        $builder = $this
+            ->createQueryBuilder("t")
             ->where("t.jobIsStatic = 1")
-            ->getQuery()
-            ->execute();
+        ;
+
+        /** @phpstan-ignore-next-line */
+        return $builder->getQuery()->execute();
     }
 
     /**
      * Flushes Entity Manager.
-     *
-     * @throws ORMException
-     * @throws OptimisticLockException
      */
     public function flush(): void
     {
@@ -438,8 +443,6 @@ class TaskRepository extends EntityRepository
 
     /**
      * Clear Entity Manager.
-     *
-     * @throws MappingException
      */
     public function clear(): void
     {

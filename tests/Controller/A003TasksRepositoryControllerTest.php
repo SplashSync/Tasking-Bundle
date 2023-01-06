@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,22 +29,22 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
     /**
      * @var int
      */
-    private $maxItems = 10;
+    private int $maxItems = 10;
 
     /**
      * @var string
      */
-    private $randomStrA;
+    private string $randomStrA;
 
     /**
      * @var string
      */
-    private $randomStrB;
+    private string $randomStrB;
 
     /**
      * @var string
      */
-    private $randomStrC;
+    private string $randomStrC;
 
     /**
      * Test Delete All Tasks
@@ -371,7 +371,8 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
 
         //====================================================================//
         // Verify
-        Assert::assertNull($this->tasksRepository->getNextTask($options, null, false));
+        $nextTask1 = $this->tasksRepository->getNextTask($options, null, false);
+        Assert::assertNull($nextTask1);
 
         //====================================================================//
         // Generate a Random Token Name
@@ -382,7 +383,8 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
         $this->addTask($this->randomStr);
         //====================================================================//
         // Verify
-        Assert::assertInstanceOf(Task::class, $this->tasksRepository->getNextTask($options, null, false));
+        $nextTask2 = $this->tasksRepository->getNextTask($options, null, false);
+        Assert::assertInstanceOf(Task::class, $nextTask2);
         Assert::assertInstanceOf(Task::class, $this->tasksRepository->getNextTask($options, $this->randomStr, false));
         $task = $this->tasksRepository->getNextTask($options, $this->randomStr, false);
 
@@ -395,7 +397,8 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
         Assert::assertNotEmpty($token);
         //====================================================================//
         // Verify
-        Assert::assertNull($this->tasksRepository->getNextTask($options, null, false));
+        $nextTask3 = $this->tasksRepository->getNextTask($options, null, false);
+        Assert::assertNull($nextTask3);
         Assert::assertInstanceOf(Task::class, $this->tasksRepository->getNextTask($options, $this->randomStr, false));
 
         //====================================================================//
@@ -403,7 +406,8 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
         $this->startTask($task);
         //====================================================================//
         // Verify
-        Assert::assertNull($this->tasksRepository->getNextTask($options, null, false));
+        $nextTask4 = $this->tasksRepository->getNextTask($options, null, false);
+        Assert::assertNull($nextTask4);
         Assert::assertNull($this->tasksRepository->getNextTask($options, $this->randomStr, false));
         Assert::assertNull($this->tasksRepository->getNextTask($noErrorsOptions, null, false));
         Assert::assertInstanceOf(
@@ -425,7 +429,8 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
         Assert::assertNull($this->tasksRepository->getNextTask($noErrorsOptions, null, false));
         Assert::assertNull($this->tasksRepository->getNextTask($noErrorsOptions, $this->randomStr, false));
         Assert::assertNull($this->tasksRepository->getNextTask($noRetryOptions, null, false));
-        Assert::assertNull($this->tasksRepository->getNextTask($noRetryOptions, $this->randomStr, false));
+        $nextTask10 = $this->tasksRepository->getNextTask($noRetryOptions, $this->randomStr, false);
+        Assert::assertNull($nextTask10);
 
         //====================================================================//
         // Set Task as Tried but Not Finished
@@ -433,6 +438,7 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
         $this->finishTask($task, 5);
         $task->setFinished(false);
         $this->entityManager->flush();
+
         //====================================================================//
         // Verify
         Assert::assertNull($this->tasksRepository->getNextTask($options, null, false));
@@ -440,10 +446,9 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
         Assert::assertNull($this->tasksRepository->getNextTask($noErrorsOptions, null, false));
         Assert::assertNull($this->tasksRepository->getNextTask($noErrorsOptions, $this->randomStr, false));
         Assert::assertNull($this->tasksRepository->getNextTask($noRetryOptions, null, false));
-        Assert::assertInstanceOf(
-            Task::class,
-            $this->tasksRepository->getNextTask($noRetryOptions, $this->randomStr, false)
-        );
+        /** @var null|Task $nextTask11 */
+        $nextTask11 = $this->tasksRepository->getNextTask($noRetryOptions, $this->randomStr, false);
+        Assert::assertInstanceOf(Task::class, $nextTask11);
 
         //====================================================================//
         // Release Token
@@ -455,14 +460,12 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
         Assert::assertNull($this->tasksRepository->getNextTask($options, $this->randomStr, false));
         Assert::assertNull($this->tasksRepository->getNextTask($noErrorsOptions, null, false));
         Assert::assertNull($this->tasksRepository->getNextTask($noErrorsOptions, $this->randomStr, false));
-        Assert::assertInstanceOf(
-            Task::class,
-            $this->tasksRepository->getNextTask($noRetryOptions, null, false)
-        );
-        Assert::assertInstanceOf(
-            Task::class,
-            $this->tasksRepository->getNextTask($noRetryOptions, $this->randomStr, false)
-        );
+        /** @var null|Task $nextTask12 */
+        $nextTask12 = $this->tasksRepository->getNextTask($noRetryOptions, null, false);
+        Assert::assertInstanceOf(Task::class, $nextTask12);
+        /** @var null|Task $nextTask13 */
+        $nextTask13 = $this->tasksRepository->getNextTask($noRetryOptions, $this->randomStr, false);
+        Assert::assertInstanceOf(Task::class, $nextTask13);
 
         //====================================================================//
         // Set Task as Running but In Timeout
@@ -473,14 +476,13 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
         // Verify
         Assert::assertNull($this->tasksRepository->getNextTask($options, null, false));
         Assert::assertNull($this->tasksRepository->getNextTask($options, $this->randomStr, false));
-        Assert::assertInstanceOf(
-            Task::class,
-            $this->tasksRepository->getNextTask($noErrorsOptions, null, false)
-        );
-        Assert::assertInstanceOf(
-            Task::class,
-            $this->tasksRepository->getNextTask($noErrorsOptions, $this->randomStr, false)
-        );
+        /** @var null|Task $nextTask14 */
+        $nextTask14 = $this->tasksRepository->getNextTask($noErrorsOptions, null, false);
+        Assert::assertInstanceOf(Task::class, $nextTask14);
+        /** @var null|Task $nextTask15 */
+        $nextTask15 = $this->tasksRepository->getNextTask($noErrorsOptions, $this->randomStr, false);
+        Assert::assertInstanceOf(Task::class, $nextTask15);
+
         Assert::assertNull($this->tasksRepository->getNextTask($noRetryOptions, null, false));
         Assert::assertNull($this->tasksRepository->getNextTask($noRetryOptions, $this->randomStr, false));
 

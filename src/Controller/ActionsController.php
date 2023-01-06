@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,14 +17,14 @@ namespace Splash\Tasking\Controller;
 
 use ReflectionException;
 use Splash\Tasking\Services\TasksManager;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Process\Process;
 
 /**
  * @author Bernard Paquier <eshop.bpaquier@gmail.com>
  */
-class ActionsController extends Controller
+class ActionsController extends AbstractController
 {
     /**
      * Start Tasking Supervisor on This Machine

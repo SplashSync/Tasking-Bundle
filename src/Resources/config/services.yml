@@ -57,8 +57,6 @@ services:
     ########################################################################
     # Process Management Service
     Splash\Tasking\Services\ProcessManager:
-        arguments:
-            - "%kernel.root_dir%"
         tags:
             - { name: kernel.event_listener, event: Splash\Tasking\Events\AddEvent, method: checkCrontab }
             - { name: monolog.logger, channel: Tasking }

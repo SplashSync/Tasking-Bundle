@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,7 +24,6 @@ use Symfony\Component\Validator\Constraints as ASSERT;
  *
  * @ORM\Entity
  * @ORM\MappedSuperclass
- *
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
  * @SuppressWarnings(PHPMD.TooManyFields)
  */
@@ -39,78 +38,78 @@ abstract class AbstractTask
      *
      * @var array
      *
-     * @ORM\Column(name="Settings", type="array")
+     * @ORM\Column(name="Settings", type="json")
      */
-    protected $settings = array();
+    protected array $settings = array();
 
     /**
      * Static Tasks - Repeat Delay in Minutes
      *
-     * @var int
+     * @var null|int
      *
-     * @ORM\Column(name="JobFreq", type="integer", nullable=TRUE)
+     * @ORM\Column(name="JobFreq", type="integer", nullable=true)
      */
-    protected $jobFrequency;
+    protected ?int $jobFrequency;
 
     /**
-     * @var DateTime
+     * @var null|DateTime
      *
-     * @ORM\Column(name="StartedAt", type="datetime", nullable=TRUE)
+     * @ORM\Column(name="StartedAt", type="datetime", nullable=true)
      */
-    protected $startedAt;
+    protected ?DateTime $startedAt;
 
     /**
-     * @var int
+     * @var null|int
      *
-     * @ORM\Column(name="StartedAtTimeStamp", type="integer", nullable=TRUE)
+     * @ORM\Column(name="StartedAtTimeStamp", type="integer", nullable=true)
      */
-    protected $startedAtTimeStamp;
+    protected ?int $startedAtTimeStamp;
 
     /**
      * @var float
      */
-    protected $startedAtMicroTime;
+    protected float $startedAtMicroTime;
 
     /**
-     * @var DateTime
+     * @var null|DateTime
      *
-     * @ORM\Column(name="FinishedAt", type="datetime", nullable=TRUE)
+     * @ORM\Column(name="FinishedAt", type="datetime", nullable=true)
      */
-    protected $finishedAt;
+    protected ?DateTime $finishedAt;
 
     /**
-     * @var int
+     * @var null|int
      *
-     * @ORM\Column(name="FinishedAtTimeStamp", type="integer", nullable=TRUE)
+     * @ORM\Column(name="FinishedAtTimeStamp", type="integer", nullable=true)
      */
-    protected $finishedAtTimeStamp;
+    protected ?int $finishedAtTimeStamp;
 
     /**
-     * @var DateTime
+     * @var null|DateTime
      *
-     * @ORM\Column(name="PlannedAt", type="datetime", nullable=TRUE)
+     * @ORM\Column(name="PlannedAt", type="datetime", nullable=true)
      */
-    protected $plannedAt;
+    protected ?DateTime $plannedAt;
 
     /**
-     * @var int
+     * @var null|int
      *
-     * @ORM\Column(name="PlannedAtTimeStamp", type="integer", nullable=TRUE)
+     * @ORM\Column(name="PlannedAtTimeStamp", type="integer", nullable=true)
      */
-    protected $plannedAtTimeStamp;
+    protected ?int $plannedAtTimeStamp;
 
     //==============================================================================
     //      Definition
     //==============================================================================
 
     /**
-     * @var int
+     * @var null|int
      *
      * @ORM\Id
      * @ORM\Column(type="integer")
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    protected $id;
+    protected ?int $id = null;
 
     /**
      * Task Name (Unused in User HMI, Only for Admin)
@@ -119,69 +118,69 @@ abstract class AbstractTask
      *
      * @ORM\Column(name="Name", type="string", length=250)
      */
-    protected $name;
+    protected string $name;
 
     //==============================================================================
     //      Task User Parameters
     //==============================================================================
 
     /**
-     * @var string
+     * @var class-string
      *
      * @ORM\Column(name="JobClass", type="string", length=250)
      */
-    protected $jobClass;
+    protected string $jobClass;
 
     /**
      * @var string
      *
      * @ORM\Column(name="JobAction", type="string", length=250)
      */
-    protected $jobAction;
+    protected string $jobAction;
 
     /**
-     * @var string
+     * @var int
      *
-     * @ORM\Column(name="JobPriority", type="string", length=250)
+     * @ORM\Column(name="JobPriority", type="integer", length=250)
      */
-    protected $jobPriority = "5";
+    protected int $jobPriority = 5;
 
     /**
-     * @var array
+     * @var null|array
      *
-     * @ORM\Column(name="JobInputs", type="array", nullable=TRUE)
+     * @ORM\Column(name="JobInputs", type="json", nullable=true)
      */
-    protected $jobInputs = array();
-
-    /**
-     * @var null|string
-     *
-     * @ORM\Column(name="JobToken", type="string", length=250, nullable=TRUE)
-     */
-    protected $jobToken;
+    protected ?array $jobInputs = array();
 
     /**
      * @var null|string
      *
-     * @ORM\Column(name="JobIndexKey1", type="string", length=250, nullable=TRUE)
+     * @ORM\Column(name="JobToken", type="string", length=250, nullable=true)
      */
-    protected $jobIndexKey1;
+    protected ?string $jobToken;
 
     /**
      * @var null|string
      *
-     * @ORM\Column(name="JobIndexKey2", type="string", length=250, nullable=TRUE)
+     * @ORM\Column(name="JobIndexKey1", type="string", length=250, nullable=true)
      */
-    protected $jobIndexKey2;
+    protected ?string $jobIndexKey1;
+
+    /**
+     * @var null|string
+     *
+     * @ORM\Column(name="JobIndexKey2", type="string", length=250, nullable=true)
+     */
+    protected ?string $jobIndexKey2;
 
     /**
      * Set if Job is A Static Job. Defined in configuration
      *
-     * @var bool
+     * @var null|bool
      *
-     * @ORM\Column(name="JobIsStatic", type="boolean", nullable=TRUE)
+     * @ORM\Column(name="JobIsStatic", type="boolean", nullable=true)
      */
-    protected $jobIsStatic = false;
+    protected ?bool $jobIsStatic = false;
 
     //==============================================================================
     //      Status
@@ -192,48 +191,47 @@ abstract class AbstractTask
      *
      * @var int
      *
-     * @ORM\Column(name="NbTry", type="integer", nullable=TRUE)
-     *
+     * @ORM\Column(name="NbTry", type="integer", nullable=true)
      * @ASSERT\Range(
      *      min = 0,
      *      max = 10
      * )
      */
-    protected $try = 0;
+    protected int $try = 0;
 
     /**
      * Task is Pending
      *
-     * @var bool
+     * @var null|bool
      *
-     * @ORM\Column(name="Running", type="boolean", nullable=TRUE)
+     * @ORM\Column(name="Running", type="boolean", nullable=true)
      */
-    protected $running = false;
+    protected ?bool $running = false;
 
     /**
      * Task is Finished
      *
-     * @var bool
+     * @var null|bool
      *
-     * @ORM\Column(name="Finished", type="boolean", nullable=TRUE)
+     * @ORM\Column(name="Finished", type="boolean", nullable=true)
      */
-    protected $finished = false;
+    protected ?bool $finished = false;
 
     /**
-     * @var string
+     * @var null|string
      *
-     * @ORM\Column(name="StartedBy", type="string", length=250, nullable=TRUE)
+     * @ORM\Column(name="StartedBy", type="string", length=250, nullable=true)
      */
-    protected $startedBy;
+    protected ?string $startedBy;
 
     /**
-     * @abstract    Task Duration in Ms
+     * Task Duration in Ms
      *
-     * @var int
+     * @var null|int
      *
-     * @ORM\Column(name="duration", type="integer", nullable=TRUE)
+     * @ORM\Column(name="duration", type="integer", nullable=true)
      */
-    protected $duration;
+    protected ?int $duration;
 
     //==============================================================================
     //      Audit
@@ -242,59 +240,59 @@ abstract class AbstractTask
     /**
      * Task Discriminator - Unique Task Identification
      *
-     * @var string
+     * @var null|string
      *
      * @ORM\Column(name="Md5", type="string", length=250)
      */
-    protected $discriminator;
+    protected ?string $discriminator = null;
 
     /**
      * @var DateTime
      *
      * @ORM\Column(name="CreatedAt", type="datetime")
      */
-    protected $createdAt;
+    protected DateTime $createdAt;
 
     /**
      * @var string
      *
      * @ORM\Column(name="CreatedBy", type="string", length=250)
      */
-    protected $createdBy;
+    protected string $createdBy;
 
     /**
      * @var null|string
      *
-     * @ORM\Column(name="Fault", type="text", nullable=TRUE)
+     * @ORM\Column(name="Fault", type="text", nullable=true)
      */
-    protected $faultStr;
+    protected ?string $faultStr;
 
     /**
-     * @var string
+     * @var null|string
      *
-     * @ORM\Column(name="FaultTrace", type="text", nullable=TRUE)
+     * @ORM\Column(name="FaultTrace", type="text", nullable=true)
      */
-    protected $faultTrace;
+    protected ?string $faultTrace;
 
     /**
-     * @var string
+     * @var null|string
      *
-     * @ORM\Column(name="Outputs", type="text", nullable=TRUE)
+     * @ORM\Column(name="Outputs", type="text", nullable=true)
      */
-    protected $outputs;
+    protected ?string $outputs = null;
 
     //==============================================================================
     //      Generic Getters & Setters
     //==============================================================================
 
     /**
-     * Get id
+     * Get ID
      *
-     * @return integer
+     * @return null|int
      */
-    public function getId()
+    public function getId(): ?int
     {
-        return $this->id;
+        return $this->id ?? null;
     }
 
     /**
@@ -304,7 +302,7 @@ abstract class AbstractTask
      *
      * @return $this
      */
-    public function setName($name)
+    public function setName(string $name): self
     {
         $this->name = $name;
 
@@ -316,7 +314,7 @@ abstract class AbstractTask
      *
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -326,7 +324,7 @@ abstract class AbstractTask
      *
      * @return array
      */
-    public function getSettings()
+    public function getSettings(): array
     {
         return $this->settings;
     }
@@ -334,11 +332,11 @@ abstract class AbstractTask
     /**
      * Set jobClass
      *
-     * @param string $jobClass
+     * @param class-string $jobClass
      *
      * @return $this
      */
-    public function setJobClass($jobClass)
+    public function setJobClass(string $jobClass): self
     {
         $this->jobClass = $jobClass;
 
@@ -348,9 +346,9 @@ abstract class AbstractTask
     /**
      * Get jobClass
      *
-     * @return string
+     * @return class-string
      */
-    public function getJobClass()
+    public function getJobClass(): string
     {
         return $this->jobClass;
     }
@@ -362,7 +360,7 @@ abstract class AbstractTask
      *
      * @return $this
      */
-    public function setJobAction($jobAction)
+    public function setJobAction(string $jobAction): self
     {
         $this->jobAction = $jobAction;
 
@@ -374,7 +372,7 @@ abstract class AbstractTask
      *
      * @return string
      */
-    public function getJobAction()
+    public function getJobAction(): string
     {
         return $this->jobAction;
     }
@@ -388,7 +386,7 @@ abstract class AbstractTask
      */
     public function setJobPriority(int $jobPriority): self
     {
-        $this->jobPriority = (string) $jobPriority;
+        $this->jobPriority = $jobPriority;
 
         return $this;
     }
@@ -400,7 +398,7 @@ abstract class AbstractTask
      */
     public function getJobPriority(): int
     {
-        return (int) $this->jobPriority;
+        return $this->jobPriority ?? 5;
     }
 
     /**
@@ -410,7 +408,7 @@ abstract class AbstractTask
      *
      * @return $this
      */
-    public function setJobInputs($jobInputs)
+    public function setJobInputs(array $jobInputs): self
     {
         $this->jobInputs = $jobInputs;
 
@@ -422,15 +420,15 @@ abstract class AbstractTask
      *
      * @return array
      */
-    public function getJobInputs()
+    public function getJobInputs(): array
     {
-        return $this->jobInputs;
+        return $this->jobInputs ?? array();
     }
 
     /**
      * Set jobToken
      *
-     * @param string $jobToken
+     * @param null|string $jobToken
      *
      * @return $this
      */
@@ -448,17 +446,17 @@ abstract class AbstractTask
      */
     public function getJobToken(): ?string
     {
-        return $this->jobToken;
+        return $this->jobToken ?? null;
     }
 
     /**
      * Set jobIsStatic
      *
-     * @param boolean $jobIsStatic
+     * @param bool $jobIsStatic
      *
      * @return $this
      */
-    public function setJobIsStatic($jobIsStatic)
+    public function setJobIsStatic(bool $jobIsStatic): self
     {
         $this->jobIsStatic = $jobIsStatic;
 
@@ -468,21 +466,21 @@ abstract class AbstractTask
     /**
      * Get jobIsStatic
      *
-     * @return boolean
+     * @return bool
      */
-    public function isStaticJob()
+    public function isStaticJob(): bool
     {
-        return $this->jobIsStatic;
+        return $this->jobIsStatic ?? false;
     }
 
     /**
      * Get jobFrequency
      *
-     * @return integer
+     * @return int
      */
-    public function getJobFrequency()
+    public function getJobFrequency(): int
     {
-        return $this->jobFrequency;
+        return $this->jobFrequency ?? 0;
     }
 
     /**
@@ -492,7 +490,7 @@ abstract class AbstractTask
      *
      * @return $this
      */
-    public function setJobIndexKey1(?string $jobIndexKey1)
+    public function setJobIndexKey1(?string $jobIndexKey1): self
     {
         $this->jobIndexKey1 = $jobIndexKey1;
 
@@ -506,7 +504,7 @@ abstract class AbstractTask
      */
     public function getJobIndexKey1(): ?string
     {
-        return $this->jobIndexKey1;
+        return $this->jobIndexKey1 ?? null;
     }
 
     /**
@@ -516,7 +514,7 @@ abstract class AbstractTask
      *
      * @return $this
      */
-    public function setJobIndexKey2(?string $jobIndexKey2)
+    public function setJobIndexKey2(?string $jobIndexKey2): self
     {
         $this->jobIndexKey2 = $jobIndexKey2;
 
@@ -530,7 +528,7 @@ abstract class AbstractTask
      */
     public function getJobIndexKey2(): ?string
     {
-        return $this->jobIndexKey2;
+        return $this->jobIndexKey2 ?? null;
     }
 
     /**
@@ -540,7 +538,7 @@ abstract class AbstractTask
      *
      * @return $this
      */
-    public function setTry($try)
+    public function setTry(int $try): self
     {
         $this->try = $try;
 
@@ -550,11 +548,11 @@ abstract class AbstractTask
     /**
      * Get try
      *
-     * @return integer
+     * @return int
      */
-    public function getTry()
+    public function getTry(): int
     {
-        return $this->try;
+        return $this->try ?? 0;
     }
 
     /**
@@ -564,7 +562,7 @@ abstract class AbstractTask
      *
      * @return $this
      */
-    public function setRunning($running)
+    public function setRunning(bool $running): self
     {
         $this->running = $running;
 
@@ -574,21 +572,21 @@ abstract class AbstractTask
     /**
      * Get running
      *
-     * @return boolean
+     * @return bool
      */
     public function isRunning(): bool
     {
-        return $this->running;
+        return $this->running ?? false;
     }
 
     /**
      * Set finished
      *
-     * @param boolean $finished
+     * @param bool $finished
      *
      * @return $this
      */
-    public function setFinished($finished)
+    public function setFinished(bool $finished): self
     {
         $this->finished = $finished;
 
@@ -602,75 +600,27 @@ abstract class AbstractTask
      */
     public function isFinished(): bool
     {
-        return $this->finished;
+        return $this->finished ?? false;
     }
 
     /**
      * Get startedAt
      *
-     * @return \DateTime
+     * @return null|DateTime
      */
-    public function getStartedAt()
+    public function getStartedAt(): ?DateTime
     {
-        return $this->startedAt;
-    }
-
-    /**
-     * Set startedAtTimeStamp
-     *
-     * @param integer $startedAtTimeStamp
-     *
-     * @return $this
-     */
-    public function setStartedAtTimeStamp($startedAtTimeStamp)
-    {
-        $this->startedAtTimeStamp = $startedAtTimeStamp;
-
-        return $this;
-    }
-
-    /**
-     * Get startedAtTimeStamp
-     *
-     * @return integer
-     */
-    public function getStartedAtTimeStamp()
-    {
-        return $this->startedAtTimeStamp;
+        return $this->startedAt ?? null;
     }
 
     /**
      * Get finishedAt
      *
-     * @return \DateTime
+     * @return null|DateTime
      */
-    public function getFinishedAt()
+    public function getFinishedAt(): ?DateTime
     {
-        return $this->finishedAt;
-    }
-
-    /**
-     * Set finishedAtTimeStamp
-     *
-     * @param integer $finishedAtTimeStamp
-     *
-     * @return $this
-     */
-    public function setFinishedAtTimeStamp($finishedAtTimeStamp)
-    {
-        $this->finishedAtTimeStamp = $finishedAtTimeStamp;
-
-        return $this;
-    }
-
-    /**
-     * Get finishedAtTimeStamp
-     *
-     * @return integer
-     */
-    public function getFinishedAtTimeStamp()
-    {
-        return $this->finishedAtTimeStamp;
+        return $this->finishedAt ?? null;
     }
 
     /**
@@ -680,7 +630,7 @@ abstract class AbstractTask
      *
      * @return $this
      */
-    public function setStartedBy($startedBy)
+    public function setStartedBy(string $startedBy): self
     {
         $this->startedBy = $startedBy;
 
@@ -690,41 +640,41 @@ abstract class AbstractTask
     /**
      * Get startedBy
      *
-     * @return string
+     * @return null|string
      */
-    public function getStartedBy()
+    public function getStartedBy(): ?string
     {
-        return $this->startedBy;
+        return $this->startedBy ?? null;
     }
 
     /**
      * Get plannedAt
      *
-     * @return \DateTime
+     * @return null|DateTime
      */
-    public function getPlannedAt()
+    public function getPlannedAt(): ?DateTime
     {
-        return $this->plannedAt;
+        return $this->plannedAt ?? null;
     }
 
     /**
      * Get plannedAtTimeStamp
      *
-     * @return integer
+     * @return null|int
      */
-    public function getPlannedAtTimeStamp()
+    public function getPlannedAtTimeStamp(): ?int
     {
-        return $this->plannedAtTimeStamp;
+        return $this->plannedAtTimeStamp ?? null;
     }
 
     /**
      * Set createdAt
      *
-     * @param \DateTime $createdAt
+     * @param DateTime $createdAt
      *
      * @return $this
      */
-    public function setCreatedAt($createdAt)
+    public function setCreatedAt(DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
 
@@ -734,9 +684,9 @@ abstract class AbstractTask
     /**
      * Get createdAt
      *
-     * @return \DateTime
+     * @return DateTime
      */
-    public function getCreatedAt()
+    public function getCreatedAt(): DateTime
     {
         return $this->createdAt;
     }
@@ -748,7 +698,7 @@ abstract class AbstractTask
      *
      * @return $this
      */
-    public function setCreatedBy($createdBy)
+    public function setCreatedBy(string $createdBy): self
     {
         $this->createdBy = $createdBy;
 
@@ -760,7 +710,7 @@ abstract class AbstractTask
      *
      * @return string
      */
-    public function getCreatedBy()
+    public function getCreatedBy(): string
     {
         return $this->createdBy;
     }
@@ -784,19 +734,19 @@ abstract class AbstractTask
      *
      * @return null|string
      */
-    public function getFaultStr()
+    public function getFaultStr(): ?string
     {
-        return $this->faultStr;
+        return $this->faultStr ?? null;
     }
 
     /**
      * Set fault Trace
      *
-     * @param string $faultTrace
+     * @param null|string $faultTrace
      *
      * @return $this
      */
-    public function setFaultTrace($faultTrace)
+    public function setFaultTrace(?string $faultTrace): self
     {
         $this->faultTrace = $faultTrace;
 
@@ -806,41 +756,41 @@ abstract class AbstractTask
     /**
      * Get fault Trace
      *
-     * @return string
+     * @return null|string
      */
-    public function getFaultTrace()
+    public function getFaultTrace(): ?string
     {
-        return $this->faultTrace;
+        return $this->faultTrace ?? null;
     }
 
     /**
      * Get Task Outputs
      *
-     * @return string
+     * @return null|string
      */
-    public function getOutputs()
+    public function getOutputs(): ?string
     {
         return $this->outputs;
     }
 
     /**
-     * Get Task Disciminator
+     * Get Task Discriminator
      *
-     * @return string
+     * @return null|string
      */
-    public function getDiscriminator()
+    public function getDiscriminator(): ?string
     {
-        return $this->discriminator;
+        return $this->discriminator ?? null;
     }
 
     /**
      * Set duration
      *
-     * @param integer $duration
+     * @param int $duration
      *
      * @return $this
      */
-    public function setDuration($duration)
+    public function setDuration(int $duration): self
     {
         $this->duration = $duration;
 
@@ -850,10 +800,10 @@ abstract class AbstractTask
     /**
      * Get duration
      *
-     * @return integer
+     * @return int
      */
-    public function getDuration()
+    public function getDuration(): int
     {
-        return $this->duration;
+        return $this->duration ?? 0;
     }
 }

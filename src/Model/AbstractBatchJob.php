@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -38,21 +38,21 @@ abstract class AbstractBatchJob extends AbstractJob
      *
      * @var string
      */
-    protected static $action = "batch";
+    protected static string $action = "batch";
 
     /**
      * Batch Job Inputs List Method Name
      *
      * @var string
      */
-    protected static $batchList = "configure";
+    protected static string $batchList = "configure";
 
     /**
      * Batch Job Action Method Name
      *
      * @var string
      */
-    protected static $batchAction = "execute";
+    protected static string $batchAction = "execute";
 
     /**
      * Parameter - Stop on Errors
@@ -60,14 +60,14 @@ abstract class AbstractBatchJob extends AbstractJob
      *
      * @var bool
      */
-    protected static $stopOnError = true;
+    protected static bool $stopOnError = true;
 
     /**
      * Job Priority
      *
      * @var int
      */
-    protected static $priority = Task::DO_LOWEST;
+    protected static int $priority = Task::DO_LOWEST;
 
     /**
      * Parameter - Batch Action Pagination.
@@ -75,7 +75,7 @@ abstract class AbstractBatchJob extends AbstractJob
      *
      * @var int
      */
-    protected static $paginate = 1;
+    protected static int $paginate = 1;
 
     /**
      * Class Constructor
@@ -161,7 +161,7 @@ abstract class AbstractBatchJob extends AbstractJob
     {
         //==============================================================================
         //      Check Batch Job List is Loaded (Or Try to Load It)
-        if ((false == $this->getStateItem("isListLoaded")) && !$this->batchLoadJobsList()) {
+        if (!$this->getStateItem("isListLoaded") && !$this->batchLoadJobsList()) {
             return false;
         }
         //==============================================================================
@@ -181,7 +181,7 @@ abstract class AbstractBatchJob extends AbstractJob
 
         //====================================================================//
         // Init Task Planification Counters
-        $taskStart = $this->getStateItem("currentJob");
+        $taskStart = (int) $this->getStateItem("currentJob");
         $taskMax = $this->getStateItem("jobsCount");
         $taskEnd = (static::$paginate > 0) ? ($taskStart + static::$paginate) : $taskMax;
         if ($taskEnd > $taskMax) {
@@ -197,7 +197,7 @@ abstract class AbstractBatchJob extends AbstractJob
 
             //==============================================================================
             //      Safety Check - Ensure Input Array Exists
-            $jobInputs = $this->getJobInputs($index);
+            $jobInputs = $this->getJobInputs((string) $index);
             if (is_null($jobInputs)) {
                 $this->setStateItem("isCompleted", true);
 

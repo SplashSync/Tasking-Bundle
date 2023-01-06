@@ -1,0 +1,4 @@
+# Framework Configuration
+framework:
+    translator:     { fallbacks: ["%locale%"] }
+    test:           true

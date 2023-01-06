@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +15,7 @@
 
 namespace Splash\Tasking\DependencyInjection;
 
-use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -25,20 +25,17 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 class Configuration implements ConfigurationInterface
 {
     /**
-     * @var ArrayNodeDefinition
+     * @var NodeDefinition
      */
-    private $treeNode;
+    private NodeDefinition $rootNode;
 
     /**
      * {@inheritdoc}
      */
     public function getConfigTreeBuilder(): TreeBuilder
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('splash_tasking');
-
-        // @phpstan-ignore-next-line
-        $this->treeNode = $rootNode->children();
+        $treeBuilder = new TreeBuilder('splash_tasking');
+        $this->rootNode = $treeBuilder->getRootNode();
 
         $this->configureCommonParameters();
         $this->configureServerParameters();
@@ -53,12 +50,13 @@ class Configuration implements ConfigurationInterface
     /**
      * Add Common Parameters To Configuration
      *
-     * @return $this
+     * @return void
      */
-    private function configureCommonParameters(): self
+    private function configureCommonParameters(): void
     {
         // @phpstan-ignore-next-line
-        $this->treeNode
+        $this->rootNode
+            ->children()
             //====================================================================//
             // COMMON Parameters
             //====================================================================//
@@ -91,9 +89,8 @@ class Configuration implements ConfigurationInterface
             ->defaultValue("/tasking/start")
             ->info('Additional Path for Multi-Server mode.')
             ->end()
+            ->end()
         ;
-
-        return $this;
     }
 
     /**
@@ -104,7 +101,8 @@ class Configuration implements ConfigurationInterface
     private function configureServerParameters(): self
     {
         // @phpstan-ignore-next-line
-        $this->treeNode
+        $this->rootNode
+            ->children()
             //====================================================================//
             // SERVER Parameters
             //====================================================================//
@@ -121,6 +119,7 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->end()
             ->end()
+            ->end()
         ;
 
         return $this;
@@ -129,12 +128,13 @@ class Configuration implements ConfigurationInterface
     /**
      * Add Supervisor Parameters To Configuration
      *
-     * @return $this
+     * @return void
      */
-    private function configureSupervisorParameters(): self
+    private function configureSupervisorParameters(): void
     {
         // @phpstan-ignore-next-line
-        $this->treeNode
+        $this->rootNode
+            ->children()
             //====================================================================//
             // SUPERVISOR Parameters
             //====================================================================//
@@ -159,20 +159,20 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->end()
             ->end()
+            ->end()
         ;
-
-        return $this;
     }
 
     /**
      * Add Workers Parameters To Configuration
      *
-     * @return $this
+     * @return void
      */
-    private function configureWorkersParameters(): self
+    private function configureWorkersParameters(): void
     {
         // @phpstan-ignore-next-line
-        $this->treeNode
+        $this->rootNode
+            ->children()
             //====================================================================//
             // WORKERS Parameters
             //====================================================================//
@@ -193,20 +193,20 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->end()
             ->end()
+            ->end()
         ;
-
-        return $this;
     }
 
     /**
      * Add Tasks Parameters To Configuration
      *
-     * @return $this
+     * @return void
      */
-    private function configureTasksParameters(): self
+    private function configureTasksParameters(): void
     {
         // @phpstan-ignore-next-line
-        $this->treeNode
+        $this->rootNode
+            ->children()
             //====================================================================//
             // TASKS Parameters
             //====================================================================//
@@ -227,20 +227,20 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->end()
             ->end()
+            ->end()
         ;
-
-        return $this;
     }
 
     /**
      * Add Static Tasks Parameters To Configuration
      *
-     * @return $this
+     * @return void
      */
-    private function configureStaticTasksParameters(): self
+    private function configureStaticTasksParameters(): void
     {
         // @phpstan-ignore-next-line
-        $this->treeNode
+        $this->rootNode
+            ->children()
             //====================================================================//
             // STATIC TASKS Parameters
             //====================================================================//
@@ -258,8 +258,7 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->end()
             ->end()
+            ->end()
         ;
-
-        return $this;
     }
 }

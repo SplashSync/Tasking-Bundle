@@ -15,19 +15,19 @@
 #
 ################################################################################
 
-FROM php:7.4-apache
+FROM php:8.0-apache
 
 # Install additionnal PHP extensions
 RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo_mysql \
     && docker-php-ext-install pcntl
 
-ENV APACHE_DOCUMENT_ROOT /project/web
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 RUN echo "memory_limit = -1" >> "/usr/local/etc/php/conf.d/custom.ini"
 
-WORKDIR /project
+WORKDIR /var/www/html
 

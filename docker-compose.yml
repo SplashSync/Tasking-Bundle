@@ -36,7 +36,7 @@ services:
     # MySQL Container
     mysql:
         image: mysql:5.7
-        container_name: tasking-mysql
+        container_name: mysql.tasking.local
         logging: { driver: "none" }
         environment:
             - "MYSQL_ROOT_PASSWORD=tasking"
@@ -51,14 +51,13 @@ services:
     app:
         build:
             context: ./docker
-        container_name: tasking-app
+        container_name: dev.tasking.local
         depends_on:
             - mysql
-        environment:
-            - APACHE_DOCUMENT_ROOT=/project/public
         volumes:
-            - "./:/project/"
-        command: sh /project/docker/docker-entrypoint.sh
+            - "./:/var/www/html/"
+            - symfony-var:/var/www/html/var
+        command: sh /var/www/html/docker/docker-entrypoint.sh
         hostname: dev.tasking.local
         networks:
             tasking:        { ipv4_address: 172.201.0.10, aliases: [ dev.tasking.local ] }
@@ -67,7 +66,7 @@ services:
     # PhpMyAdmin Container
     phpmyadmin:
         image: phpmyadmin/phpmyadmin:5
-        container_name: tasking-phpmyadmin
+        container_name: phpmyadmin.tasking.local
         logging: { driver: "none" }
         depends_on:
             - mysql
@@ -78,6 +77,9 @@ services:
             - MYSQL_PASSWORD=tasking
         networks:
             tasking:        { ipv4_address: 172.201.0.200, aliases: [ phpmyadmin.tasking.local ] }
+
+volumes:
+    symfony-var:    ~
 
 networks:
     ################################################################################

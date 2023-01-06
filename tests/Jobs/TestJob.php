@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,11 +28,9 @@ class TestJob extends AbstractJob
     //==============================================================================
 
     /**
-     * Job Inputs => Load here all inputs parameters for your task
-     *
-     * @var array
+     * {@inheritdoc}
      */
-    protected $inputs = array(
+    protected array $inputs = array(
         // Execute Customs Delays
         "Delay-Ms" => 0,
         "Delay-S" => 1,
@@ -55,20 +53,14 @@ class TestJob extends AbstractJob
     );
 
     /**
-     * Job Token is Used for concurrency Management
-     * You can set it directly by overriding this constant
-     * or by writing an array of parameters to setJobToken()
-     *
-     * @var string
+     * {@inheritdoc}
      */
-    protected $token = "TEST_JOB";
+    protected ?string $token = "TEST_JOB";
 
     /**
-     * Job Display Settings
-     *
-     * @var array
+     * {@inheritdoc}
      */
-    protected $settings = array(
+    protected array $settings = array(
         "label" => "Simple Job for Test",
         "description" => "Custom Simple Job for Bundle Testing",
         "translation_domain" => false,
@@ -98,11 +90,9 @@ class TestJob extends AbstractJob
     //==============================================================================
 
     /**
-     * Override this function to validate you Input parameters
+     * {@inheritdoc}
      *
      * @throws Exception
-     *
-     * @return bool
      */
     public function validate() : bool
     {
@@ -133,11 +123,9 @@ class TestJob extends AbstractJob
     }
 
     /**
-     * Override this function to prepare your class for it's execution
+     * {@inheritdoc}
      *
      * @throws Exception
-     *
-     * @return bool
      */
     public function prepare() : bool
     {
@@ -153,11 +141,9 @@ class TestJob extends AbstractJob
     }
 
     /**
-     * Override this function to perform your task
+     * {@inheritdoc}
      *
      * @throws Exception
-     *
-     * @return bool
      */
     public function execute() : bool
     {
@@ -177,11 +163,9 @@ class TestJob extends AbstractJob
     }
 
     /**
-     * Override this function to validate results of your task or perform post-actions
+     * {@inheritdoc}
      *
      * @throws Exception
-     *
-     * @return bool
      */
     public function finalize() : bool
     {
@@ -197,11 +181,9 @@ class TestJob extends AbstractJob
     }
 
     /**
-     * Override this function to close your task
+     * {@inheritdoc}
      *
      * @throws Exception
-     *
-     * @return bool
      */
     public function close() : bool
     {

@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,7 +23,7 @@ namespace Splash\Tasking\Tools;
 class Timer
 {
     /**
-     * Pause Delay When Inactive in Miliseconds
+     * Pause Delay When Inactive in Milliseconds
      *
      * => Default = 50Ms
      *
@@ -43,7 +43,7 @@ class Timer
      * Second & Max Step for Stand by Increase
      * => Default = 1000Ms
      *
-     * @var int
+     * @var float
      */
     const STANDBY_MAX = 1E3;
 
@@ -54,17 +54,17 @@ class Timer
      *
      * @var int
      */
-    private static $standBy = 0;
+    private static int $standBy = 0;
 
     /**
      * MicroTime when Last Task started
      *
      * @var float
      */
-    private static $startedAt = 0;
+    private static float $startedAt = 0.0;
 
     /**
-     * Execute a Milisecond Pause
+     * Execute a Millisecond Pause
      *
      * @param int $msDelay
      */
@@ -86,16 +86,16 @@ class Timer
     {
         //====================================================================//
         // Do The Pause
-        self::msSleep(static::$standBy);
+        self::msSleep(self::$standBy);
         //====================================================================//
         // 500 First Ms => Wait 50 Ms More Each Loop
-        if (static::$standBy < self::STANDBY_IDLE) {
-            static::$standBy += 25;
+        if (self::$standBy < self::STANDBY_IDLE) {
+            self::$standBy += 25;
         }
         //====================================================================//
         // 500 Ms to 1 Second => Wait 100 Ms More Each Loop
-        if ((self::STANDBY_IDLE <= static::$standBy) && (static::$standBy < self::STANDBY_MAX)) {
-            static::$standBy += 2 * self::STANDBY_MIN;
+        if ((self::STANDBY_IDLE <= self::$standBy) && (self::$standBy < self::STANDBY_MAX)) {
+            self::$standBy += 2 * self::STANDBY_MIN;
         }
     }
 
@@ -106,7 +106,7 @@ class Timer
      */
     public static function isIdle(): bool
     {
-        return static::$standBy > self::STANDBY_IDLE;
+        return self::$standBy > self::STANDBY_IDLE;
     }
 
     /**
@@ -114,7 +114,7 @@ class Timer
      */
     public static function clearStandBy(): void
     {
-        static::$standBy = self::STANDBY_MIN;
+        self::$standBy = self::STANDBY_MIN;
     }
 
     /**
@@ -122,7 +122,7 @@ class Timer
      */
     public static function start(): void
     {
-        static::$startedAt = microtime(true);
+        self::$startedAt = microtime(true);
     }
 
     /**
@@ -133,7 +133,7 @@ class Timer
     {
         //====================================================================//
         // Evaluate Task Execution delay in Us
-        $usDelta = round((microtime(true) - static::$startedAt));
+        $usDelta = round((microtime(true) - self::$startedAt));
         //====================================================================//
         // Evaluate Remaining Ms to 50Ms
         $msPause = self::STANDBY_MIN - ($usDelta * 1E3);

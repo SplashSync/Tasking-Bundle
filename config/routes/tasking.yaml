@@ -1,10 +1,12 @@
 
 ################################################################################
-# SPLASH Tasking Bundle
+# SPLASH Tasking Bundle Multi-server API
 splash_tasking_bundle_api:
     resource: "@SplashTaskingBundle/Resources/config/routing/api.yml"
     prefix:   /
 
+################################################################################
+# SPLASH Tasking Bundle Status
 splash_tasking_bundle_status:
     resource: "@SplashTaskingBundle/Resources/config/routing/status.yml"
     prefix:   /

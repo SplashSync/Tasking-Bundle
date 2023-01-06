@@ -1,0 +1,11 @@
+services:
+
+    # default configuration for services in *this* file
+    _defaults:
+        autowire:       false
+        autoconfigure:  false
+        public:         false
+
+    tasking.sampling.service:
+        class: Splash\Tasking\Tests\Services\TasksSamplingService
+        public:         true

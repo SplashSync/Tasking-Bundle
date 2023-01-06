@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -295,14 +295,15 @@ class Runner
 
             return false;
         }
-        $this->job = new $jobClass();
+        $job = new $jobClass();
         //====================================================================//
         // Job Class is SubClass of Base Job Class
-        if (!($this->job instanceof AbstractJob)) {
+        if (!($job instanceof AbstractJob)) {
             $task->setFaultStr("Job Class is Invalid: ".$jobClass);
 
             return false;
         }
+        $this->job = $job;
         //====================================================================//
         // Inject Container to Job Class
         $this->job->setContainer($this->container);
@@ -488,7 +489,7 @@ class Runner
             }
             //==============================================================================
             // Backup Inputs Parameters For Next Actions
-            $task->setJobInputs($job->__get("inputs"));
+            $task->setJobInputs($job->getRawInputs());
         }
         //====================================================================//
         // User Information

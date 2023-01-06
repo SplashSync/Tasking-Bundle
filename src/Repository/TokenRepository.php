@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -191,14 +191,16 @@ class TokenRepository extends EntityRepository
         // Prepare Max Age DateTime
         $maxDate = new DateTime("-".$maxAge."Hours");
         //==============================================================================
-        // Count Old Finished Tasks
-        return $this->createQueryBuilder("t")
+        // Clean && Count Old Finished Tasks
+        $builder = $this->createQueryBuilder("t")
             ->delete()
             ->where("t.locked != 1")
             ->andWhere("t.lockedAt < :maxage OR t.lockedAt IS NULL")
             ->setParameter(":maxage", $maxDate)
-            ->getQuery()
-            ->execute();
+        ;
+
+        /** @phpstan-ignore-next-line */
+        return $builder->getQuery()->execute();
     }
 
     /**

@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -62,7 +62,7 @@ class Task extends AbstractTask
      *
      * @var array
      */
-    private static $defaultSettings = array(
+    protected static array $defaultSettings = array(
         "label" => "Default Task Title",
         "description" => "Default Task Description",
         "translation_domain" => false,
@@ -180,7 +180,7 @@ class Task extends AbstractTask
         try {
             $this->settings = $resolver->resolve($settings);
             //==============================================================================
-        //  Invalid Field Definition Array
+            //  Invalid Field Definition Array
         } catch (UndefinedOptionsException $ex) {
             $this->settings = static::$defaultSettings;
         } catch (InvalidOptionsException $ex) {

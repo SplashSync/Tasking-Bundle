@@ -3,7 +3,7 @@
 /*
  *  This file is part of SplashSync Project.
  *
- *  Copyright (C) 2015-2021 Splash Sync  <www.splashsync.com>
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,42 +29,42 @@ class Status
     /**
      * @var null|string
      */
-    private static $token;
+    private static ?string $token = null;
 
     /**
      * @var null|DateTime
      */
-    private static $tokenAcquiredAt;
+    private static ?DateTime $tokenAcquiredAt = null;
 
     /**
      * @var null|DateTime
      */
-    private static $tokenExpireAt;
+    private static ?DateTime $tokenExpireAt = null;
 
     /**
      * @var null|DateTime
      */
-    private static $watchdogResetAt;
+    private static ?DateTime $watchdogResetAt = null;
 
     /**
      * @var null|DateTime
      */
-    private static $watchdogExpireAt;
+    private static ?DateTime $watchdogExpireAt = null;
 
     /**
      * @var null|DateTime
      */
-    private static $jobStartedAt;
+    private static ?DateTime $jobStartedAt = null;
 
     /**
      * @var null|DateTime
      */
-    private static $jobExpireAt;
+    private static ?DateTime $jobExpireAt = null;
 
     /**
      * @var null|LoggerInterface
      */
-    private static $logger;
+    private static ?LoggerInterface $logger = null;
 
     //==============================================================================
     // MAIN DELAYS MANAGEMENT
@@ -229,6 +229,22 @@ class Status
         return self::$jobExpireAt->getTimestamp() - (new DateTime())->getTimestamp();
     }
 
+    /**
+     * @return null|DateTime
+     */
+    public static function getJobStartedAt(): ?DateTime
+    {
+        return self::$jobStartedAt;
+    }
+
+    /**
+     * @return null|DateTime
+     */
+    public static function getJobExpireAt(): ?DateTime
+    {
+        return self::$jobExpireAt;
+    }
+
     //==============================================================================
     // WATCHDOG MANAGEMENT
     //==============================================================================
@@ -257,7 +273,7 @@ class Status
         }
         //==============================================================================
         // Add Log Message
-        if (self::$logger) {
+        if (isset(self::$logger)) {
             self::$logger->warning("Status Manager: Watchdog reset for ".$watchdogDelay." Seconds");
         }
     }
@@ -272,6 +288,14 @@ class Status
         }
 
         return self::$watchdogExpireAt->getTimestamp() - (new DateTime())->getTimestamp();
+    }
+
+    /**
+     * @return null|DateTime
+     */
+    public static function getWatchdogResetAt(): ?DateTime
+    {
+        return self::$watchdogResetAt;
     }
 
     //==============================================================================
@@ -328,5 +352,13 @@ class Status
         }
 
         return self::$tokenExpireAt->getTimestamp() - (new DateTime())->getTimestamp();
+    }
+
+    /**
+     * @return null|DateTime
+     */
+    public static function getTokenAcquiredAt(): ?DateTime
+    {
+        return self::$tokenAcquiredAt;
     }
 }
