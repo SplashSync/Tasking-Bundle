@@ -9,7 +9,7 @@ services:
     splash.tasking.admin.tasks:
         class: Splash\Tasking\Admin\TaskAdmin
         tags:
-            - { name: sonata.admin, manager_type: orm, group: "System", label: "Tasks" }
+            - { name: sonata.admin, manager_type: orm, label: "Tasks", group: "Tasking", icon: "<i class='fa fa-server'></i>" }
         arguments:
             - ~
             - Splash\Tasking\Entity\Task
@@ -22,7 +22,7 @@ services:
     splash.tasking.admin.workers:
         class: Splash\Tasking\Admin\WorkerAdmin
         tags:
-            - { name: sonata.admin, manager_type: orm, group: "System", label: "Workers" }
+            - { name: sonata.admin, manager_type: orm, label: "Workers", group: "Tasking", icon: "<i class='fa fa-server'></i>" }
         arguments:
             - ~
             - Splash\Tasking\Entity\Worker
@@ -35,7 +35,7 @@ services:
     splash.tasking.admin.tokens:
         class: Splash\Tasking\Admin\TokenAdmin
         tags:
-            - { name: sonata.admin, manager_type: orm, group: "System", label: "Token" }
+            - { name: sonata.admin, manager_type: orm, label: "Token", group: "Tasking", icon: "<i class='fa fa-server'></i>" }
         arguments:
             - ~
             - Splash\Tasking\Entity\Token
