@@ -52,8 +52,8 @@ class WorkerAdmin extends AbstractAdmin
     protected function configureListFields(ListMapper $list): void
     {
         $list
-            ->addIdentifier('__toString', null, array('route' => array('name' => 'show')))
-//            ->add('nodeIp')
+            ->addIdentifier('name', null, array('route' => array('name' => 'show')))
+            ->add('nodeIp')
             ->add('enabled', null, array('editable' => true))
             ->add('pID')
             ->add('running')

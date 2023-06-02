@@ -25,7 +25,9 @@ use Splash\Tasking\Services\Configuration;
  * Used to prevent task collisions
  *
  * @ORM\Entity(repositoryClass="Splash\Tasking\Repository\TokenRepository")
+ *
  * @ORM\Table(name="system__tokens")
+ *
  * @ORM\HasLifecycleCallbacks
  */
 class Token
@@ -49,7 +51,9 @@ class Token
      * @var null|int
      *
      * @ORM\Id
+     *
      * @ORM\Column(name="id", type="integer")
+     *
      * @ORM\GeneratedValue(strategy="AUTO")
      */
     private ?int $id = null;
@@ -113,6 +117,7 @@ class Token
 
     /**
      * @ORM\Version
+     *
      * @ORM\Column(type="integer")
      *
      * @var int

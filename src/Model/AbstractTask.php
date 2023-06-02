@@ -23,7 +23,9 @@ use Symfony\Component\Validator\Constraints as ASSERT;
  * Abstract Task Storage Object
  *
  * @ORM\Entity
+ *
  * @ORM\MappedSuperclass
+ *
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
  * @SuppressWarnings(PHPMD.TooManyFields)
  */
@@ -106,7 +108,9 @@ abstract class AbstractTask
      * @var null|int
      *
      * @ORM\Id
+     *
      * @ORM\Column(type="integer")
+     *
      * @ORM\GeneratedValue(strategy="AUTO")
      */
     protected ?int $id = null;
@@ -192,6 +196,7 @@ abstract class AbstractTask
      * @var int
      *
      * @ORM\Column(name="NbTry", type="integer", nullable=true)
+     *
      * @ASSERT\Range(
      *      min = 0,
      *      max = 10

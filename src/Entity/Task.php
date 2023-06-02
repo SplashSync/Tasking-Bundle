@@ -26,7 +26,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * Splash Task Storage Object
  *
  * @ORM\Entity(repositoryClass="Splash\Tasking\Repository\TaskRepository")
+ *
  * @ORM\Table(name="system__tasks")
+ *
  * @ORM\HasLifecycleCallbacks
  */
 class Task extends AbstractTask

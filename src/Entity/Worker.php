@@ -22,7 +22,9 @@ use Doctrine\ORM\Mapping as ORM;
  * System Task Worker Tracker
  *
  * @ORM\Entity(repositoryClass="Splash\Tasking\Repository\WorkerRepository")
+ *
  * @ORM\Table(name="system__workers")
+ *
  * @ORM\HasLifecycleCallbacks
  */
 class Worker
@@ -35,7 +37,9 @@ class Worker
      * @var null|int
      *
      * @ORM\Id
+     *
      * @ORM\Column(type="integer")
+     *
      * @ORM\GeneratedValue(strategy="AUTO")
      */
     private ?int $id = null;
@@ -113,6 +117,16 @@ class Worker
      * @return string
      */
     public function __toString(): string
+    {
+        return $this->getName();
+    }
+
+    /**
+     * Get Worker Name
+     *
+     * @return string
+     */
+    public function getName(): string
     {
         return $this->nodeName." [".$this->process."]";
     }

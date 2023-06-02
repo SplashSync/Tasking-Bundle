@@ -153,6 +153,7 @@ class TaskHandler extends AbstractProcessingHandler
      */
     protected function write(array $record): void
     {
+        /** @phpstan-ignore-next-line  */
         $this->buffer[] = $this->processRecord($record)["message"] ?? "";
         $this->bufferSize++;
     }
