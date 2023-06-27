@@ -256,19 +256,23 @@ class TasksManager
         //====================================================================//
         // Loop on All Database Tasks to Identify Static Tasks
         foreach ($database as $task) {
+            $found = false;
             //====================================================================//
             // Try to Identify Task in Static Task List
             foreach ($staticJobs as $index => $staticTask) {
                 //====================================================================//
                 // If Tasks Are Similar => Delete From List
                 if ($this->compareStaticTask($staticTask, $task)) {
+                    $found = true;
                     unset($staticJobs[$index]);
                 }
             }
             //====================================================================//
             // Task Not to Run (Doesn't Exists) => Delete from Database
-            Configuration::getEntityManager()->remove($task);
-            Configuration::getEntityManager()->flush();
+            if (!$found) {
+                Configuration::getEntityManager()->remove($task);
+                Configuration::getEntityManager()->flush();
+            }
         }
         //====================================================================//
         // Loop on Tasks to Add it On Database

@@ -59,7 +59,7 @@ class TaskRepository extends EntityRepository
 
         //====================================================================//
         // Setup Task Filters
-        if (true == $static) {
+        if ($static) {
             $this->setupStaticTasksFilter();
         } else {
             $this->setupNormalTasksFilter();
@@ -87,7 +87,7 @@ class TaskRepository extends EntityRepository
 
         //====================================================================//
         // Setup Query Time Parameters
-        if (true == $static) {
+        if ($static) {
             $this->builder->setParameter('Now', $timestamp);
         }
 

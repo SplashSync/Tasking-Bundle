@@ -36,7 +36,6 @@ class TaskAdmin extends AbstractAdmin
             ->with('General', array('class' => 'col-md-6'))
             ->add('name')
             ->add('jobClass')
-            ->add('jobName')
             ->add('jobToken')
             ->add('staticJob', 'boolean')
             ->add('jobFrequency')
