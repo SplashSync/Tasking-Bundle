@@ -13,7 +13,7 @@
  *  file that was distributed with this source code.
  */
 
-// phpcs:disable PSR1.Classes.ClassDeclaration.MissingNamespace
+namespace Splash\Tasking\Tests;
 
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;

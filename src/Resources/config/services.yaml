@@ -35,6 +35,12 @@ services:
             - "%splash_tasking%"
 
     ########################################################################
+    # Jobs Management Service
+    Splash\Tasking\Services\JobsManager:
+        arguments:
+            - !tagged { tag: 'splash.tasking.job', index_by: 'key' }
+
+    ########################################################################
     # Tasks Management Service
     Splash\Tasking\Services\Runner: ~
 

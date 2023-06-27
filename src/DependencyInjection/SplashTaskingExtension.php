@@ -36,13 +36,17 @@ class SplashTaskingExtension extends Extension
         $config = $this->processConfiguration($configuration, $configs);
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
-        $loader->load('services.yml');
+        $loader->load('services.yaml');
 
         $container->setParameter('splash_tasking', $config);
 
         $bundles = $container->getParameter('kernel.bundles');
         if (is_array($bundles) && isset($bundles['PaddockCoreBundle'])) {
             $loader->load('services/paddock.yml');
+        }
+
+        if (class_exists("\\Splash\\Tasking\\Tests\\Kernel")) {
+            $loader->load('tests.yaml');
         }
     }
 }

@@ -73,7 +73,7 @@ class B001TasksManagerControllerTest extends AbstractTestController
         // Verify Generic Job Result
         Assert::assertInstanceOf(Task::class, $task);
         Assert::assertNotEmpty($task->getName());
-        Assert::assertEquals($task->getJobClass(), "\\".get_class($job));
+        Assert::assertEquals($task->getJobClass(), get_class($job));
         Assert::assertEquals($task->getJobInputs(), $job->getRawInputs());
         Assert::assertEquals($task->getJobPriority(), $job->getPriority());
         Assert::assertEquals($task->getJobToken(), $job->getToken());

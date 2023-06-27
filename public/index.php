@@ -13,6 +13,7 @@
  *  file that was distributed with this source code.
  */
 
+use Splash\Tasking\Tests\Kernel;
 use Symfony\Component\HttpFoundation\Request;
 
 umask(0000);

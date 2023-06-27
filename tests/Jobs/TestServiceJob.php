@@ -16,9 +16,10 @@
 namespace Splash\Tasking\Tests\Jobs;
 
 use Splash\Tasking\Model\AbstractServiceJob;
+use Splash\Tasking\Tests\Services\TasksSamplingService;
 
 /**
- * Demonstartion fo Simple Background Jobs
+ * Demonstration fo Simple Background Jobs
  */
 class TestServiceJob extends AbstractServiceJob
 {
@@ -26,7 +27,6 @@ class TestServiceJob extends AbstractServiceJob
      * {@inheritdoc}
      */
     protected array $inputs = array(
-        "Service" => "tasking.sampling.service",
         "Method" => "delayTask",
         "Inputs" => array("Delay" => 1),
     );
@@ -45,4 +45,14 @@ class TestServiceJob extends AbstractServiceJob
      * {@inheritdoc}
      */
     protected ?string $token = "JOB_SERVICE";
+
+    /**
+     * Service Job Constructor
+     *
+     * @param null|TasksSamplingService $service Target Service
+     */
+    public function __construct(?TasksSamplingService $service = null)
+    {
+        parent::__construct($service);
+    }
 }

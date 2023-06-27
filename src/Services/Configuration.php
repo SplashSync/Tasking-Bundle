@@ -26,7 +26,6 @@ class Configuration
     use ConfigurationTraits\DoctrineGettersTrait;
     use ConfigurationTraits\SupervisorParametersGettersTrait;
     use ConfigurationTraits\WorkersParametersGettersTrait;
-    use ConfigurationTraits\StaticParametersGettersTrait;
     use ConfigurationTraits\TokenParametersGettersTrait;
     use ConfigurationTraits\TasksParametersGettersTrait;
 

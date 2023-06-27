@@ -28,7 +28,6 @@ use Splash\Tasking\Model\AbstractMassJob;
 use Splash\Tasking\Tools\Status;
 use Splash\Tasking\Tools\Timer;
 use Symfony\Bridge\Monolog\Logger;
-use Symfony\Component\DependencyInjection\ContainerInterface as Container;
 
 /**
  * Tasks Runner
@@ -46,38 +45,11 @@ class Runner
     protected TaskHandler $taskHandler;
 
     /**
-     * Symfony Service Container
-     * Used for On-Demand Injection in Task
-     *
-     * @var Container
-     */
-    private Container $container;
-
-    /**
-     * @var LoggerInterface
-     */
-    private LoggerInterface $logger;
-
-    /**
-     * Doctrine Registry
-     *
-     * @var Registry
-     */
-    private Registry $registry;
-
-    /**
-     * Token Manager Service
-     *
-     * @var TokenManager
-     */
-    private TokenManager $token;
-
-    /**
      * Current Task Class to Execute
      *
      * @var null|Task
      */
-    private ?Task $task;
+    private ?Task $task = null;
 
     /**
      * @var AbstractJob
@@ -86,36 +58,19 @@ class Runner
 
     /**
      * Service Constructor
-     *
-     * @param Container       $container
-     * @param LoggerInterface $logger
-     * @param Registry        $registry
-     * @param TokenManager    $token
      */
     public function __construct(
-        Container $container,
-        LoggerInterface $logger,
-        Registry $registry,
-        TokenManager $token
+        private JobsManager $jobs,
+        private LoggerInterface $logger,
+        private Registry $registry,
+        private TokenManager $token
     ) {
-        //====================================================================//
-        // Link to Service Container
-        $this->container = $container;
-        //====================================================================//
-        // Link to Symfony Logger
-        $this->logger = $logger;
         //====================================================================//
         // Setup Tasks Logger
         $this->taskHandler = new TaskHandler();
         if ($this->logger instanceof Logger) {
             $this->logger->pushHandler($this->taskHandler);
         }
-        //====================================================================//
-        // Link to entity manager Service
-        $this->registry = $registry;
-        //====================================================================//
-        // Link to Token Manager
-        $this->token = $token;
     }
 
     //==============================================================================
@@ -234,14 +189,13 @@ class Runner
         //====================================================================//
         $this->executeJob($this->task);
 
-        //==============================================================================
-        // Do Post Execution Actions
-        $this->closeJob($this->task, Configuration::getTasksMaxRetry());
-        $this->clearEntityManagers();
-
-        //==============================================================================
-        // Save Status in Db
-        if ($this->task instanceof Task) {
+        if (isset($this->task)) {
+            //==============================================================================
+            // Do Post Execution Actions
+            $this->closeJob($this->task, Configuration::getTasksMaxRetry());
+            $this->clearEntityManagers();
+            //==============================================================================
+            // Save Status in Db
             Configuration::getTasksRepository()->flush();
         }
 
@@ -263,8 +217,8 @@ class Runner
         // Use Current Task Token or Null
         $currentToken = isset($this->task) && (Status::getTokenLifetime() >= Configuration::getWorkerWatchdogDelay())
                 ? $this->task->getJobToken()
-                : null;
-
+                : null
+        ;
         //====================================================================//
         // Load Next Task To Run with Current Token
         $this->task = Configuration::getTasksRepository()->getNextTask(
@@ -285,28 +239,17 @@ class Runner
      *
      * @return bool
      */
-    private function validateJob(Task &$task): bool
+    private function validateJob(Task $task): bool
     {
         //==============================================================================
-        // Load Requested Class
-        $jobClass = $task->getJobClass();
-        if (!class_exists($jobClass)) {
-            $task->setFaultStr("Unable to find Requested Job Class : ".$jobClass);
+        // Load Requested Job Service
+        try {
+            $this->job = $this->jobs->get($task->getJobClass());
+        } catch (Exception $e) {
+            $task->setFaultStr($e->getMessage());
 
             return false;
         }
-        $job = new $jobClass();
-        //====================================================================//
-        // Job Class is SubClass of Base Job Class
-        if (!($job instanceof AbstractJob)) {
-            $task->setFaultStr("Job Class is Invalid: ".$jobClass);
-
-            return false;
-        }
-        $this->job = $job;
-        //====================================================================//
-        // Inject Container to Job Class
-        $this->job->setContainer($this->container);
         //==============================================================================
         // Verify Requested Method Exists
         $jobAction = $task->getJobAction();
@@ -328,7 +271,7 @@ class Runner
      *
      * @return bool
      */
-    private function prepareJob(Task &$task): bool
+    private function prepareJob(Task $task): bool
     {
         //====================================================================//
         // Init Task
@@ -369,9 +312,9 @@ class Runner
      *
      * @param Task $task
      *
-     * @return bool
+     * @return void
      */
-    private function executeJob(Task &$task): bool
+    private function executeJob(Task $task): void
     {
         //==============================================================================
         // Turn On Output Buffering to Get Task Outputs Captured
@@ -406,8 +349,6 @@ class Runner
         if ($result) {
             $task->setFinished(true);
         }
-
-        return $result;
     }
 
     /**
@@ -417,7 +358,7 @@ class Runner
      *
      * @return bool
      */
-    private function executeJobAction(Task &$task): bool
+    private function executeJobAction(Task $task): bool
     {
         //==============================================================================
         // Execute Job Self Validate & Prepare Methods
@@ -453,7 +394,7 @@ class Runner
      *
      * @throws Exception
      */
-    private function closeJob(Task &$task, int $maxTry): void
+    private function closeJob(Task $task, int $maxTry): void
     {
         //====================================================================//
         // Init Task Status Manager
@@ -483,7 +424,7 @@ class Runner
         if ($job) {
             //==============================================================================
             // If Batch Task Not Completed => Setup For Next Execution
-            if (false == $job->getStateItem("isCompleted")) {
+            if (!$job->getStateItem("isCompleted")) {
                 $task->setTry(0);
                 $task->setFinished(false);
             }

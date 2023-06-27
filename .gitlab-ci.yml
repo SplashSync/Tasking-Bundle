@@ -75,7 +75,3 @@ tests:php-8.1:
 tests:php-8.0:
     image: registry.gitlab.com/badpixxel-projects/php-sdk:php-8.0
     <<: *core_tests
-
-tests:php-7.4:
-    image: registry.gitlab.com/badpixxel-projects/php-sdk:php-7.4
-    <<: *core_tests

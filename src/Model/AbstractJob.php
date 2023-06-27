@@ -20,16 +20,12 @@ use Splash\Tasking\Entity\Token;
 use Splash\Tasking\Events\AddEvent;
 use Splash\Tasking\Events\InsertEvent;
 use Splash\Tasking\Services\TasksManager;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
 /**
  * Base Class for Background Jobs Definition
  */
-abstract class AbstractJob implements ContainerAwareInterface
+abstract class AbstractJob
 {
-    use ContainerAwareTrait;
-
     //==============================================================================
     //  Constants Definition
     //==============================================================================

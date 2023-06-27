@@ -41,29 +41,6 @@ use Symfony\Component\EventDispatcher\GenericEvent;
  */
 class TasksManager
 {
-    //==============================================================================
-    //  Variables Definition
-    //==============================================================================
-
-    /**
-     * Token Manager
-     *
-     * @var TokenManager
-     */
-    private TokenManager $token;
-
-    /**
-     * @var LoggerInterface
-     */
-    private LoggerInterface $logger;
-
-    /**
-     * Symfony Event Dispatcher
-     *
-     * @var EventDispatcherInterface
-     */
-    private EventDispatcherInterface $dispatcher;
-
     /**
      * @var TasksManager
      */
@@ -76,31 +53,18 @@ class TasksManager
     /**
      * Class Constructor
      *
-     * @param Configuration            $configuration
-     * @param EventDispatcherInterface $dispatcher
-     * @param LoggerInterface          $logger
-     * @param TokenManager             $token
-     *
      * @throws Exception
      */
     public function __construct(
-        Configuration $configuration,
-        EventDispatcherInterface $dispatcher,
-        LoggerInterface $logger,
-        TokenManager $token
+        private Configuration $configuration,
+        private EventDispatcherInterface $dispatcher,
+        private LoggerInterface $logger,
+        private JobsManager $jobs,
+        private TokenManager $token
     ) {
         //====================================================================//
-        // Link to Symfony Logger
-        $this->logger = $logger;
-        //====================================================================//
-        // Link to Symfony Event Dispatcher
-        $this->dispatcher = $dispatcher;
-        //====================================================================//
-        // Link to Token Manager
-        $this->token = $token;
-        //====================================================================//
         // Ensure Configuration is Ready
-        $configuration->isReady();
+        $this->configuration->isReady();
         //==============================================================================
         // Store Static Instance for Access as Static
         self::$staticInstance = $this;
@@ -112,8 +76,6 @@ class TasksManager
 
     /**
      * Start Tasking Supervisor on This Machine
-     *
-     * @throws ReflectionException
      *
      * @return void
      */
@@ -162,6 +124,7 @@ class TasksManager
      * @param null|string $currentToken
      * @param bool        $staticMode
      *
+     * @throws Exception
      * @throws NonUniqueResultException
      *
      * @return null|Task
@@ -212,8 +175,9 @@ class TasksManager
      * @param null|string $key1    Your Custom Index Key 1
      * @param null|string $key2    Your Custom Index Key 2
      *
-     * @throws NonUniqueResultException
+     * @throws Exception
      * @throws NoResultException
+     * @throws NonUniqueResultException
      *
      * @return bool True if Ok, False if Exited on Timout
      */
@@ -237,9 +201,7 @@ class TasksManager
         $absWatchdog = 0;
         //==============================================================================
         // Init Counters
-        $pending = 1;
         $lastPending = 1;
-
         //====================================================================//
         // Loop While Tasks are Running
         do {
@@ -279,13 +241,15 @@ class TasksManager
      *  => Tasks are Loaded from Parameters
      *  => Or by registering Event dispatcher
      *
+     * @throws Exception
+     *
      * @return $this
      */
     public function loadStaticTasks(): self
     {
         //====================================================================//
         // Get List of Static Tasks to Setup
-        $staticTaskList = $this->getStaticTasks();
+        $staticJobs = $this->jobs->getStaticJobs();
         //====================================================================//
         // Get List of Static Tasks in Database
         $database = Configuration::getTasksRepository()->getStaticTasks();
@@ -294,13 +258,11 @@ class TasksManager
         foreach ($database as $task) {
             //====================================================================//
             // Try to Identify Task in Static Task List
-            foreach ($staticTaskList as $index => $staticTask) {
+            foreach ($staticJobs as $index => $staticTask) {
                 //====================================================================//
                 // If Tasks Are Similar => Delete From List
                 if ($this->compareStaticTask($staticTask, $task)) {
-                    unset($staticTaskList[$index]);
-
-                    continue;
+                    unset($staticJobs[$index]);
                 }
             }
             //====================================================================//
@@ -308,21 +270,10 @@ class TasksManager
             Configuration::getEntityManager()->remove($task);
             Configuration::getEntityManager()->flush();
         }
-
         //====================================================================//
         // Loop on Tasks to Add it On Database
-        foreach ($staticTaskList as $staticTask) {
-            if (class_exists($staticTask["class"])) {
-                $className = "\\".$staticTask["class"];
-                /** @var AbstractStaticJob $job */
-                $job = new $className();
-                $job
-                    ->setFrequency($staticTask["frequency"])
-                    ->setToken($staticTask["token"])
-                    ->setInputs($staticTask["inputs"]);
-
-                $this->onAddAction(new GenericEvent($job));
-            }
+        foreach ($staticJobs as $staticTask) {
+            $this->onAddAction(new GenericEvent($staticTask));
         }
 
         return $this;
@@ -336,6 +287,8 @@ class TasksManager
      * Add a New Task on Scheduler
      *
      * @param GenericEvent $event
+     *
+     * @throws Exception
      *
      * @return bool
      */
@@ -360,7 +313,13 @@ class TasksManager
         $task = $this->prepare($job);
         //====================================================================//
         // Add Task To Queue
-        $this->insert($task);
+        try {
+            $this->insert($task);
+        } catch (NoResultException|NonUniqueResultException $e) {
+            $this->logger->error("Tasks Manager: ".$e->getMessage());
+
+            return false;
+        }
 
         return true;
     }
@@ -403,6 +362,8 @@ class TasksManager
      *
      * @param AbstractJob $job User Job Object
      *
+     * @throws Exception
+     *
      * @return Task
      */
     private function prepare(AbstractJob $job): Task
@@ -410,13 +371,11 @@ class TasksManager
         //====================================================================//
         // Create a New Task
         $task = new Task();
-        /** @var class-string $jobClass */
-        $jobClass = "\\".get_class($job);
         //====================================================================//
         // Setup Task Parameters
         $task
             ->setName(get_class($job)."::".$job->getAction())
-            ->setJobClass($jobClass)
+            ->setJobClass(get_class($job))
             ->setJobAction($job->getAction())
             ->setJobInputs($job->getRawInputs())
             ->setJobPriority($job->getPriority())
@@ -506,6 +465,7 @@ class TasksManager
      *
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     private function insert(Task $task): void
     {
@@ -527,56 +487,33 @@ class TasksManager
     }
 
     /**
-     * Return List of Static Tasks
-     *  => Tasks are Loaded from Parameters
-     *  => Or Added by registering Event dispatcher
-     *
-     * @return array
-     */
-    private function getStaticTasks(): array
-    {
-        //====================================================================//
-        // Create A Generic Event
-        $listingEvent = new StaticTasksListingEvent();
-        //====================================================================//
-        // Fetch List of Static Tasks from Parameters
-        $listingEvent->setArguments(Configuration::getStaticTasksConfiguration());
-        //====================================================================//
-        // Complete List of Static Tasks via Event Listener
-        /** @var StaticTasksListingEvent $resultEvent */
-        $resultEvent = self::dispatch($listingEvent);
-
-        return $resultEvent->getArguments();
-    }
-
-    /**
      * Identify Static Task in Parameters
      *
-     * @param array $staticTask
-     * @param Task  $task
+     * @param AbstractStaticJob $staticJob
+     * @param Task              $task
      *
      * @return bool true if Static Tasks are Similar
      */
-    private function compareStaticTask(array $staticTask, Task $task) : bool
+    private function compareStaticTask(AbstractStaticJob $staticJob, Task $task) : bool
     {
         //====================================================================//
         // Filter by Class Name
-        if ($staticTask["class"] != $task->getJobClass()) {
+        if (get_class($staticJob) != $task->getJobClass()) {
             return false;
         }
         //====================================================================//
         // Filter by Token
-        if ($staticTask["token"] != $task->getJobToken()) {
+        if ($staticJob->getToken() != $task->getJobToken()) {
             return false;
         }
         //====================================================================//
         // Filter by Frequency
-        if ($staticTask["frequency"] != $task->getJobFrequency()) {
+        if ($staticJob->getFrequency() != $task->getJobFrequency()) {
             return false;
         }
         //====================================================================//
         // Filter by Inputs
-        if (serialize($staticTask["inputs"]) !== serialize($task->getJobInputs())) {
+        if (serialize($staticJob->getInputs()) !== serialize($task->getJobInputs())) {
             return false;
         }
 
@@ -587,8 +524,6 @@ class TasksManager
      * Dispatch an Event with Args Detection
      *
      * @param GenericEvent $event
-     *
-     * @throws ReflectionException
      *
      * @return null|AddEvent|CheckEvent|InsertEvent|StaticTasksListingEvent
      */
@@ -605,10 +540,11 @@ class TasksManager
                     $args[] = get_class($event);
                 }
             }
-        } catch (ReflectionException $ex) {
+            $response = $reflection->invokeArgs(self::$staticInstance->dispatcher, $args);
+        } catch (ReflectionException) {
             return null;
         }
-        $response = $reflection->invokeArgs(self::$staticInstance->dispatcher, $args);
+
         if (($response instanceof AddEvent) || ($response instanceof CheckEvent)) {
             return $response;
         }

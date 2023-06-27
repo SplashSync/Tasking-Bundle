@@ -26,7 +26,7 @@ composer require splash/tasking-bundle
 
 The bundle must be added to your `AppKernel`.
 
-**Step usually not necescary in Symfony 4**.
+**Step usually not necessary in Symfony Flex.
 
 ```php
 // app/AppKernel.php

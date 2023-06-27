@@ -606,8 +606,8 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
         $runner = $this->getTasksRunner();
         //====================================================================//
         // Manually Start Task
-        $this->invokeMethod($runner, "validateJob", array(&$task));
-        $this->invokeMethod($runner, "prepareJob", array(&$task));
+        $this->invokeMethod($runner, "validateJob", array($task));
+        $this->invokeMethod($runner, "prepareJob", array($task));
         //====================================================================//
         // Verify Task State
         Assert::assertFalse($task->isFinished());

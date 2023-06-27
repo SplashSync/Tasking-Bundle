@@ -22,12 +22,11 @@
         "psr-4": { "Splash\\Tasking\\": "src" }
     },
     "autoload-dev": {
-        "psr-4": { "Splash\\Tasking\\Tests\\": "tests" },
-        "classmap": [ "tests/Kernel.php" ]
+        "psr-4": { "Splash\\Tasking\\Tests\\": "tests" }
     },
     
     "require": {
-        "php":                                          "^7.4|^8.0",
+        "php":                                          "^8.0",
         "ext-posix":                                    "*",
         "ext-curl":                                     "*",
         "ext-pcntl":                                    "*",

@@ -1,0 +1,14 @@
+services:
+    _defaults:
+        autowire:       true
+        autoconfigure:  true
+
+    ################################################################################
+    # AutoWire for Splash Tasking Jobs
+    Splash\Tasking\Tests\Jobs\:
+        resource:   '../../../tests/Jobs'
+        tags:       ['splash.tasking.job']
+
+    ################################################################################
+    # Splash Tasking Sampling Service
+    Splash\Tasking\Tests\Services\TasksSamplingService: ~

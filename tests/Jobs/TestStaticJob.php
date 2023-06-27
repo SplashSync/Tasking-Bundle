@@ -45,7 +45,7 @@ class TestStaticJob extends AbstractStaticJob
     /**
      * {@inheritdoc}
      */
-    protected $frequency = 10;
+    protected int $frequency = 10;
 
     /**
      * {@inheritdoc}

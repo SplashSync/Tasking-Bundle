@@ -35,28 +35,28 @@ trait DoctrineGettersTrait
      *
      * @var ObjectManager
      */
-    private static $manager;
+    private static ObjectManager $manager;
 
     /**
      * Tasks Repository
      *
      * @var null|TaskRepository
      */
-    private static $taskRepository;
+    private static ?TaskRepository $taskRepository;
 
     /**
      * Worker Repository
      *
      * @var null|WorkerRepository
      */
-    private static $workerRepository;
+    private static ?WorkerRepository $workerRepository;
 
     /**
      * Token Repository
      *
      * @var null|TokenRepository
      */
-    private static $tokenRepository;
+    private static ?TokenRepository $tokenRepository;
 
     /**
      * Get Entity Manager for Tasking

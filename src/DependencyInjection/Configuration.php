@@ -42,7 +42,6 @@ class Configuration implements ConfigurationInterface
         $this->configureSupervisorParameters();
         $this->configureWorkersParameters();
         $this->configureTasksParameters();
-        $this->configureStaticTasksParameters();
 
         return $treeBuilder;
     }
@@ -224,37 +223,6 @@ class Configuration implements ConfigurationInterface
             ->integerNode('try_delay')
             ->defaultValue(120)
             ->info('Delay before restarting a task that fails. In Seconds')
-            ->end()
-            ->end()
-            ->end()
-            ->end()
-        ;
-    }
-
-    /**
-     * Add Static Tasks Parameters To Configuration
-     *
-     * @return void
-     */
-    private function configureStaticTasksParameters(): void
-    {
-        // @phpstan-ignore-next-line
-        $this->rootNode
-            ->children()
-            //====================================================================//
-            // STATIC TASKS Parameters
-            //====================================================================//
-            ->arrayNode('static')
-            ->prototype('array')
-            ->addDefaultsIfNotSet()
-            ->children()
-            ->scalarNode('class')->isRequired()->cannotBeEmpty()->end()
-            ->integerNode('frequency')->isRequired()->min(1)->end()
-            ->scalarNode('token')->defaultValue(null)->end()
-            ->arrayNode('inputs')
-            ->prototype('scalar')->end()
-            ->end()
-            ->end()
             ->end()
             ->end()
             ->end()

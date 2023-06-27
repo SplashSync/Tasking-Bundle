@@ -32,7 +32,6 @@ abstract class AbstractServiceJob extends AbstractJob
      * @var array
      */
     protected array $inputs = array(
-        "Service" => null,
         "Method" => null,
         "Inputs" => array(),
     );
@@ -50,11 +49,24 @@ abstract class AbstractServiceJob extends AbstractJob
     );
 
     //==============================================================================
+    //      Service Job Configurator
+    //==============================================================================
+
+    /**
+     * Service Job Constructor
+     *
+     * @param null|object $service Target Service
+     */
+    public function __construct(private ?object $service = null)
+    {
+    }
+
+    //==============================================================================
     //      Service Job Execution
     //==============================================================================
 
     /**
-     * Overide this function to validate you Input parameters
+     * Override this function to validate you Input parameters
      *
      * @throws Exception
      *
@@ -63,68 +75,54 @@ abstract class AbstractServiceJob extends AbstractJob
     public function validate() : bool
     {
         //====================================================================//
-        // Check Inputs Are Not Empty
-        if ((null == $this->getService()) || (null == $this->getMethod())) {
+        // Check target method is Defined
+        if (empty($this->getMethod())) {
             return false;
         }
-
         //====================================================================//
-        // Check Service & Method Exists
-        if (!$this->container->has($this->getService())) {
-            throw new Exception(sprintf("Service %s not found", $this->getService()));
+        // Check Service is Configured
+        if (!isset($this->service)) {
+            throw new Exception(
+                "Target Service not initialized. Did you forgot to register a configurator?"
+            );
         }
-        $service = $this->container->get($this->getService());
-        if (!is_null($service) && !method_exists($service, $this->getMethod())) {
-            throw new Exception(sprintf("Method %s not found", $this->getMethod()));
+        //====================================================================//
+        // Check Service Method Exists
+        if (!method_exists($this->service, $this->getMethod())) {
+            throw new Exception(sprintf(
+                "Method %s not found on service %s",
+                $this->getMethod(),
+                get_class($this->service)
+            ));
         }
 
         return true;
     }
 
     /**
-     * Overide this function to perform your task
+     * Override this function to perform your task
      *
      * @return bool
      */
     public function execute() : bool
     {
         //====================================================================//
+        // Check Service is Configured
+        if (!isset($this->service)) {
+            return false;
+        }
+        //====================================================================//
         // Load Requested Service
-        $service = $this->container->get($this->getService());
         $method = $this->getMethod();
         $inputs = $this->getInputs();
         //====================================================================//
         // Execute Service Method
-        return $service->{ $method }($inputs);
+        return $this->service->{ $method }($inputs);
     }
 
     //==============================================================================
     //      Specific Getters & Setters
     //==============================================================================
-
-    /**
-     * Get Service Job Service Name
-     *
-     * @return string
-     */
-    public function getService(): string
-    {
-        return $this->inputs["Service"] ?? "";
-    }
-
-    /**
-     * Set Service Job Service Name
-     *
-     * @param string $service
-     *
-     * @return self
-     */
-    public function setService(string $service): self
-    {
-        $this->inputs["Service"] = $service;
-
-        return $this;
-    }
 
     /**
      * Get Service Job Method Name

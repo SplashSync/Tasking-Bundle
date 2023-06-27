@@ -29,7 +29,7 @@ class SupervisorsManager extends WorkersManager
      *
      * @var int
      */
-    private $maxWorkers = 5;
+    private int $maxWorkers = 5;
 
     //==============================================================================
     //      Supervisor Operations
@@ -49,7 +49,7 @@ class SupervisorsManager extends WorkersManager
         $maxWorkers = Configuration::getSupervisorMaxWorkers();
         //====================================================================//
         // Safety Checks
-        if (!is_int($maxWorkers) || ($maxWorkers <= 0)) {
+        if ($maxWorkers <= 0) {
             throw new Exception("Invalid Number of Configured Workers");
         }
         //====================================================================//

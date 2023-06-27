@@ -38,7 +38,7 @@ abstract class AbstractStaticJob extends AbstractJob
      *
      * @var int
      */
-    protected $frequency = 3600;
+    protected int $frequency = 3600;
 
     //==============================================================================
     //      Specific Getters & Setters
