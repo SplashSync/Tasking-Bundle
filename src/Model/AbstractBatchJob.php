@@ -273,6 +273,16 @@ abstract class AbstractBatchJob extends AbstractJob
     //==============================================================================
 
     /**
+     * Get Jobs Pagination
+     *
+     * @return int
+     */
+    public function getPaginate(): int
+    {
+        return self::$paginate;
+    }
+
+    /**
      * Set Jobs List
      *
      * @param array $list

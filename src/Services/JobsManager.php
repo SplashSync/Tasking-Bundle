@@ -16,7 +16,9 @@
 namespace Splash\Tasking\Services;
 
 use Exception;
+use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
+use Splash\Tasking\Model\AbstractMassJob;
 use Splash\Tasking\Model\AbstractStaticJob;
 
 /**
@@ -41,6 +43,10 @@ class JobsManager
             $this->jobs[$key] = $this->validate($taggedJob);
         }
     }
+
+    //====================================================================//
+    // ALL JOBS
+    //====================================================================//
 
     /**
      * Get All Available Jobs
@@ -78,6 +84,10 @@ class JobsManager
         ));
     }
 
+    //====================================================================//
+    // STATIC JOBS
+    //====================================================================//
+
     /**
      * Get All Static Jobs
      *
@@ -102,11 +112,81 @@ class JobsManager
     }
 
     /**
-     * Check if a Job is a Static Jobs
+     * Check if a Job is a Static Job
      */
-    public function isStaticJobs(string $key): bool
+    public function isStaticJobs(string $key): ?AbstractStaticJob
     {
-        return in_array($key, array_keys($this->getStaticJobs()), true);
+        return $this->getStaticJobs()[$key] ?? null;
+    }
+
+    //====================================================================//
+    // BATCH JOBS
+    //====================================================================//
+
+    /**
+     * Get All Batch Jobs
+     *
+     * @return AbstractBatchJob[]
+     */
+    public function getBatchJobs(): array
+    {
+        /** @var null|AbstractBatchJob[] $batchJobs */
+        static $batchJobs;
+
+        if (!isset($batchJobs)) {
+            $batchJobs = array();
+            foreach ($this->getAll() as $key => $job) {
+                if (!$job instanceof AbstractBatchJob) {
+                    continue;
+                }
+                $batchJobs[$key] = $job;
+            }
+        }
+
+        return $batchJobs;
+    }
+
+    /**
+     * Check if a Job is a Batch Job
+     */
+    public function isBatchJobs(string $key): ?AbstractBatchJob
+    {
+        return $this->getBatchJobs()[$key] ?? null;
+    }
+
+    //====================================================================//
+    // MASS JOBS
+    //====================================================================//
+
+    /**
+     * Get All Mass Jobs
+     *
+     * @return AbstractMassJob[]
+     */
+    public function getMassJobs(): array
+    {
+        /** @var null|AbstractMassJob[] $massJobs */
+        static $massJobs;
+
+        if (!isset($massJobs)) {
+            $massJobs = array();
+            foreach ($this->getAll() as $key => $job) {
+                if (!$job instanceof AbstractMassJob) {
+                    continue;
+                }
+                $massJobs[$key] = $job;
+            }
+        }
+
+        return $massJobs;
+    }
+
+    /**
+     * Check if a Job is a Mass Job
+     */
+    public function isMassJobs(string $key): ?AbstractMassJob
+    {
+        return $this->getMassJobs()[$key] ?? null;
     }
 
     /**
