@@ -51,6 +51,7 @@ class ListController extends AbstractController
         //==============================================================================
         // Compute Filters
         $filters = $this->getIndexKeysFindBy($key2, $key1);
+
         //==============================================================================
         // Render All Tasks List
         return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(
@@ -83,6 +84,7 @@ class ListController extends AbstractController
         $filters = $this->getIndexKeysFindBy($key2, $key1);
         $filters["running"] = 0;
         $filters["finished"] = 0;
+
         //==============================================================================
         // Render All Tasks List
         return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(
@@ -114,6 +116,7 @@ class ListController extends AbstractController
         // Compute Filters
         $filters = $this->getIndexKeysFindBy($key2, $key1);
         $filters["running"] = 1;
+
         //==============================================================================
         // Render All Tasks List
         return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(
@@ -146,6 +149,7 @@ class ListController extends AbstractController
         $filters = $this->getIndexKeysFindBy($key2, $key1);
         $filters["running"] = 0;
         $filters["finished"] = 1;
+
         //==============================================================================
         // Render All Tasks List
         return $this->render('SplashTaskingBundle:List:tasks.html.twig', array(

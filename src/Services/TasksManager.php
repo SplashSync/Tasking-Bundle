@@ -315,6 +315,7 @@ class TasksManager
         //====================================================================//
         // Prepare Task From Job Class
         $task = $this->prepare($job);
+
         //====================================================================//
         // Add Task To Queue
         try {
@@ -356,6 +357,7 @@ class TasksManager
         if ($job->getPriority() < 0) {
             return false;
         }
+
         //====================================================================//
         // Validate Static & Batch Jobs Specific Options
         return $this->validateStaticJob($job) && $this->validateBatchJob($job);

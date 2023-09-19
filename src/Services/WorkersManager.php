@@ -226,6 +226,7 @@ class WorkersManager
         //====================================================================//
         // Worker Is Inactive
         $this->logger->info("Worker Manager: Workers Process ".$processId." is Inactive");
+
         //====================================================================//
         // Worker Not Alive
         return false;

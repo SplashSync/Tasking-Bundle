@@ -38,6 +38,7 @@ class ActionsController extends AbstractController
         //==============================================================================
         // Dispatch tasking Bundle Check Event
         TasksManager::check();
+
         //==============================================================================
         // Render response
         return new Response("Ok", Response::HTTP_OK, array('content-type' => 'text/html'));

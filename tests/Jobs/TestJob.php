@@ -117,6 +117,7 @@ class TestJob extends AbstractJob
         //====================================================================//
         // Trow exception if requested!
         $this->doThrowException("Validate");
+
         //====================================================================//
         // Return Error if requested!
         return $this->doErrorReturn("Validate");

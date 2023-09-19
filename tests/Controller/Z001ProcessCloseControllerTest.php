@@ -102,6 +102,7 @@ class Z001ProcessCloseControllerTest extends AbstractTestController
         //====================================================================//
         // Execute Search Command
         exec("ps ".(string) $pid, $list);
+
         //====================================================================//
         // Check Result
         return (count($list) > 1) ? true : false;

@@ -106,6 +106,7 @@ trait InputsStateTrait
         //==============================================================================
         //  Init State Array using OptionResolver
         $resolver = (new OptionsResolver())->setDefaults(static::getDefaultState());
+
         //==============================================================================
         //  Update State Array using OptionResolver
         try {

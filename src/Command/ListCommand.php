@@ -99,7 +99,7 @@ class ListCommand extends Command
     protected function getJobMode(string $key): string
     {
         if ($job = $this->jobsManager->isStaticJobs($key)) {
-            return sprintf("<comment>Static, each %d sec</comment>", $job->getFrequency());
+            return sprintf("<comment>Static, each %d Min</comment>", $job->getFrequency());
         }
 
         if ($job = $this->jobsManager->isBatchJobs($key)) {

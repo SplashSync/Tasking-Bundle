@@ -25,13 +25,12 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  */
 class SplashTaskingBundle extends Bundle
 {
-    /**
-     * @return void
-     */
-    public function boot()
+    public function boot(): void
     {
         //==============================================================================
         // Force Loading of Tasks Manager
-        $this->container->get(TasksManager::class);
+        if (isset($this->container)) {
+            $this->container->get(TasksManager::class);
+        }
     }
 }

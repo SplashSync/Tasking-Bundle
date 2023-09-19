@@ -119,6 +119,7 @@ class Task extends AbstractTask
         //====================================================================//
         // Load Current Server Infos
         $system = posix_uname();
+
         //====================================================================//
         // Return machine Name
         return is_array($system) ? $system["nodename"] : "Unknown";
@@ -177,6 +178,7 @@ class Task extends AbstractTask
         //==============================================================================
         //  Init Settings Array using OptionResolver
         $resolver = (new OptionsResolver())->setDefaults(static::$defaultSettings);
+
         //==============================================================================
         //  Update Settings Array using OptionResolver
         try {

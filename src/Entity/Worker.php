@@ -145,6 +145,7 @@ class Worker
         //==============================================================================
         // Ask for Process Group ID
         $groupId = posix_getpgid($this->getPid());
+
         //==============================================================================
         // Check if Process Group was Found
         return $groupId > 0;
@@ -176,6 +177,7 @@ class Worker
         if (!$system || ($system["nodename"] !== $this->getNodeName())) {
             return true;
         }
+
         //==============================================================================
         // Check if Worker Process is Ok
         return $this->ping();

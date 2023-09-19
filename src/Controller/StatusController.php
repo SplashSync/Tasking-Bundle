@@ -59,6 +59,7 @@ class StatusController extends AbstractController
                 $status["status"] = "No Supervisor Running!";
             }
         }
+
         //==============================================================================
         // Render response
         return new JsonResponse($status);

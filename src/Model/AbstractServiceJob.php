@@ -115,6 +115,7 @@ abstract class AbstractServiceJob extends AbstractJob
         // Load Requested Service
         $method = $this->getMethod();
         $inputs = $this->getInputs();
+
         //====================================================================//
         // Execute Service Method
         return $this->service->{ $method }($inputs);

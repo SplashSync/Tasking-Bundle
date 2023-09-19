@@ -45,7 +45,7 @@ abstract class AbstractStaticJob extends AbstractJob
     //==============================================================================
 
     /**
-     * Set Job Frequency
+     * Set Job Frequency in Minutes
      *
      * @param int $frequency
      *

@@ -99,6 +99,7 @@ class Status
 
             return true;
         }
+
         //==============================================================================
         // Delay not Allowed
         return false;

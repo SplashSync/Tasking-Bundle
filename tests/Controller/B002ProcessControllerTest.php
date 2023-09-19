@@ -271,6 +271,7 @@ class B002ProcessControllerTest extends AbstractTestController
         //====================================================================//
         // Execute Search Command
         exec("ps ".$pid, $list);
+
         //====================================================================//
         // Check Result
         return count($list) > 1;
