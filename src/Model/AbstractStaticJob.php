@@ -34,11 +34,12 @@ abstract class AbstractStaticJob extends AbstractJob
     protected static int $priority = Task::DO_LOW;
 
     /**
-     * @abstract    Job Frequency => How often (in Seconds) shall this task be executed
+     * Job Frequency
+     * How often (in Minutes) shall this task be executed
      *
      * @var int
      */
-    protected int $frequency = 3600;
+    protected int $frequency = 60;
 
     //==============================================================================
     //      Specific Getters & Setters
