@@ -105,11 +105,11 @@ class ListCommand extends Command
                 $settings["translation_domain"],
             ),
             // Job Description
-            $this->translator->trans(
+            substr($this->translator->trans(
                 $settings["description"],
                 $settings["translation_params"] ?? array(),
                 $settings["translation_domain"],
-            )
+            ), 0, 60)
         );
     }
 
