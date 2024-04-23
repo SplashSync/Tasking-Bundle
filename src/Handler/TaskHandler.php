@@ -17,10 +17,13 @@ namespace Splash\Tasking\Handler;
 
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
-use Monolog\LogRecord;
+use Monolog\Logger;
 
 /**
  * Buffers all records until task is completed.
+ *
+ * @phpstan-import-type Level from \Monolog\Logger
+ * @phpstan-import-type Record from \Monolog\Logger
  */
 class TaskHandler extends AbstractProcessingHandler
 {
@@ -53,9 +56,9 @@ class TaskHandler extends AbstractProcessingHandler
      * @param int  $level           The minimum logging level at which this handler will be triggered
      * @param bool $flushOnOverflow If true, the buffer is flushed when the max size has been reached
      */
-    public function __construct($level = 200, bool $flushOnOverflow = false)
+    public function __construct($level = Logger::INFO, bool $flushOnOverflow = false)
     {
-        /** @phpstan-ignore-next-line  */
+        /** @phpstan-var Level $level */
         parent::__construct($level, true);
         $this->flushOnOverflow = $flushOnOverflow;
         $this->setFormatter(
@@ -66,7 +69,7 @@ class TaskHandler extends AbstractProcessingHandler
     /**
      * {@inheritdoc}
      */
-    public function handle(array|LogRecord $record): bool
+    public function handle(array $record): bool
     {
         if ($record['level'] < $this->level) {
             return false;
@@ -81,7 +84,7 @@ class TaskHandler extends AbstractProcessingHandler
             }
         }
 
-        /** @phpstan-var array $record */
+        /** @var Record $record */
         $this->write($record);
 
         return false === $this->bubble;
@@ -145,8 +148,10 @@ class TaskHandler extends AbstractProcessingHandler
 
     /**
      * @inheritDoc
+     *
+     * @phpstan-param  Record $record
      */
-    protected function write(array|LogRecord $record): void
+    protected function write(array $record): void
     {
         /** @phpstan-ignore-next-line  */
         $this->buffer[] = $this->processRecord($record)["message"] ?? "";
