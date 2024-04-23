@@ -81,6 +81,7 @@ class TaskHandler extends AbstractProcessingHandler
             }
         }
 
+        /** @phpstan-var array $record */
         $this->write($record);
 
         return false === $this->bubble;
