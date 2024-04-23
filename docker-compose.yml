@@ -19,7 +19,7 @@
 ################################################################################
 # Docker Compose File
 #
-# This Docker File intend to Create a Complete Dev Environnement
+# This Docker File intend to Create a Complete Dev Environment
 #
 # To us different Versions configured, you need to add hosts to /etc/hosts
 # 
@@ -27,8 +27,6 @@
 #    172.201.0.200       phpmyadmin.tasking.local
 #
 ################################################################################
-
-version: "3.2"
 
 services:
 
