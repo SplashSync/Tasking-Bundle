@@ -16,17 +16,16 @@
 namespace Splash\Tasking\Entity;
 
 use DateTime;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Splash\Tasking\Repository\WorkerRepository;
 
 /**
  * System Task Worker Tracker
- *
- * @ORM\Entity(repositoryClass="Splash\Tasking\Repository\WorkerRepository")
- *
- * @ORM\Table(name="system__workers")
- *
- * @ORM\HasLifecycleCallbacks
  */
+#[ORM\Entity(repositoryClass: WorkerRepository::class)]
+#[ORM\Table("system__workers")]
+#[ORM\HasLifecycleCallbacks]
 class Worker
 {
     //==============================================================================
@@ -34,77 +33,65 @@ class Worker
     //==============================================================================
 
     /**
-     * @var null|int
-     *
-     * @ORM\Id
-     *
-     * @ORM\Column(type="integer")
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
+     * Entity ID
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     /**
-     * @var string
-     *
-     * @ORM\Column(name="Name", type="string", length=250)
+     * Worker Location Name
      */
+    #[ORM\Column(name: "Name", type: Types::STRING, length: 250)]
     private string $nodeName;
 
     /**
-     * @var string
-     *
-     * @ORM\Column(name="Ip", type="string", length=250)
+     * Worker Location IP
      */
+    #[ORM\Column(name: "Ip", type: Types::STRING, length: 250)]
     private string $nodeIp;
 
     /**
-     * @var string
-     *
-     * @ORM\Column(name="Infos", type="string", length=512)
+     * Worker Location Information
      */
+    #[ORM\Column(name: "Infos", type: Types::STRING, length: 512)]
     private string $nodeInfos;
 
     /**
-     * @var string
-     *
-     * @ORM\Column(name="Process", type="string", length=250)
+     * Worker Process String
      */
+    #[ORM\Column(name: "Process", type: Types::STRING, length: 250)]
     private string $process;
 
     /**
-     * @var int
-     *
-     * @ORM\Column(name="PID", type="integer")
+     * Worker Process ID
      */
+    #[ORM\Column(name: "PID", type: Types::INTEGER)]
     private int $pID;
 
     /**
-     * @var null|bool
-     *
-     * @ORM\Column(name="Enabled", type="boolean", nullable=true)
+     * Worker Enable Flag
      */
+    #[ORM\Column(name: "Enabled", type: Types::BOOLEAN, nullable: true)]
     private ?bool $enabled = true;
 
     /**
-     * @var null|bool
-     *
-     * @ORM\Column(name="Running", type="boolean", nullable=true)
+     * Worker Running Flag
      */
+    #[ORM\Column(name: "Running", type: Types::BOOLEAN, nullable: true)]
     private ?bool $running = false;
 
     /**
-     * @var DateTime
-     *
-     * @ORM\Column(name="SeenAt", type="datetime", nullable=false)
+     * Last Seen DateTime
      */
+    #[ORM\Column(name: "SeenAt", type: Types::DATETIME_MUTABLE, nullable: false)]
     private DateTime $lastSeen;
 
     /**
-     * @var null|string
-     *
-     * @ORM\Column(name="Task", type="string", length=250, nullable=true)
+     * Current Task
      */
+    #[ORM\Column(name: "Task", type: Types::STRING, length: 250, nullable: true)]
     private ?string $task;
 
     //==============================================================================

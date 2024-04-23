@@ -16,112 +16,81 @@
 namespace Splash\Tasking\Entity;
 
 use DateTime;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Exception;
+use Splash\Tasking\Repository\TokenRepository;
 use Splash\Tasking\Services\Configuration;
 
 /**
  * System Global DBAL Task Token
  * Used to prevent task collisions
- *
- * @ORM\Entity(repositoryClass="Splash\Tasking\Repository\TokenRepository")
- *
- * @ORM\Table(name="system__tokens")
- *
- * @ORM\HasLifecycleCallbacks
  */
+#[ORM\Entity(repositoryClass: TokenRepository::class)]
+#[ORM\Table("system__tokens")]
+#[ORM\HasLifecycleCallbacks]
 class Token
 {
-    //==============================================================================
-    //  Constants Definition
-    //==============================================================================
-
-    /**
-     * Token Maximum Inactivity Time in Hours
-     *
-     * @var int
-     */
-    const DELETE_DELAY = 200;
-
     //==============================================================================
     //      Definition
     //==============================================================================
 
     /**
-     * @var null|int
-     *
-     * @ORM\Id
-     *
-     * @ORM\Column(name="id", type="integer")
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
+     * Entity ID
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     //==============================================================================
-    //      Token Informations
+    //      Token Information
     //==============================================================================
 
     /**
      * Token identifier name
-     *
-     * @var string
-     *
-     * @ORM\Column(name="Name", type="string", length=250, unique=true)
      */
+    #[ORM\Column(name: "Name", type: Types::STRING, length: 250, unique: true)]
     private string $name;
 
     /**
      * Is This Token in Use
-     *
-     * @var bool
-     *
-     * @ORM\Column(name="Locked", type="boolean")
      */
+    #[ORM\Column(name: "Locked", type: Types::BOOLEAN)]
     private bool $locked = false;
 
     /**
      * When this token was taken
-     *
-     * @var null|DateTime
-     *
-     * @ORM\Column(name="LockedAt", type="datetime", nullable=TRUE)
      */
+    #[ORM\Column(name: "LockedAt", type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $lockedAt = null;
 
     /**
      * When this token was taken as TimeStamp
-     *
-     * @var null|int
-     *
-     * @ORM\Column(name="LockedAtTimeStamp", type="integer", nullable=TRUE)
      */
+    #[ORM\Column(name: "LockedAtTimeStamp", type: Types::INTEGER, nullable: true)]
     private ?int $lockedAtTimeStamp = null;
 
     /**
-     * @var null|string
-     *
-     * @ORM\Column(name="LockedBy", type="string", length=250, nullable=TRUE)
+     * Who Locked this Token ?? Worker Name
      */
+    #[ORM\Column(name: "LockedBy", type: Types::STRING, length: 250, nullable: true)]
     private ?string $lockedBy = null;
 
     //==============================================================================
     //      Audit
 
     /**
-     * @var DateTime
-     *
-     * @ORM\Column(name="CreatedAt", type="datetime")
+     * Date Token was Created
      */
+    #[ORM\Column(name: "CreatedAt", type: Types::DATETIME_MUTABLE)]
     private DateTime $createdAt;
 
     /**
-     * @ORM\Version
-     *
-     * @ORM\Column(type="integer")
-     *
-     * @var int
+     * Token Version
      */
+    #[ORM\Column(type: Types::INTEGER)]
+    #[ORM\Version]
     private int $version;
 
     /**
@@ -158,8 +127,6 @@ class Token
     /**
      * Get Token Availability
      *
-     * @throws Exception
-     *
      * @return bool
      */
     public function isLocked(): bool
@@ -172,7 +139,11 @@ class Token
 
         //====================================================================//
         // Verify if Token Validity
-        $maxAge = new DateTime("-".Configuration::getTokenSelfReleaseDelay()." Seconds");
+        try {
+            $maxAge = new DateTime("-".Configuration::getTokenSelfReleaseDelay()." Seconds");
+        } catch (Exception $e) {
+            return false;
+        }
 
         return $this->lockedAt > $maxAge;
     }
@@ -181,8 +152,6 @@ class Token
      * Lock Token
      *
      * @param null|string $lockedBy Name of the Machine who Lock
-     *
-     * @throws Exception
      *
      * @return bool
      */
@@ -252,7 +221,7 @@ class Token
     //      LifeCycle Events
     //==============================================================================
 
-    /** @ORM\PrePersist() */
+    #[ORM\PrePersist]
     public function prePersist(): void
     {
         //====================================================================//

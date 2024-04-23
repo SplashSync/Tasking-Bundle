@@ -18,19 +18,17 @@ namespace Splash\Tasking\Entity;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Splash\Tasking\Model\AbstractTask;
+use Splash\Tasking\Repository\TaskRepository;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * Splash Task Storage Object
- *
- * @ORM\Entity(repositoryClass="Splash\Tasking\Repository\TaskRepository")
- *
- * @ORM\Table(name="system__tasks")
- *
- * @ORM\HasLifecycleCallbacks
  */
+#[ORM\Entity(repositoryClass: TaskRepository::class)]
+#[ORM\Table("system__tasks")]
+#[ORM\HasLifecycleCallbacks]
 class Task extends AbstractTask
 {
     //==============================================================================
@@ -83,7 +81,7 @@ class Task extends AbstractTask
     //      LifeCycle Events
     //==============================================================================
 
-    /** @ORM\PrePersist() */
+    #[ORM\PrePersist]
     public function prePersist(): void
     {
         //====================================================================//
@@ -97,7 +95,7 @@ class Task extends AbstractTask
         $this->updateDiscriminator();
     }
 
-    /** @ORM\PreUpdate() */
+    #[ORM\PreUpdate]
     public function preUpdate(): void
     {
         //====================================================================//

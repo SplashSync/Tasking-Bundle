@@ -16,56 +16,46 @@
 namespace Splash\Tasking\Model;
 
 use DateTime;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as ASSERT;
 
 /**
  * Abstract Task Storage Object
  *
- * @ORM\Entity
- *
- * @ORM\MappedSuperclass
- *
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
  * @SuppressWarnings(PHPMD.TooManyFields)
  */
+#[ORM\MappedSuperclass]
 abstract class AbstractTask
 {
     //==============================================================================
-    //      Task Display Informations
+    //      Task Display Information
     //==============================================================================
 
     /**
      * Task Display Settings
-     *
-     * @var array
-     *
-     * @ORM\Column(name="Settings", type="json")
      */
+    #[ORM\Column(name: "Settings", type: Types::JSON)]
     protected array $settings = array();
 
     /**
      * Static Tasks - Repeat Delay in Minutes
-     *
-     * @var null|int
-     *
-     * @ORM\Column(name="JobFreq", type="integer", nullable=true)
      */
+    #[ORM\Column(name: "JobFreq", type: Types::INTEGER, nullable: true)]
     protected ?int $jobFrequency;
 
     /**
-     * @var null|DateTime
-     *
-     * @ORM\Column(name="StartedAt", type="datetime", nullable=true)
+     * Date when Task Started
      */
-    protected ?DateTime $startedAt;
+    #[ORM\Column(name: "StartedAt", type: Types::DATETIME_MUTABLE, nullable: true)]
+    protected ?DateTime $startedAt = null;
 
     /**
-     * @var null|int
-     *
-     * @ORM\Column(name="StartedAtTimeStamp", type="integer", nullable=true)
+     * TimeStamp when Task Started
      */
-    protected ?int $startedAtTimeStamp;
+    #[ORM\Column(name: "StartedAtTimeStamp", type: Types::INTEGER, nullable: true)]
+    protected ?int $startedAtTimeStamp = null;
 
     /**
      * @var float
@@ -73,55 +63,47 @@ abstract class AbstractTask
     protected float $startedAtMicroTime;
 
     /**
-     * @var null|DateTime
-     *
-     * @ORM\Column(name="FinishedAt", type="datetime", nullable=true)
+     * Date when Task Finished
      */
-    protected ?DateTime $finishedAt;
+    #[ORM\Column(name: "FinishedAt", type: Types::DATETIME_MUTABLE, nullable: true)]
+    protected ?DateTime $finishedAt = null;
 
     /**
-     * @var null|int
-     *
-     * @ORM\Column(name="FinishedAtTimeStamp", type="integer", nullable=true)
+     * TimeStamp when Task Finished
      */
-    protected ?int $finishedAtTimeStamp;
+    #[ORM\Column(name: "FinishedAtTimeStamp", type: Types::INTEGER, nullable: true)]
+    protected ?int $finishedAtTimeStamp = null;
 
     /**
-     * @var null|DateTime
+     * Date when Static Task is Planned
      *
      * @ORM\Column(name="PlannedAt", type="datetime", nullable=true)
      */
-    protected ?DateTime $plannedAt;
+    #[ORM\Column(name: "PlannedAt", type: Types::DATETIME_MUTABLE, nullable: true)]
+    protected ?DateTime $plannedAt = null;
 
     /**
-     * @var null|int
-     *
-     * @ORM\Column(name="PlannedAtTimeStamp", type="integer", nullable=true)
+     * TimeStamp when Static Task is Planned
      */
-    protected ?int $plannedAtTimeStamp;
+    #[ORM\Column(name: "PlannedAtTimeStamp", type: Types::INTEGER, nullable: true)]
+    protected ?int $plannedAtTimeStamp = null;
 
     //==============================================================================
     //      Definition
     //==============================================================================
 
     /**
-     * @var null|int
-     *
-     * @ORM\Id
-     *
-     * @ORM\Column(type="integer")
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
+     * Entity ID
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: Types::INTEGER)]
     protected ?int $id = null;
 
     /**
      * Task Name (Unused in User HMI, Only for Admin)
-     *
-     * @var string
-     *
-     * @ORM\Column(name="Name", type="string", length=250)
      */
+    #[ORM\Column(name: "Name", type: Types::STRING, length: 250)]
     protected string $name;
 
     //==============================================================================
@@ -129,61 +111,53 @@ abstract class AbstractTask
     //==============================================================================
 
     /**
-     * @var class-string
+     * Target Job Service Class
      *
-     * @ORM\Column(name="JobClass", type="string", length=250)
+     * @var class-string
      */
+    #[ORM\Column(name: "JobClass", type: Types::STRING, length: 250)]
     protected string $jobClass;
 
     /**
-     * @var string
-     *
-     * @ORM\Column(name="JobAction", type="string", length=250)
+     * Target Job Action Method Name
      */
+    #[ORM\Column(name: "JobAction", type: Types::STRING, length: 250)]
     protected string $jobAction;
 
     /**
-     * @var int
-     *
-     * @ORM\Column(name="JobPriority", type="integer", length=250)
+     * Target Job Priority
      */
+    #[ORM\Column(name: "JobPriority", type: Types::INTEGER, length: 250)]
     protected int $jobPriority = 5;
 
     /**
-     * @var null|array
-     *
-     * @ORM\Column(name="JobInputs", type="json", nullable=true)
+     * Target Job Input Data
      */
+    #[ORM\Column(name: "JobInputs", type: Types::JSON, nullable: true)]
     protected ?array $jobInputs = array();
 
     /**
-     * @var null|string
-     *
-     * @ORM\Column(name="JobToken", type="string", length=250, nullable=true)
+     * Job Collision Token
      */
+    #[ORM\Column(name: "JobToken", type: Types::STRING, length: 250, nullable: true)]
     protected ?string $jobToken;
 
     /**
-     * @var null|string
-     *
-     * @ORM\Column(name="JobIndexKey1", type="string", length=250, nullable=true)
+     * Job User Index Key 1
      */
-    protected ?string $jobIndexKey1;
+    #[ORM\Column(name: "JobIndexKey1", type: Types::STRING, length: 250, nullable: true)]
+    protected ?string $jobIndexKey1 = null;
 
     /**
-     * @var null|string
-     *
-     * @ORM\Column(name="JobIndexKey2", type="string", length=250, nullable=true)
+     * Job User Index Key 2
      */
-    protected ?string $jobIndexKey2;
+    #[ORM\Column(name: "JobIndexKey2", type: Types::STRING, length: 250, nullable: true)]
+    protected ?string $jobIndexKey2 = null;
 
     /**
      * Set if Job is A Static Job. Defined in configuration
-     *
-     * @var null|bool
-     *
-     * @ORM\Column(name="JobIsStatic", type="boolean", nullable=true)
      */
+    #[ORM\Column(name: "JobIsStatic", type: Types::BOOLEAN, nullable: true)]
     protected ?bool $jobIsStatic = false;
 
     //==============================================================================
@@ -195,48 +169,37 @@ abstract class AbstractTask
      *
      * @var int
      *
-     * @ORM\Column(name="NbTry", type="integer", nullable=true)
-     *
      * @ASSERT\Range(
      *      min = 0,
      *      max = 10
      * )
      */
+    #[ORM\Column(name: "NbTry", type: Types::INTEGER, nullable: true)]
     protected int $try = 0;
 
     /**
      * Task is Pending
-     *
-     * @var null|bool
-     *
-     * @ORM\Column(name="Running", type="boolean", nullable=true)
      */
+    #[ORM\Column(name: "Running", type: Types::BOOLEAN, nullable: true)]
     protected ?bool $running = false;
 
     /**
      * Task is Finished
-     *
-     * @var null|bool
-     *
-     * @ORM\Column(name="Finished", type="boolean", nullable=true)
      */
+    #[ORM\Column(name: "Finished", type: Types::BOOLEAN, nullable: true)]
     protected ?bool $finished = false;
 
     /**
-     * @var null|string
-     *
-     * @ORM\Column(name="StartedBy", type="string", length=250, nullable=true)
+     * Who Started this Job - Worker Name
      */
-    protected ?string $startedBy;
+    #[ORM\Column(name: "StartedBy", type: Types::STRING, length: 250, nullable: true)]
+    protected ?string $startedBy = null;
 
     /**
      * Task Duration in Ms
-     *
-     * @var null|int
-     *
-     * @ORM\Column(name="duration", type="integer", nullable=true)
      */
-    protected ?int $duration;
+    #[ORM\Column(name: "duration", type: Types::INTEGER, nullable: true)]
+    protected ?int $duration = null;
 
     //==============================================================================
     //      Audit
@@ -244,46 +207,38 @@ abstract class AbstractTask
 
     /**
      * Task Discriminator - Unique Task Identification
-     *
-     * @var null|string
-     *
-     * @ORM\Column(name="Md5", type="string", length=250)
      */
+    #[ORM\Column(name: "Md5", type: Types::STRING, length: 250)]
     protected ?string $discriminator = null;
 
     /**
-     * @var DateTime
-     *
-     * @ORM\Column(name="CreatedAt", type="datetime")
+     * Date Task was Created
      */
+    #[ORM\Column(name: "CreatedAt", type: Types::DATETIME_MUTABLE)]
     protected DateTime $createdAt;
 
     /**
-     * @var string
-     *
-     * @ORM\Column(name="CreatedBy", type="string", length=250)
+     * Who created this Task ?
      */
+    #[ORM\Column(name: "CreatedBy", type: Types::STRING, length: 250)]
     protected string $createdBy;
 
     /**
-     * @var null|string
-     *
-     * @ORM\Column(name="Fault", type="text", nullable=true)
+     * Task Fault Details
      */
-    protected ?string $faultStr;
+    #[ORM\Column(name: "Fault", type: Types::TEXT, nullable: true)]
+    protected ?string $faultStr = null;
 
     /**
-     * @var null|string
-     *
-     * @ORM\Column(name="FaultTrace", type="text", nullable=true)
+     * Task Fault Trace
      */
-    protected ?string $faultTrace;
+    #[ORM\Column(name: "FaultTrace", type: Types::TEXT, nullable: true)]
+    protected ?string $faultTrace = null;
 
     /**
-     * @var null|string
-     *
-     * @ORM\Column(name="Outputs", type="text", nullable=true)
+     * Task Execution Outputs
      */
+    #[ORM\Column(name: "Outputs", type: Types::TEXT, nullable: true)]
     protected ?string $outputs = null;
 
     //==============================================================================
