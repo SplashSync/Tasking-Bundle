@@ -29,6 +29,7 @@ use Splash\Tasking\Events\StaticTasksListingEvent;
 use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
 use Splash\Tasking\Model\AbstractStaticJob;
+use Splash\Tasking\Model\StaticJobInterface;
 use Splash\Tasking\Tools\Timer;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
@@ -393,7 +394,7 @@ class TasksManager
         //====================================================================//
         // If is a Static Job
         //====================================================================//
-        if (is_subclass_of($job, AbstractStaticJob::class)) {
+        if (is_subclass_of($job, StaticJobInterface::class)) {
             $task
                 ->setName("[S] ".$task->getName())
                 ->setJobIsStatic(true)
@@ -495,12 +496,12 @@ class TasksManager
     /**
      * Identify Static Task in Parameters
      *
-     * @param AbstractStaticJob $staticJob
-     * @param Task              $task
+     * @param AbstractJob $staticJob
+     * @param Task        $task
      *
      * @return bool true if Static Tasks are Similar
      */
-    private function compareStaticTask(AbstractStaticJob $staticJob, Task $task) : bool
+    private function compareStaticTask(AbstractJob $staticJob, Task $task) : bool
     {
         //====================================================================//
         // Filter by Class Name

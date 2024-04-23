@@ -16,7 +16,8 @@
 namespace Splash\Tasking\Events;
 
 use Exception;
-use Splash\Tasking\Model\AbstractStaticJob;
+use Splash\Tasking\Model\AbstractJob;
+use Splash\Tasking\Model\StaticJobInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
 /**
@@ -48,19 +49,28 @@ class StaticTasksListingEvent extends GenericEvent
         if (!class_exists($class)) {
             throw new Exception(sprintf("Job Class %s not found", $class));
         }
-        if (!is_subclass_of($class, AbstractStaticJob::class)) {
-            throw new Exception(sprintf("Job Class %s must extends %s", $class, AbstractStaticJob::class));
+        if (!is_subclass_of($class, AbstractJob::class)) {
+            throw new Exception(sprintf("Job Class %s must extends %s", $class, AbstractJob::class));
+        }
+        if (!is_subclass_of($class, StaticJobInterface::class)) {
+            throw new Exception(sprintf("Job Class %s must implement %s", $class, StaticJobInterface::class));
         }
         if (strlen($token) < 5) {
             throw new Exception(sprintf("Job Token for %s task cannot be empty", $class));
         }
         //====================================================================//
-        // Add Job Definition
-        $this->setArgument($class, array(
-            "class" => self::class,             // The Job Class
+        // Add Job Arguments
+        $jobArgs = array(
+            "class" => $class,                  // The Job Class
             "frequency" => $frequency,          // Do Every ? x 60 Minutes
             "token" => $token,                  // Job Static Token
             "inputs" => $inputs,                // Job Specific Inputs
-        ));
+        );
+        //====================================================================//
+        // Add Job Key
+        $jobKey = sprintf("%s-%s", $class, md5(serialize($jobArgs)));
+        //====================================================================//
+        // Add Job Definition
+        $this->setArgument($jobKey, $jobArgs);
     }
 }

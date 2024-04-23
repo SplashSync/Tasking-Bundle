@@ -16,10 +16,13 @@
 namespace Splash\Tasking\Services;
 
 use Exception;
+use Splash\Tasking\Events\StaticTasksListingEvent;
 use Splash\Tasking\Model\AbstractBatchJob;
 use Splash\Tasking\Model\AbstractJob;
 use Splash\Tasking\Model\AbstractMassJob;
-use Splash\Tasking\Model\AbstractStaticJob;
+use Splash\Tasking\Model\StaticJobInterface;
+use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Manage Available Jobs
@@ -37,7 +40,9 @@ class JobsManager
      * @throws Exception
      */
     public function __construct(
-        iterable $taggedJobs
+        #[TaggedIterator(AbstractJob::TAG, indexAttribute: "key")]
+        iterable $taggedJobs,
+        private EventDispatcherInterface $dispatcher,
     ) {
         foreach ($taggedJobs as $key => $taggedJob) {
             $this->jobs[$key] = $this->validate($taggedJob);
@@ -91,21 +96,66 @@ class JobsManager
     /**
      * Get All Static Jobs
      *
-     * @return AbstractStaticJob[]
+     * @throws Exception
+     *
+     * @return AbstractJob[]
      */
     public function getStaticJobs(): array
     {
-        /** @var null|AbstractStaticJob[] $staticJobs */
+        /** @var null|AbstractJob[] $staticJobs */
         static $staticJobs;
-
-        if (!isset($staticJobs)) {
-            $staticJobs = array();
-            foreach ($this->getAll() as $key => $job) {
-                if (!$job instanceof AbstractStaticJob) {
-                    continue;
-                }
+        //====================================================================//
+        // Static Job Already Loaded
+        if (isset($staticJobs)) {
+            return $staticJobs;
+        }
+        //====================================================================//
+        // Build List of Static Job
+        $staticJobs = array();
+        //====================================================================//
+        // Directly Injected of Static Job
+        foreach ($this->getAll() as $key => $job) {
+            if (($job instanceof StaticJobInterface) && ($job->getFrequency() > 0)) {
                 $staticJobs[$key] = $job;
             }
+        }
+        //====================================================================//
+        // Collect Static Job from Event
+        $staticJobs = array_merge($staticJobs, $this->getStaticJobsFromListeners());
+
+        return $staticJobs;
+    }
+
+    /**
+     * Get All Static Jobs
+     *
+     * @throws Exception
+     *
+     * @return AbstractJob[]
+     */
+    public function getStaticJobsFromListeners(): array
+    {
+        //====================================================================//
+        // Collect Static Job from Event
+        $event = new StaticTasksListingEvent();
+        $this->dispatcher->dispatch($event);
+        //====================================================================//
+        // Walk on Collected Static Jobs
+        $staticJobs = array();
+        foreach ($event->getArguments() as $jobKey => $jobArgs) {
+            //====================================================================//
+            // Detect Target Job
+            $targetJob = clone $this->get($jobArgs['class'] ?? "Undefined");
+            //====================================================================//
+            // Configure Target Job
+            $targetJob
+                ->setFrequency($jobArgs['frequency'] ?? 60)
+                ->setToken($jobArgs['token'] ?? $jobKey)
+                ->setInputs($jobArgs['inputs'] ?? array())
+            ;
+            //====================================================================//
+            // Add Job to Queue
+            $staticJobs[$jobKey] = $targetJob;
         }
 
         return $staticJobs;
@@ -114,9 +164,13 @@ class JobsManager
     /**
      * Check if a Job is a Static Job
      */
-    public function isStaticJobs(string $key): ?AbstractStaticJob
+    public function isStaticJobs(string $key): ?AbstractJob
     {
-        return $this->getStaticJobs()[$key] ?? null;
+        try {
+            return $this->getStaticJobs()[$key] ?? null;
+        } catch (Exception $e) {
+            return null;
+        }
     }
 
     //====================================================================//

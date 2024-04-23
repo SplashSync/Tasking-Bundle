@@ -27,6 +27,8 @@ use Splash\Tasking\Services\Configuration;
 /**
  * Splash Background Tasks Repository.
  *
+ * @template-extends EntityRepository<Task>
+ *
  * @method null|Task find(int $id)
  * @method Task[]    findBy(array $criteria, ?array $orderBy = null, int $limit = null, int $offset = null)
  * @method null|Task findOneBy(array $criteria)
@@ -438,7 +440,7 @@ class TaskRepository extends EntityRepository
      */
     public function flush(): void
     {
-        $this->_em->flush();
+        $this->getEntityManager()->flush();
     }
 
     /**
@@ -446,7 +448,7 @@ class TaskRepository extends EntityRepository
      */
     public function clear(): void
     {
-        $this->_em->clear();
+        $this->getEntityManager()->clear();
     }
 
     //====================================================================//
@@ -462,7 +464,7 @@ class TaskRepository extends EntityRepository
      */
     private function getActiveTokensDQL(): string
     {
-        return $this->_em->createQueryBuilder()
+        return $this->getEntityManager()->createQueryBuilder()
             ->select('tokens.name')
             ->from('Splash\Tasking\Entity\Token', 'tokens')
             ->where("tokens.locked = 1")                                    // Token is Locked

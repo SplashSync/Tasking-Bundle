@@ -5,7 +5,8 @@ imports:
 services:
 
     _defaults:
-        autowire: true
+        autowire:       true
+        autoconfigure:  true
         tags:
             - { name: monolog.logger, channel: Tasking }
 
@@ -36,9 +37,7 @@ services:
 
     ########################################################################
     # Jobs Management Service
-    Splash\Tasking\Services\JobsManager:
-        arguments:
-            - !tagged { tag: 'splash.tasking.job', index_by: 'key' }
+    Splash\Tasking\Services\JobsManager: ~
 
     ########################################################################
     # Tasks Management Service

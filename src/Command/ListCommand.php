@@ -15,6 +15,8 @@
 
 namespace Splash\Tasking\Command;
 
+use Exception;
+use Splash\Tasking\Model\AbstractJob;
 use Splash\Tasking\Services\JobsManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -52,6 +54,8 @@ class ListCommand extends Command
      * {@inheritdoc}
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     *
+     * @throws Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -63,34 +67,50 @@ class ListCommand extends Command
         // Walk on Tagged Jobs
         foreach ($this->jobsManager->getAll() as $key => $job) {
             //====================================================================//
-            // Get Job Settings
-            $settings = $job->getSettings();
+            // Add Job to List
+            $table->addRow($this->getJobRow($key, $job));
+        }
+        //====================================================================//
+        // Walk on Listener Jobs
+        foreach ($this->jobsManager->getStaticJobsFromListeners() as $key => $job) {
             //====================================================================//
             // Add Job to List
-            $table->addRow(array(
-                // Job Service Name
-                "<info>".$key."</info>",
-                // Job Priority
-                $job->getPriority(),
-                // Job Mode
-                $this->getJobMode($key),
-                // Job Name
-                $this->translator->trans(
-                    $settings["label"],
-                    $settings["translation_params"] ?? array(),
-                    $settings["translation_domain"],
-                ),
-                // Job Description
-                $this->translator->trans(
-                    $settings["description"],
-                    $settings["translation_params"] ?? array(),
-                    $settings["translation_domain"],
-                )
-            ));
+            $table->addRow($this->getJobRow($key, $job, "comment"));
         }
         $table->render();
 
         return 0;
+    }
+
+    /**
+     * Get Job Details String
+     */
+    protected function getJobRow(string $key, AbstractJob $job, string $mode = "info"): array
+    {
+        //====================================================================//
+        // Get Job Settings
+        $settings = $job->getSettings();
+
+        return array(
+            // Job Service Name
+            sprintf("<%s>%s</%s>", $mode, $key, $mode),
+            // Job Priority
+            $job->getPriority(),
+            // Job Mode
+            $this->getJobMode($key),
+            // Job Name
+            $this->translator->trans(
+                $settings["label"],
+                $settings["translation_params"] ?? array(),
+                $settings["translation_domain"],
+            ),
+            // Job Description
+            $this->translator->trans(
+                $settings["description"],
+                $settings["translation_params"] ?? array(),
+                $settings["translation_domain"],
+            )
+        );
     }
 
     /**

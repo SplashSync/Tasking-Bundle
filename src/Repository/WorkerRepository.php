@@ -16,12 +16,13 @@
 namespace Splash\Tasking\Repository;
 
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\ORMException;
-use Doctrine\Persistence\Mapping\MappingException;
 use Splash\Tasking\Entity\Worker;
+use Throwable;
 
 /**
  * Workers Repository
+ *
+ * @template-extends EntityRepository<Worker>
  */
 class WorkerRepository extends EntityRepository
 {
@@ -46,11 +47,9 @@ class WorkerRepository extends EntityRepository
     }
 
     /**
-     * Identify Worker on this machine using it's Process Number
+     * Identify Worker on this machine using its Process Number
      *
-     * @param int $processId Worker Process Id
-     *
-     * @throws ORMException
+     * @param int $processId Worker Process ID
      *
      * @return null|Worker
      */
@@ -68,7 +67,11 @@ class WorkerRepository extends EntityRepository
         //====================================================================//
         // Ensure Sync with Database
         if ($worker instanceof Worker) {
-            $this->_em->refresh($worker);
+            try {
+                $this->getEntityManager()->refresh($worker);
+            } catch (Throwable) {
+                return null;
+            }
 
             return $worker;
         }
@@ -79,15 +82,13 @@ class WorkerRepository extends EntityRepository
     /**
      * Count Number of Active Workers
      *
-     * @throws MappingException
-     *
      * @return int
      */
     public function countActiveWorkers() : int
     {
         //====================================================================//
         // Clear EntityManager
-        $this->_em->clear();
+        $this->getEntityManager()->clear();
         //====================================================================//
         // Load List of All Currently Setuped Workers
         $workers = $this->findAll();
@@ -116,7 +117,7 @@ class WorkerRepository extends EntityRepository
     {
         //====================================================================//
         // Get List of Workers
-        $this->_em->clear();
+        $this->getEntityManager()->clear();
         $workers = $this->findAll();
         //====================================================================//
         // Init Counters

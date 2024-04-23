@@ -15,17 +15,10 @@
 
 namespace Splash\Tasking\Model;
 
-use Splash\Tasking\Entity\Task;
-
-/**
- * Base Class for Background Jobs Definition
- */
-abstract class AbstractStaticJob extends AbstractJob implements StaticJobInterface
+interface StaticJobInterface
 {
     /**
-     * Job Priority
-     *
-     * @var int
+     * Get Job Frequency in Minutes
      */
-    protected static int $priority = Task::DO_LOW;
+    public function getFrequency(): int;
 }

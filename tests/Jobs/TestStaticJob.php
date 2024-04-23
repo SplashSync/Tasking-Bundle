@@ -19,7 +19,7 @@ use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Model\AbstractStaticJob;
 
 /**
- * Demonstration fo Simple Background Jobs
+ * Demonstration for Static Background Jobs
  */
 class TestStaticJob extends AbstractStaticJob
 {

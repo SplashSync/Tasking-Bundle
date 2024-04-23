@@ -1,0 +1,10 @@
+services:
+
+    _defaults:
+        autowire:       true
+        autoconfigure:  true
+
+    ################################################################################
+    # AutoWire for Event Subscribers
+    Splash\Tasking\Tests\EventSubscriber\:
+        resource: '../../../tests/EventSubscriber'

@@ -307,14 +307,17 @@ class Status
      * Notify Status controller a token was Acquired
      *
      * @param string $token
-     *
-     * @throws Exception
      */
     public static function setTokenAcquired(string $token): void
     {
         self::$token = $token;
         self::$tokenAcquiredAt = new DateTime();
-        self::$tokenExpireAt = new DateTime("+".Configuration::getTokenSelfReleaseDelay()." Seconds");
+
+        try {
+            self::$tokenExpireAt = new DateTime("+".Configuration::getTokenSelfReleaseDelay()." Seconds");
+        } catch (Exception) {
+            self::$tokenExpireAt = new DateTime("+300 Seconds");
+        }
     }
 
     /**

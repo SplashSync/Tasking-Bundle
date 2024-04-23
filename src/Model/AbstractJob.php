@@ -26,6 +26,8 @@ use Splash\Tasking\Services\TasksManager;
  */
 abstract class AbstractJob
 {
+    const TAG = "splash.tasking.job";
+
     //==============================================================================
     //  Constants Definition
     //==============================================================================
@@ -85,6 +87,14 @@ abstract class AbstractJob
      * @var null|string
      */
     protected ?string $token = null;
+
+    /**
+     * Job Frequency
+     * How often (in Minutes) shall this task be executed
+     *
+     * @var int
+     */
+    protected int $frequency = 60;
 
     //==============================================================================
     // Magic Getters & Setters
@@ -318,5 +328,29 @@ abstract class AbstractJob
     public function getIndexKey2(): ?string
     {
         return $this->indexKey2 ?? null;
+    }
+
+    /**
+     * Set Job Frequency in Minutes
+     *
+     * @param int $frequency
+     *
+     * @return $this
+     */
+    public function setFrequency(int $frequency): self
+    {
+        $this->frequency = $frequency;
+
+        return $this;
+    }
+
+    /**
+     * Get Job Frequency
+     *
+     * @return int
+     */
+    public function getFrequency(): int
+    {
+        return $this->frequency;
     }
 }
