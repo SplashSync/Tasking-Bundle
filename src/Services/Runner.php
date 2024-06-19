@@ -20,6 +20,7 @@ use Doctrine\Persistence\ManagerRegistry as Registry;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Sentry;
+use Sentry\State\Scope;
 use Splash\Tasking\Entity\Task;
 use Splash\Tasking\Handler\TaskHandler;
 use Splash\Tasking\Model\AbstractBatchJob;
@@ -333,9 +334,7 @@ class Runner
             $task->setFaultTrace($exception->getTraceAsString());
             //==============================================================================
             // Push Exception to Sentry if Installed
-            if (function_exists('Sentry\captureException')) {
-                Sentry\captureException($exception);
-            }
+            $this->pushToSentry($task, $exception);
             //====================================================================//
             // User Information
             $this->logger->error('Runner: Task Fail: '.$exception->getMessage());
@@ -472,5 +471,30 @@ class Runner
         }
 
         return null;
+    }
+
+    /**
+     * If Task Fail, Push Error on Sentry Logger
+     */
+    private function pushToSentry(Task $task, Exception $exception): void
+    {
+        //==============================================================================
+        // Configure Tasking Context on Sentry if Installed
+        if (function_exists('Sentry\configureScope') && class_exists(Scope::class)) {
+            Sentry\configureScope(function (Scope $scope) use ($task): void {
+                $scope->setContext('TaskDetails', array(
+                    'class' => $task->getJobClass(),
+                    'action' => $task->getJobAction(),
+                    'token' => $task->getJobToken(),
+                    'static' => $task->isStaticJob(),
+                    'inputs' => $task->getJobInputs()
+                ));
+            });
+        }
+        //==============================================================================
+        // Push Exception to Sentry if Installed
+        if (function_exists('Sentry\captureException')) {
+            Sentry\captureException($exception);
+        }
     }
 }
