@@ -13,7 +13,7 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Model\Configuration;
+namespace BadPixxel\Tasking\Model\Configuration;
 
 /**
  * Access to Core Tasking Parameters
@@ -21,39 +21,41 @@ namespace Splash\Tasking\Model\Configuration;
 trait CoreParametersGettersTrait
 {
     /**
-     * @return string
+     * Get Name of Environment Used by Worker
      */
-    public static function getEnvironmentName(): string
+    public function getEnvironmentName(): string
     {
-        return (string) self::$config['environement'];
+        return (string) ($this->config['environment'] ?? "prod");
     }
 
     /**
-     * @return string
+     * Get Name of Doctrine Entity Manager Used by Tasking Bundle
      */
-    public static function getEntityManagerName(): string
+    public function getEntityManagerName(): string
     {
-        return (string) self::$config['entity_manager'];
+        return (string) $this->config['entity_manager'];
     }
 
     /**
-     * @return bool
+     * Is Multi-Server Mode Activated ?
      */
-    public static function isMultiServer(): bool
+    public function isMultiServer(): bool
     {
-        return (bool) self::$config['multiserver'];
+        return (bool) $this->config['multiserver'];
     }
 
     /**
+     * Get Multi-Server Path
+     *
      * @return null|string
      */
-    public static function getMultiServerPath(): ?string
+    public function getMultiServerPath(): ?string
     {
-        if (!self::isMultiServer()) {
+        if (!$this->isMultiServer()) {
             return null;
         }
 
-        return (string) self::$config['multiserver_path'];
+        return (string) $this->config['multiserver_path'];
     }
 
     /**
@@ -61,8 +63,8 @@ trait CoreParametersGettersTrait
      *
      * @return array
      */
-    public static function getRawConfiguration(): array
+    public function getRawConfiguration(): array
     {
-        return self::$config;
+        return $this->config;
     }
 }

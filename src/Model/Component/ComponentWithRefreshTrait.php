@@ -13,20 +13,26 @@
  *  file that was distributed with this source code.
  */
 
-namespace BadPixxel\Tasking\Model;
+namespace BadPixxel\Tasking\Model\Component;
 
-use BadPixxel\Tasking\Dictionary\TaskPriority;
-use BadPixxel\Tasking\Interfaces\StaticJobInterface;
+use Symfony\UX\LiveComponent\Attribute\LiveProp;
+use Webmozart\Assert\Assert;
 
-/**
- * Base Class for Background Jobs Definition
- */
-abstract class AbstractStaticJob extends AbstractJob implements StaticJobInterface
+trait ComponentWithRefreshTrait
 {
     /**
-     * Job Priority
-     *
-     * @var int
+     * Refresh Delay in Seconds
      */
-    protected static int $priority = TaskPriority::LOW;
+    #[LiveProp]
+    public int $refresh = 1;
+
+    /**
+     * Get refresh Delay in Milliseconds
+     */
+    public function getDelayMs(): string
+    {
+        Assert::greaterThanEq($this->refresh, 1);
+
+        return (string) ($this->refresh * 1000);
+    }
 }

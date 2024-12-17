@@ -13,7 +13,7 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Model\Configuration;
+namespace BadPixxel\Tasking\Model\Configuration;
 
 /**
  * Access to Supervisor Tasking Parameters
@@ -21,34 +21,34 @@ namespace Splash\Tasking\Model\Configuration;
 trait SupervisorParametersGettersTrait
 {
     /**
-     * @return int
+     * Get Supervisor Max Execution Time
      */
-    public static function getSupervisorMaxAge(): int
+    public function getSupervisorMaxAge(): int
     {
-        return (int) self::$config['supervisor']['max_age'];
+        return (int) $this->config['supervisor']['max_age'];
     }
 
     /**
-     * @return int
+     * Get Supervisor Max Memory Usage
      */
-    public static function getSupervisorMaxMemory(): int
+    public function getSupervisorMaxMemory(): int
     {
-        return (int) self::$config['supervisor']['max_memory'];
+        return (int) $this->config['supervisor']['max_memory'];
     }
 
     /**
-     * @return int
+     * Get Supervisor Max Number of Workers
      */
-    public static function getSupervisorMaxWorkers(): int
+    public function getSupervisorMaxWorkers(): int
     {
-        return (int) self::$config['supervisor']['max_workers'];
+        return (int) $this->config['supervisor']['max_workers'];
     }
 
     /**
-     * @return int
+     * Get Supervisor Workers Refresh Delay
      */
-    public static function getSupervisorRefreshDelay(): int
+    public function getSupervisorRefreshDelay(): int
     {
-        return (int) self::$config['supervisor']['refresh_delay'];
+        return (int) $this->config['supervisor']['refresh_delay'];
     }
 }

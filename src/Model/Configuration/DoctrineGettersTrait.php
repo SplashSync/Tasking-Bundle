@@ -13,17 +13,17 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Model\Configuration;
+namespace BadPixxel\Tasking\Model\Configuration;
 
+use BadPixxel\Tasking\Entity\Task;
+use BadPixxel\Tasking\Entity\Token;
+use BadPixxel\Tasking\Entity\Worker;
+use BadPixxel\Tasking\Repository\TaskRepository;
+use BadPixxel\Tasking\Repository\TokenRepository;
+use BadPixxel\Tasking\Repository\WorkerRepository;
 use Doctrine\Persistence\ManagerRegistry as Registry;
 use Doctrine\Persistence\ObjectManager;
-use Exception;
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Entity\Token;
-use Splash\Tasking\Entity\Worker;
-use Splash\Tasking\Repository\TaskRepository;
-use Splash\Tasking\Repository\TokenRepository;
-use Splash\Tasking\Repository\WorkerRepository;
+use Webmozart\Assert\Assert;
 
 /**
  * Access to Doctrine Services
@@ -35,114 +35,104 @@ trait DoctrineGettersTrait
      *
      * @var ObjectManager
      */
-    private static ObjectManager $manager;
+    private ObjectManager $manager;
 
     /**
      * Tasks Repository
      *
      * @var null|TaskRepository
      */
-    private static ?TaskRepository $taskRepository;
+    private ?TaskRepository $taskRepository;
 
     /**
      * Worker Repository
      *
      * @var null|WorkerRepository
      */
-    private static ?WorkerRepository $workerRepository;
+    private ?WorkerRepository $workerRepository;
 
     /**
      * Token Repository
      *
      * @var null|TokenRepository
      */
-    private static ?TokenRepository $tokenRepository;
+    private ?TokenRepository $tokenRepository;
 
     /**
      * Get Entity Manager for Tasking
      *
      * @return ObjectManager
      */
-    public static function getEntityManager(): ObjectManager
+    public function getEntityManager(): ObjectManager
     {
-        return self::$manager;
+        return $this->manager;
     }
 
     /**
      * Get Tasks Repository
-     *
-     * @throws Exception
-     *
-     * @return TaskRepository
      */
-    public static function getTasksRepository(): TaskRepository
+    public function getTasksRepository(): TaskRepository
     {
-        if (!isset(self::$taskRepository)) {
-            $repository = self::$manager->getRepository(Task::class);
-            if (!($repository instanceof TaskRepository)) {
-                throw new Exception("Unable to Load Tasks Repository");
-            }
+        if (!isset($this->taskRepository)) {
+            $repository = $this->getEntityManager()->getRepository(Task::class);
+            Assert::isInstanceOf(
+                $repository,
+                TaskRepository::class,
+                "Unable to Load Tasks Repository"
+            );
 
-            return self::$taskRepository = $repository;
+            return $this->taskRepository = $repository;
         }
 
-        return self::$taskRepository;
+        return $this->taskRepository;
     }
 
     /**
      * Get Worker Repository
-     *
-     * @throws Exception
-     *
-     * @return WorkerRepository
      */
-    public static function getWorkerRepository(): WorkerRepository
+    public function getWorkerRepository(): WorkerRepository
     {
-        if (!isset(self::$workerRepository)) {
-            $repository = self::$manager->getRepository(Worker::class);
-            if (!($repository instanceof WorkerRepository)) {
-                throw new Exception("Unable to Load Worker Repository");
-            }
+        if (!isset($this->workerRepository)) {
+            $repository = $this->getEntityManager()->getRepository(Worker::class);
+            Assert::isInstanceOf(
+                $repository,
+                WorkerRepository::class,
+                "Unable to Load Worker Repository"
+            );
 
-            return self::$workerRepository = $repository;
+            return $this->workerRepository = $repository;
         }
 
-        return self::$workerRepository;
+        return $this->workerRepository;
     }
 
     /**
      * Get Token Repository
-     *
-     * @throws Exception
-     *
-     * @return TokenRepository
      */
-    public static function getTokenRepository(): TokenRepository
+    public function getTokenRepository(): TokenRepository
     {
-        if (!isset(self::$tokenRepository)) {
-            $repository = self::$manager->getRepository(Token::class);
-            if (!($repository instanceof TokenRepository)) {
-                throw new Exception("Unable to Load Token Repository");
-            }
+        if (!isset($this->tokenRepository)) {
+            $repository = $this->getEntityManager()->getRepository(Token::class);
+            Assert::isInstanceOf(
+                $repository,
+                TokenRepository::class,
+                "Unable to Load Token Repository"
+            );
 
-            return self::$tokenRepository = $repository;
+            return $this->tokenRepository = $repository;
         }
 
-        return self::$tokenRepository;
+        return $this->tokenRepository;
     }
 
     /**
      * Setup Entity Manager for Tasking
-     *
-     * @param Registry $registry
-     *
-     * @return void
      */
     protected function setupEntityManager(Registry $registry): void
     {
-        self::$manager = $registry->getManager(self::getEntityManagerName());
-        self::$taskRepository = null;
-        self::$tokenRepository = null;
-        self::$workerRepository = null;
+        $this->manager = $registry->getManager($this->getEntityManagerName());
+        $this->taskRepository = null;
+        $this->tokenRepository = null;
+        $this->workerRepository = null;
     }
 }

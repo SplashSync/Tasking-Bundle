@@ -13,67 +13,59 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Model\Configuration;
+namespace BadPixxel\Tasking\Model\Configuration;
 
 /**
- * Access to Tasks Tasking Parameters
+ * Access to Tasking Bundle Parameters
  */
 trait TasksParametersGettersTrait
 {
     /**
-     * Get Tasks Configuration
-     *
-     * @return array
+     * Get Tasks Option for Searching Next Task
      */
-    public static function getTasksConfiguration(): array
+    public function getTasksSearchOptions(): array
     {
-        return self::$config['tasks'];
+        return array_merge($this->config['tasks'], $this->config['token']);
     }
 
     /**
-     * @return int
+     * Get Max Age for TAks before being Deleted
      */
-    public static function getTasksDeleteDelay(): int
+    public function getTasksDeleteDelay(): int
     {
-        return (int) self::$config['tasks']['max_age'];
+        return (int) $this->config['tasks']['max_age'];
     }
 
     /**
-     * @return int
+     * Get Number of Times to Retry a Task
      */
-    public static function getTasksMaxRetry(): int
+    public function getTasksMaxRetry(): int
     {
-        return (int) self::$config['tasks']['try_count'];
+        return (int) $this->config['tasks']['try_count'];
     }
 
     /**
-     * @return int
+     * Get Delay before retrying a Task
      */
-    public static function getTasksRetryDelay(): int
+    public function getTasksRetryDelay(): int
     {
-        return (int) self::$config['tasks']['try_delay'];
+        return (int) $this->config['tasks']['try_delay'];
     }
 
     /**
-     * @return int
+     * Get Task Error Delay
      */
-    public static function getTasksErrorDelay(): int
+    public function getTasksErrorDelay(): int
     {
-        return (int) self::$config['tasks']['error_delay'];
+        return (int) $this->config['tasks']['error_delay'];
     }
 
     /**
      * Complete Configuration for Tasks
-     *
-     * @param array $configuration
-     *
-     * @return array
      */
-    private static function completeTasksConfiguration(array &$configuration): array
+    protected static function completeTasksConfiguration(array &$configuration): void
     {
         // Compute Tasks Error Delay
         $configuration["tasks"]["error_delay"] = 8 * $configuration["watchdog_delay"];
-
-        return $configuration;
     }
 }

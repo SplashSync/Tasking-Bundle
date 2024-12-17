@@ -13,7 +13,7 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Model\Configuration;
+namespace BadPixxel\Tasking\Model\Configuration;
 
 /**
  * Access to Server Tasking Parameters
@@ -23,16 +23,16 @@ trait ServerParametersGettersTrait
     /**
      * @return bool
      */
-    public static function isServerForceCrontab(): bool
+    public function isServerForceCrontab(): bool
     {
-        return (bool) self::$config['server']['force_crontab'];
+        return (bool) $this->config['server']['force_crontab'];
     }
 
     /**
      * @return string
      */
-    public static function getServerPhpVersion(): string
+    public function getServerPhpVersion(): string
     {
-        return (string) self::$config['server']['php_version'];
+        return (string) $this->config['server']['php_version'];
     }
 }

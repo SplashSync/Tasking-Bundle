@@ -13,7 +13,7 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Model\Configuration;
+namespace BadPixxel\Tasking\Model\Configuration;
 
 /**
  * Access to Workers Tasking Parameters
@@ -21,42 +21,42 @@ namespace Splash\Tasking\Model\Configuration;
 trait WorkersParametersGettersTrait
 {
     /**
-     * @return int
+     * Get Worker Watchdog Delay
      */
-    public static function getWorkerWatchdogDelay(): int
+    public function getWorkerWatchdogDelay(): int
     {
-        return (int) self::$config['watchdog_delay'];
+        return (int) $this->config['watchdog_delay'];
     }
 
     /**
-     * @return int
+     * Get Worker Delay to Refresh Status in Database
      */
-    public static function getWorkerRefreshDelay(): int
+    public function getWorkerRefreshDelay(): int
     {
-        return (int) self::$config['refresh_delay'];
+        return (int) $this->config['refresh_delay'];
     }
 
     /**
-     * @return int
+     * Get Worker Max Execution Time
      */
-    public static function getWorkerMaxAge(): int
+    public function getWorkerMaxAge(): int
     {
-        return (int) self::$config['workers']['max_age'];
+        return (int) $this->config['workers']['max_age'];
     }
 
     /**
-     * @return int
+     * Get Worker Max Memory Usage
      */
-    public static function getWorkerMaxMemory(): int
+    public function getWorkerMaxMemory(): int
     {
-        return (int) self::$config['workers']['max_memory'];
+        return (int) $this->config['workers']['max_memory'];
     }
 
     /**
-     * @return int
+     * Get Worker Max Task to Execute on a Single Run
      */
-    public static function getWorkerMaxTasks(): int
+    public function getWorkerMaxTasks(): int
     {
-        return (int) self::$config['workers']['max_tasks'];
+        return (int) $this->config['workers']['max_tasks'];
     }
 }

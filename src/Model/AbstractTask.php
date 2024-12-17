@@ -13,7 +13,7 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Model;
+namespace BadPixxel\Tasking\Model;
 
 use DateTime;
 use Doctrine\DBAL\Types\Types;
@@ -23,8 +23,8 @@ use Symfony\Component\Validator\Constraints as ASSERT;
 /**
  * Abstract Task Storage Object
  *
- * @SuppressWarnings(PHPMD.ExcessivePublicCount)
- * @SuppressWarnings(PHPMD.TooManyFields)
+ * @SuppressWarnings(ExcessivePublicCount)
+ * @SuppressWarnings(TooManyFields)
  */
 #[ORM\MappedSuperclass]
 abstract class AbstractTask
@@ -112,8 +112,6 @@ abstract class AbstractTask
 
     /**
      * Target Job Service Class
-     *
-     * @var class-string
      */
     #[ORM\Column(name: "JobClass", type: Types::STRING, length: 250)]
     protected string $jobClass;
@@ -291,12 +289,8 @@ abstract class AbstractTask
 
     /**
      * Set jobClass
-     *
-     * @param class-string $jobClass
-     *
-     * @return $this
      */
-    public function setJobClass(string $jobClass): self
+    public function setJobClass(string $jobClass): static
     {
         $this->jobClass = $jobClass;
 
@@ -305,8 +299,6 @@ abstract class AbstractTask
 
     /**
      * Get jobClass
-     *
-     * @return class-string
      */
     public function getJobClass(): string
     {
@@ -315,12 +307,8 @@ abstract class AbstractTask
 
     /**
      * Set jobAction
-     *
-     * @param string $jobAction
-     *
-     * @return $this
      */
-    public function setJobAction(string $jobAction): self
+    public function setJobAction(string $jobAction): static
     {
         $this->jobAction = $jobAction;
 

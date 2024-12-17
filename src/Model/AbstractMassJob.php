@@ -13,106 +13,22 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Model;
+namespace BadPixxel\Tasking\Model;
 
-use Exception;
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Model\Jobs\InputsStateTrait;
+use BadPixxel\Tasking\Dictionary\RepeatableJobState as JobState;
+use BadPixxel\Tasking\Interfaces\MassJobInterface;
+use BadPixxel\Tasking\Model\Jobs\Advanced\ExtendedInputsTrait;
+use BadPixxel\Tasking\Model\Jobs\Advanced\RepeatableTrait;
 
 /**
  * Base Class for Background Mass Jobs Definition
  *
  * A Mass Job Execute an Action until Number of Pending Actions reach zéro.
  */
-abstract class AbstractMassJob extends AbstractJob
+abstract class AbstractMassJob extends AbstractJob implements MassJobInterface
 {
-    use InputsStateTrait;
-
-    //==============================================================================
-    //  Constants Definition
-    //==============================================================================
-
-    /**
-     * Job Action Method Name
-     *
-     * @var string
-     */
-    protected static string $action = "run";
-
-    /**
-     * Parameter - Stop on Errors
-     * => If Set, if one of the batch action return False, batch action is stopped
-     *
-     * @var bool
-     */
-    protected static bool $stopOnError = true;
-
-    /**
-     * Job Priority
-     *
-     * @var int
-     */
-    protected static int $priority = Task::DO_LOWEST;
-
-    /**
-     * Parameter - Batch Action Pagination.
-     * => Number of tasks to start on each batch step
-     *
-     * @var int
-     */
-    protected static int $paginate = 1;
-
-    /**
-     * Class Constructor
-     */
-    public function __construct()
-    {
-        $this->setInputs(array());
-        $this->setState(array());
-        $this->setToken(get_class($this)."::".static::$action);
-    }
-
-    //==============================================================================
-    //      Prototypes for User Mass Job
-    //==============================================================================
-
-    /**
-     * Override this function to count number of remaining loops to perform
-     *
-     * @param array $inputs
-     *
-     * @throws Exception
-     *
-     * @return int
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function count(array $inputs = array()) : int
-    {
-        throw new Exception(sprintf(
-            "Class %s must implement %s method",
-            static::class,
-            __METHOD__
-        ));
-    }
-
-    /**
-     * Override this function to perform your task
-     *
-     * @param array $inputs
-     *
-     * @throws Exception
-     *
-     * @return bool
-     */
-    public function execute(array $inputs = array()) : bool
-    {
-        throw new Exception(sprintf(
-            "Class %s must implement %s method",
-            static::class,
-            __METHOD__
-        ));
-    }
+    use ExtendedInputsTrait;
+    use RepeatableTrait;
 
     //==============================================================================
     //      Batch Job Execution Management
@@ -120,70 +36,52 @@ abstract class AbstractMassJob extends AbstractJob
 
     /**
      * Main function for Mass Jobs Management
-     *
-     * @throws Exception
-     *
-     * @return bool
      */
-    public function run(): bool
+    public function execute(): bool
     {
         //==============================================================================
-        //      Check Mass Job Init
-        if ((false == $this->getStateItem("isListLoaded"))) {
-            $jobsCount = $this->count($this->getInputs());
-            $this->setStateItem("isListLoaded", true);
-            $this->setStateItem("jobsCount", $jobsCount);
+        // Request Latest Version of Jobs Count Estimation
+        $jobsCount = $this->count();
+        //==============================================================================
+        // Check Mass Job Init
+        if (!$this->isBooted()) {
+            $this->setStateItem(JobState::COUNT, $jobsCount);
+            $this->setBooted();
             if (empty($jobsCount)) {
-                return $this->setCompleted(true);
+                $this->setCompleted();
+
+                return true;
             }
         }
         //====================================================================//
-        // Increment Current Mass Job State
-        $this->incStateItem("tasksCount");
+        // Init Task Planification Counters
+        $maxTasks = min($jobsCount, $this->getPaginate());
         //====================================================================//
         // Mass Job Execution Loop
-        for ($index = 0; $index < static::$paginate; $index++) {
+        for ($index = 0; $index < $maxTasks; $index++) {
             //==============================================================================
-            //      Update State
-            $this->incStateItem("currentJob");
+            // Update State
+            $this->incStateItem(JobState::CURRENT);
             //==============================================================================
-            //      Execute User Batch Job
-            $jobsResult = $this->execute($this->getInputs());
+            // Execute User Batch Job
+            $jobResult = $this->executeAction();
             //==============================================================================
-            //      Update State
-            $this->incStateItem("jobsCompleted");
-            $this->incStateItem(($jobsResult ? "jobsSuccess" : "jobsError"));
-            //==============================================================================
-            //      Manage Stop on Error
-            if (!$jobsResult && static::$stopOnError) {
-                return $this->setCompleted(false);
+            // Update Task State & Stop if Requested
+            if (!$this->setJobResult($jobResult)) {
+                return false;
             }
-            //==============================================================================
-            //      Manage End of Task by Count
-            if (empty($this->count($this->getInputs()))) {
-                return $this->setCompleted(true);
-            }
-            //==============================================================================
-            //      Manage End of Task by Job Overloads
-            if ($this->getStateItem("currentJob") > (1.5 * (int) $this->getStateItem("jobsCount"))) {
-                return $this->setCompleted(true);
-            }
+        }
+        //==============================================================================
+        // Manage End of Task by Count
+        if ($maxTasks >= $jobsCount) {
+            $this->setCompleted();
+        }
+        //==============================================================================
+        //      Manage End of Task by Job Overloads
+        if ($this->getStateItem(JobState::CURRENT) > (1.5 * (int) $this->getStateItem(JobState::COUNT))) {
+            $this->setCompleted();
         }
 
         return true;
-    }
-
-    /**
-     * Mark Mass Task as Completed
-     *
-     * @param bool $result
-     *
-     * @return bool
-     */
-    protected function setCompleted(bool $result): bool
-    {
-        $this->setStateItem("isCompleted", true);
-
-        return $result;
     }
 }

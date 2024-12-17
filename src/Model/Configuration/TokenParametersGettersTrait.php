@@ -13,7 +13,9 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Model\Configuration;
+namespace BadPixxel\Tasking\Model\Configuration;
+
+use BadPixxel\Tasking\Entity\Token;
 
 /**
  * Access to Token Tasking Parameters
@@ -21,29 +23,25 @@ namespace Splash\Tasking\Model\Configuration;
 trait TokenParametersGettersTrait
 {
     /**
-     * @return int
+     * Get Token Delay for Self-Release
      */
-    public static function getTokenSelfReleaseDelay(): int
+    public function getTokenSelfReleaseDelay(): int
     {
-        return (int) self::$config['token']['lock_ttl'];
+        return (int) $this->config['token']['lock_ttl'];
     }
 
     /**
-     * @return int
+     * Get Token delay for Delete
      */
-    public static function getTokenDeleteDelay(): int
+    public function getTokenDeleteDelay(): int
     {
-        return (int) self::$config['token']['delete_ttl'];
+        return (int) $this->config['token']['delete_ttl'];
     }
 
     /**
      * Complete Configuration for Tokens
-     *
-     * @param array $configuration
-     *
-     * @return array
      */
-    private static function completeTokenConfiguration(array &$configuration): array
+    protected static function completeTokenConfiguration(array &$configuration): void
     {
         $configuration["token"] = array(
             // Compute Token Min Lock Delay
@@ -51,7 +49,5 @@ trait TokenParametersGettersTrait
             // Compute Token Delete Delay
             "delete_ttl" => 100 * $configuration["watchdog_delay"],
         );
-
-        return $configuration;
     }
 }

@@ -13,52 +13,60 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Model;
+namespace BadPixxel\Tasking\Model;
 
-use Exception;
+use BadPixxel\Tasking\Dictionary\JobOptions;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Webmozart\Assert\Assert;
 
 /**
  * Service Action for Background Jobs
  */
 abstract class AbstractServiceJob extends AbstractJob
 {
+    /**
+     * Service Job Constructor
+     *
+     * @param null|object $service Target Service
+     */
+    public function __construct(private readonly ?object $service = null)
+    {
+    }
+
     //==============================================================================
-    //  Constants Definition
+    //      Job Setup
     //==============================================================================
 
     /**
-     * Job Inputs => Load here all inputs parameters for your task
-     *
-     * @var array
+     * Build Job Options
      */
-    protected array $inputs = array(
-        "Method" => null,
-        "Inputs" => array(),
-    );
-
-    /**
-     * Job Display Settings
-     *
-     * @var array
-     */
-    protected array $settings = array(
-        "label" => "Service Job",
-        "description" => "Abstract Service Job Base",
-        "translation_domain" => false,
-        "translation_params" => array(),
-    );
+    public static function toOptions(
+        string $method,
+        array $args = array(),
+        ?string $token = null,
+    ): array {
+        return array_filter(array(
+            JobOptions::TOKEN => $token,
+            JobOptions::INPUTS => array(
+                "method" => $method,
+                "args" => $args,
+            ),
+        ));
+    }
 
     //==============================================================================
     //      Service Job Configurator
     //==============================================================================
 
     /**
-     * Service Job Constructor
-     *
-     * @param null|object $service Target Service
+     * @inheritdoc
      */
-    public function __construct(private ?object $service = null)
+    public static function getDefaultSettings(): array
     {
+        return array(
+            "label" => "Service Job",
+            "description" => "Execute Service Action",
+        );
     }
 
     //==============================================================================
@@ -66,35 +74,22 @@ abstract class AbstractServiceJob extends AbstractJob
     //==============================================================================
 
     /**
-     * Override this function to validate you Input parameters
-     *
-     * @throws Exception
-     *
-     * @return bool
+     * @inheritdoc
      */
     public function validate() : bool
     {
         //====================================================================//
         // Check target method is Defined
-        if (empty($this->getMethod())) {
-            return false;
-        }
+        Assert::stringNotEmpty($this->getMethod());
         //====================================================================//
         // Check Service is Configured
-        if (!isset($this->service)) {
-            throw new Exception(
-                "Target Service not initialized. Did you forgot to register a configurator?"
-            );
-        }
+        Assert::notEmpty(
+            $this->service,
+            "Target Service not initialized. Did you forgot to register a configurator?"
+        );
         //====================================================================//
         // Check Service Method Exists
-        if (!method_exists($this->service, $this->getMethod())) {
-            throw new Exception(sprintf(
-                "Method %s not found on service %s",
-                $this->getMethod(),
-                get_class($this->service)
-            ));
-        }
+        Assert::methodExists($this->service, $this->getMethod());
 
         return true;
     }
@@ -114,11 +109,11 @@ abstract class AbstractServiceJob extends AbstractJob
         //====================================================================//
         // Load Requested Service
         $method = $this->getMethod();
-        $inputs = $this->getInputs();
+        $args = $this->getArgs();
 
         //====================================================================//
         // Execute Service Method
-        return $this->service->{ $method }($inputs);
+        return $this->service->{ $method }($args);
     }
 
     //==============================================================================
@@ -127,53 +122,32 @@ abstract class AbstractServiceJob extends AbstractJob
 
     /**
      * Get Service Job Method Name
-     *
-     * @return string
      */
     public function getMethod(): string
     {
-        return $this->inputs["Method"] ?? "";
+        return $this->getInputs()["method"] ?? "";
     }
 
     /**
-     * Set Service Job Service Name
-     *
-     * @param string $method
-     *
-     * @return $this
+     * Get Service Job Action Args
      */
-    public function setMethod(string $method): self
+    public function getArgs(): array
     {
-        $this->inputs["Method"] = $method;
+        $args = $this->getInputs()["args"] ?? null;
 
-        return $this;
+        return is_array($args) ? $args : array();
     }
 
     /**
-     * Set Job Inputs
-     *
-     * @param array $inputs
-     *
-     * @return $this
+     * @inheritDoc
      */
-    public function setInputs(array $inputs): AbstractJob
+    protected function configureInputsResolver(OptionsResolver $resolver): void
     {
-        $this->inputs["Inputs"] = $inputs;
-
-        return $this;
-    }
-
-    /**
-     * Get Job Inputs
-     *
-     * @return array
-     */
-    public function getInputs(): array
-    {
-        if (isset($this->inputs["Inputs"])) {
-            return $this->inputs["Inputs"];
-        }
-
-        return array();
+        $resolver->setDefaults(array(
+            "method" => null,
+            "args" => array(),
+        ));
+        $resolver->setAllowedTypes("method", "string");
+        $resolver->setAllowedTypes("args", "array");
     }
 }
