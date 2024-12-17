@@ -60,6 +60,8 @@ stages:
     script:
         # Execute Grumphp Testsuite
         - curl -s https://raw.githubusercontent.com/BadPixxel/Php-Sdk/main/ci/grumphp.sh  | sh
+        - php bin/console
+        - php bin/console -env=test
         # Execute PhpUnit Tests
         - vendor/bin/phpunit --log-junit $CI_PROJECT_DIR/test-report.xml
 
