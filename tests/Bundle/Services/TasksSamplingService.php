@@ -13,10 +13,11 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tests\Services;
+namespace BadPixxel\Tasking\Tests\Bundle\Services;
 
 /**
  * Tasks Sampling Service
+ *
  * Collection of Dummy Specific Testing Functions
  */
 class TasksSamplingService

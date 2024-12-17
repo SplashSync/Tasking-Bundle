@@ -1,0 +1,18 @@
+
+################################################################################
+# Tasking Bundle Multi-server API
+_badpixxel_tasking_bundle_api:
+    resource: "@BadpixxelTaskingBundle/Resources/config/routing/api.php"
+    prefix:   /tasking
+
+################################################################################
+# Tasking Bundle Status
+_badpixxel_tasking_bundle_status:
+    resource: "@BadpixxelTaskingBundle/Resources/config/routing/status.php"
+    prefix:   /tasking
+
+################################################################################
+# Tasking Bundle Test Routes
+_badpixxel_tasking_bundle_dashboard:
+    resource: "@BadpixxelTaskingBundle/Resources/config/routing/dashboard.php"
+    prefix:   /
