@@ -4,11 +4,11 @@ services:
         autoconfigure:  true
 
     ################################################################################
-    # AutoWire for Splash Tasking Jobs
-    Splash\Tasking\Tests\Jobs\:
-        resource:   '../../../tests/Jobs'
-        tags:       ['splash.tasking.job']
+    # AutoWire for Tasking Jobs
+    BadPixxel\Tasking\Tests\Bundle\Jobs\:
+        resource:   '../../Jobs'
 
     ################################################################################
-    # Splash Tasking Sampling Service
-    Splash\Tasking\Tests\Services\TasksSamplingService: ~
+    # AutoWire for Services
+    BadPixxel\Tasking\Tests\Bundle\Services\:
+        resource: '../../Services'

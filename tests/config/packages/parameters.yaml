@@ -1,0 +1,16 @@
+
+parameters:
+
+    database_driver:        pdo_mysql
+    database_host:          mysql
+    database_port:          null
+    database_name:          tasking
+    database_user:          root
+    database_password:      tasking
+
+    kernel.secret:          ThisIsNotASecretKey
+
+    locale: en_US
+    locales:
+        - en_US
+        - fr_FR
