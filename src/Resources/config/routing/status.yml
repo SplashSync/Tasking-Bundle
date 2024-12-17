@@ -1,8 +1,0 @@
-
-################################################################################    
-#    Tasking Status
-################################################################################    
-
-tasking_status_json_main:
-    path:     /tasking
-    controller: Splash\Tasking\Controller\StatusController::mainAction

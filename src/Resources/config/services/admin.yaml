@@ -1,0 +1,15 @@
+########################################################################
+#   TASKING BUNDLE SONATA ADMIN SERVICES
+########################################################################
+
+services:
+    _defaults:
+        autowire:           true
+        autoconfigure:      true
+
+    ################################################################################
+    # AutoWire for Tasking Admin
+    BadPixxel\Tasking\Admin\:
+        resource: '../../Admin'
+        calls:
+            - [ setTranslationDomain, [ 'TaskingBundle']]

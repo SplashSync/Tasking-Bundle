@@ -1,12 +1,14 @@
+
 ########################################################################
-#   TASKING BUNDLE CONSOLE COMMANDS
+# TASKING BUNDLE XU LIVE COMPONENTS
 ########################################################################
 
 services:
+    _defaults:
+        autowire:           true
+        autoconfigure:      true
 
     ################################################################################
-    # AutoWire for Commands
-    Splash\Tasking\Command\:
-        resource: '../../Command'
-        autowire: true
-        tags:    [ 'console.command' ]
+    # AutoWire for UX Live Components
+    BadPixxel\Tasking\TwigComponent\:
+        resource: '../../TwigComponent'

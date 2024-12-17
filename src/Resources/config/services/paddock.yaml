@@ -10,7 +10,7 @@ services:
     #   PADDOCK TASKING COLLECTORS
     ########################################################################
 
-    Splash\Tasking\Paddock\Collector\:
+    BadPixxel\Tasking\Paddock\Collector\:
         resource: '../../Paddock/Collector/'
         tags:    [ 'paddock.collector' ]
 
@@ -18,6 +18,6 @@ services:
     #   PADDOCK TASKING EVENTS SUBSCRIBER
     ########################################################################
 
-    Splash\Tasking\Paddock\EventSubscriber\:
+    BadPixxel\Tasking\Paddock\EventSubscriber\:
         resource: '../../Paddock/EventSubscriber/'
         tags:    [ kernel.event_subscriber ]

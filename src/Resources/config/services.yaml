@@ -1,7 +1,3 @@
-imports:
-    - { resource: services/admin.yml }
-    - { resource: services/commands.yml }
-    
 services:
 
     _defaults:
@@ -11,61 +7,29 @@ services:
             - { name: monolog.logger, channel: Tasking }
 
     ################################################################################
-    # AutoWire for Controllers
-    Splash\Tasking\Controller\:
-        resource: '../../Controller'
+    # AutoWire for Actions
+    BadPixxel\Tasking\Actions\:
+        resource: '../../Actions'
         tags: ['controller.service_arguments']
 
-    ########################################################################
-    # Tasks Management Service
-    Splash\Tasking\Services\TasksManager:
-        public:     true
-        tags:
-            - { name: kernel.event_listener, event: Splash\Tasking\Events\AddEvent, method: onAddAction }
-            - { name: kernel.event_listener, event: Splash\Tasking\Events\InsertEvent, method: onAddAction }
-            - { name: monolog.logger, channel: Tasking }
+    ################################################################################
+    # AutoWire for Commands
+    BadPixxel\Tasking\Command\:
+        resource: '../../Command'
 
-    ########################################################################
-    #   TASKING BUNDLE LOW LEVEL SERVICES
-    ########################################################################
+    ################################################################################
+    # AutoWire for Event Listeners
+    BadPixxel\Tasking\EventListener\:
+        resource: '../../EventListener'
 
-    ########################################################################
-    # Tasks Configuration Service
-    Splash\Tasking\Services\Configuration:
-        arguments:
-            - "%splash_tasking%"
-
-    ########################################################################
-    # Jobs Management Service
-    Splash\Tasking\Services\JobsManager: ~
-
-    ########################################################################
-    # Tasks Management Service
-    Splash\Tasking\Services\Runner: ~
-
-    ########################################################################
-    # Supervisor Management Service
-    Splash\Tasking\Services\SupervisorsManager:
-        tags:
-            - { name: kernel.event_listener, event: Splash\Tasking\Events\CheckEvent, method: checkSupervisor }
-            - { name: kernel.event_listener, event: Splash\Tasking\Events\AddEvent, method: checkSupervisor }
-            - { name: monolog.logger, channel: Tasking }
-
-    ########################################################################
-    # Workers Management Service
-    Splash\Tasking\Services\WorkersManager: ~
-
-    ########################################################################
-    # Tokens Management Service
-    Splash\Tasking\Services\TokenManager: ~
+    ################################################################################
+    # AutoWire for Services
+    BadPixxel\Tasking\Services\:
+        resource: '../../Services'
 
     ########################################################################
     # Process Management Service
-    Splash\Tasking\Services\ProcessManager:
+    BadPixxel\Tasking\Services\ProcessManager:
         tags:
             - { name: kernel.event_listener, event: Splash\Tasking\Events\AddEvent, method: checkCrontab }
             - { name: monolog.logger, channel: Tasking }
-
-    ########################################################################
-    # System Management Service
-    Splash\Tasking\Services\SystemManager: ~
