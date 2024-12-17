@@ -1,3 +1,8 @@
+
+parameters:
+    # Adds a fallback configuration if the env var is not set.
+    env(DATABASE_URL):               'mysql://root:tasking@mysql:3306/tasking'
+
 # Doctrine Configuration
 doctrine:
     dbal:
