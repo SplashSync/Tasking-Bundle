@@ -42,6 +42,9 @@
 
         "doctrine/doctrine-bundle":                     "^2.0",
 
+        "sonata-project/admin-bundle":                  "^4.0",
+        "sonata-project/doctrine-orm-admin-bundle":     "*",
+
         "monolog/monolog":                              "^1.25.1|^2",
         "webmozart/assert":                             "^1.0"
     },
@@ -60,9 +63,6 @@
         "symfony/phpunit-bridge":                       "^6.0",
         "symfony/ux-live-component":                    "^2.0",
         "symfony/webpack-encore-bundle": "^1.7|^2.0",
-
-        "sonata-project/admin-bundle":                  "^4.0",
-        "sonata-project/doctrine-orm-admin-bundle":     "*",
 
         "sentry/sentry-symfony":                        "^4.0"
     },
