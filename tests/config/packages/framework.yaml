@@ -1,6 +1,6 @@
 # Framework Configuration
 framework:
-#    secret:                 '%env(APP_SECRET)%'
+    secret:                 "$ecretf0rt3st"
     annotations:            false
     http_method_override:   false
 

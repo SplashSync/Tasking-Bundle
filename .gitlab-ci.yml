@@ -19,9 +19,9 @@
 # Set any variables we need
 variables:
   # Configure mysql environment variables (https://hub.docker.com/r/_/mysql/)
-  MYSQL_DATABASE:         symfony
-  MYSQL_ROOT_PASSWORD:    Tasking-Bundle
-  COMPOSER_MEMORY_LIMIT:  -1
+  MYSQL_DATABASE:               tasking
+  MYSQL_ROOT_PASSWORD:          tasking
+  COMPOSER_MEMORY_LIMIT:        -1
   SYMFONY_DEPRECATIONS_HELPER:  disabled
 
 ################################################################
