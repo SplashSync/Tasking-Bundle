@@ -13,12 +13,12 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Paddock\Tracks;
+namespace BadPixxel\Tasking\Paddock\Tracks;
 
 use BadPixxel\Paddock\Core\Models\Tracks\AbstractTrack;
+use BadPixxel\Tasking\Paddock\Collector\TasksCollector;
+use BadPixxel\Tasking\Paddock\Collector\WorkersCollector;
 use Exception;
-use Splash\Tasking\Paddock\Collector\TasksCollector;
-use Splash\Tasking\Paddock\Collector\WorkersCollector;
 
 class TaskingCheckerTrack extends AbstractTrack
 {

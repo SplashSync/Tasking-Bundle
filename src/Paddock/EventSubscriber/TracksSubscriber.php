@@ -13,11 +13,12 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Paddock\EventSubscriber;
+namespace BadPixxel\Tasking\Paddock\EventSubscriber;
 
 use BadPixxel\Paddock\Core\Events\GetTracksEvent;
+use BadPixxel\Tasking\Paddock\Tracks\TaskingCheckerTrack;
+use BadPixxel\Tasking\Paddock\Tracks\WorkersCheckerTrack;
 use Exception;
-use Splash\Tasking\Paddock\Tracks;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class TracksSubscriber implements EventSubscriberInterface
@@ -41,7 +42,7 @@ class TracksSubscriber implements EventSubscriberInterface
      */
     public function registerTracks(GetTracksEvent $event): void
     {
-        $event->add(Tracks\TaskingCheckerTrack::class);
-        $event->add(Tracks\WorkersCheckerTrack::class);
+        $event->add(TaskingCheckerTrack::class);
+        $event->add(WorkersCheckerTrack::class);
     }
 }

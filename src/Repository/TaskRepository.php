@@ -13,16 +13,15 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Repository;
+namespace BadPixxel\Tasking\Repository;
 
+use BadPixxel\Tasking\Entity\Task;
+use BadPixxel\Tasking\Entity\Token;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Entity\Token;
-use Splash\Tasking\Services\Configuration;
 
 /**
  * Splash Background Tasks Repository.
@@ -51,7 +50,7 @@ class TaskRepository extends EntityRepository
      *
      * @return null|Task
      *
-     * @SuppressWarnings(PHPMD.ElseExpression)
+     * @phpstan-impure
      */
     public function getNextTask(array $options, string $tokenName = null, bool $static = null): ?Task
     {
@@ -78,7 +77,7 @@ class TaskRepository extends EntityRepository
         //====================================================================//
         // Setup Query Token Parameters
         if (null == $tokenName) {
-            $this->builder->setParameter('TokenExpireDate', ($timestamp - Configuration::getTokenSelfReleaseDelay()));
+            $this->builder->setParameter('TokenExpireDate', ($timestamp - $options["lock_ttl"]));
         } else {
             $this->builder->setParameter('TokenName', $tokenName);
         }
@@ -215,7 +214,6 @@ class TaskRepository extends EntityRepository
      * @param array       $orderBy List Ordering
      * @param int         $limit   Limit Number of Items
      * @param int         $offset  Page Offset
-     * @param string      $group   Grouping Key (Default: T.discriminator)
      *
      * @return array User Task Summary Array
      */
@@ -225,7 +223,6 @@ class TaskRepository extends EntityRepository
         array $orderBy = array(),
         int $limit = 10,
         int $offset = 0,
-        string $group = "discriminator"
     ): array {
         //====================================================================//
         // Get Status for Tasks
@@ -233,15 +230,14 @@ class TaskRepository extends EntityRepository
         $builder = $this
             ->createQueryBuilder("T")
             ->select(array(
-                'T.name',
+                'T.jobClass',
                 "count(NULLIF(T.running, '')) as running",
                 "count(NULLIF(T.finished, '')) as finished",
                 'count(T.name) as total',
-                'T.discriminator as md5',
+                'sum(CASE WHEN T.finished = 0 THEN T.id ELSE 0 END) as id',
                 'T.settings',
-                'T.jobInputs',
             ))
-            ->groupBy("T.".$group)
+            ->groupBy("T.jobClass", "T.settings", "T.jobPriority")
         ;
         $this
             ->setupIndexKeys($builder, $key1, $key2)
@@ -249,12 +245,26 @@ class TaskRepository extends EntityRepository
             ->setupLimit($builder, $limit)
             ->setupOffset($builder, $offset)
         ;
+
+        /**
+         * @phpstan-var  array{
+         *     'id': string,
+         *     'jobClass': string,
+         *     'pending': int,
+         *     'running': int,
+         *     'waiting': int,
+         *     'finished': int,
+         *     'total': int,
+         *     'settings': array
+         * }[] $status
+         */
         $status = $builder->getQuery()->getArrayResult();
 
         //====================================================================//
         // Add Tasks Waiting Counter
         //====================================================================//
         foreach ($status as &$taskStatus) {
+            $taskStatus["pending"] = $taskStatus["total"] - $taskStatus["finished"];
             $taskStatus["waiting"] = $taskStatus["total"] - $taskStatus["running"] - $taskStatus["finished"];
         }
 
@@ -297,7 +307,7 @@ class TaskRepository extends EntityRepository
             ->setupDiscriminator($builder, $md5)
         ;
 
-        return $builder->getQuery()->getSingleScalarResult();
+        return (int) $builder->getQuery()->getSingleScalarResult();
     }
 
     /**
@@ -336,7 +346,7 @@ class TaskRepository extends EntityRepository
             ->setupDiscriminator($builder, $md5)
         ;
 
-        return $builder->getQuery()->getSingleScalarResult();
+        return (int) $builder->getQuery()->getSingleScalarResult();
     }
 
     /**
@@ -374,7 +384,7 @@ class TaskRepository extends EntityRepository
             ->setupDiscriminator($builder, $md5)
         ;
 
-        return $builder->getQuery()->getSingleScalarResult();
+        return (int) $builder->getQuery()->getSingleScalarResult();
     }
 
     /**
@@ -393,6 +403,7 @@ class TaskRepository extends EntityRepository
 
         //==============================================================================
         // Count Old Finished Tasks
+        /** @var int $finished */
         $finished = $this->createQueryBuilder("t")
             ->delete()
             ->where("t.finished = 1")
@@ -405,6 +416,7 @@ class TaskRepository extends EntityRepository
 
         //==============================================================================
         // Count In Error Tasks
+        /** @var int $error */
         $error = $this->createQueryBuilder("t")
             ->delete()
             ->where("t.running = 1")
@@ -466,7 +478,7 @@ class TaskRepository extends EntityRepository
     {
         return $this->getEntityManager()->createQueryBuilder()
             ->select('tokens.name')
-            ->from('Splash\Tasking\Entity\Token', 'tokens')
+            ->from('BadPixxel\Tasking\Entity\Token', 'tokens')
             ->where("tokens.locked = 1")                                    // Token is Locked
             ->andWhere("tokens.lockedAtTimeStamp > :TokenExpireDate")       // Token Started before Error Date
             ->getDQL();
@@ -584,6 +596,8 @@ class TaskRepository extends EntityRepository
     private function setupOrderBy(&$builder, array $orderBy = array()): self
     {
         if (0 == count($orderBy)) {
+            $builder->addOrderBy("T.jobPriority", "DESC");
+
             return $this;
         }
 

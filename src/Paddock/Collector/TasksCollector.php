@@ -13,13 +13,23 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Paddock\Collector;
+namespace BadPixxel\Tasking\Paddock\Collector;
 
 use BadPixxel\Paddock\Core\Collector\AbstractCollector;
-use Splash\Tasking\Services\Configuration;
+use BadPixxel\Tasking\Services\Configuration;
+use Symfony\Contracts\Cache\CacheInterface;
 
 class TasksCollector extends AbstractCollector
 {
+    /**
+     * Service Constructor
+     */
+    public function __construct(
+        CacheInterface $paddockCollectors,
+        private readonly Configuration $configuration,
+    ) {
+        parent::__construct($paddockCollectors);
+    }
     //====================================================================//
     // DEFINITION
     //====================================================================//
@@ -80,7 +90,7 @@ class TasksCollector extends AbstractCollector
 
         try {
             if (!isset($status)) {
-                $status = Configuration::getTasksRepository()->getTasksSummary();
+                $status = $this->configuration->getTasksRepository()->getTasksSummary();
             }
 
             return $status[$key] ?? 0;

@@ -13,18 +13,17 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Repository;
+namespace BadPixxel\Tasking\Repository;
 
+use BadPixxel\Tasking\Entity\Token;
+use BadPixxel\Tasking\Helper\Timer;
 use DateTime;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\OptimisticLockException;
 use Exception;
-use Splash\Tasking\Entity\Token;
-use Splash\Tasking\Services\Configuration;
-use Splash\Tasking\Tools\Status;
-use Splash\Tasking\Tools\Timer;
 use Throwable;
+use Webmozart\Assert\Assert;
 
 /**
  * Task Tokens Repository
@@ -32,7 +31,8 @@ use Throwable;
  * Manage Acquire & Release of Tasks Tokens
  *
  * @template-extends EntityRepository<Token>
- */class TokenRepository extends EntityRepository
+ */
+class TokenRepository extends EntityRepository
 {
     /**
      * Token Acquire Mode => Normal => No concurrency management
@@ -66,17 +66,10 @@ use Throwable;
      */
     public function acquire(string $tokenName): ?Token
     {
-        $token = match ($this->mode) {
+        return match ($this->mode) {
             self::MODE_NORMAL => $this->acquireNormal($tokenName),
             default => $this->acquireOptimistic($tokenName),
         };
-        if ($token) {
-            Status::setTokenAcquired($tokenName);
-
-            return $token;
-        }
-
-        return null;
     }
 
     /**
@@ -88,17 +81,10 @@ use Throwable;
      */
     public function release(string $tokenName): bool
     {
-        $result = match ($this->mode) {
+        return match ($this->mode) {
             self::MODE_NORMAL => $this->releaseNormal($tokenName),
             default => $this->releaseOptimistic($tokenName),
         };
-        if ($result) {
-            Status::setTokenReleased();
-
-            return true;
-        }
-
-        return false;
     }
 
     /**
@@ -156,13 +142,13 @@ use Throwable;
     /**
      * Delete all Token Unused for more than given delay
      *
-     * @param null|int $maxAge Max Age for Tokens in Hours
+     * @param int $maxAge Max Age for Tokens in Hours
      *
      * @return int Count of Deleted Tasks
      */
-    public function clean(int $maxAge = null) : int
+    public function clean(int $maxAge) : int
     {
-        $maxAge = $maxAge ?: Configuration::getTokenDeleteDelay();
+        Assert::greaterThanEq($maxAge, 0);
 
         //==============================================================================
         // Prepare Max Age DateTime
@@ -258,7 +244,7 @@ use Throwable;
      *
      * @return null|Token Null if Token not found or already Locked, $token Entity if Lock Acquired
      *
-     * @SuppressWarnings(PHPMD.ExitExpression)
+     * @SuppressWarnings(ExitExpression)
      */
     private function acquireOptimistic(string $tokenName): ?Token
     {

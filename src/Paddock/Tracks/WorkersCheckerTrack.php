@@ -13,15 +13,19 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Paddock\Tracks;
+namespace BadPixxel\Tasking\Paddock\Tracks;
 
 use BadPixxel\Paddock\Core\Models\Tracks\AbstractTrack;
+use BadPixxel\Tasking\Paddock\Collector\WorkersCollector;
 use Exception;
-use Splash\Tasking\Paddock\Collector\WorkersCollector;
-use Splash\Tasking\Services\Configuration;
 
 class WorkersCheckerTrack extends AbstractTrack
 {
+    /**
+     * Supervisor Max Workers
+     */
+    private static int $supervisorMaxWorkers = 10;
+
     /**
      * Track Constructor
      *
@@ -39,12 +43,6 @@ class WorkersCheckerTrack extends AbstractTrack
         $this->collector = WorkersCollector::getCode();
 
         //====================================================================//
-        // Load Tasking Configuration
-        //====================================================================//
-
-        $maxWorkers = Configuration::getSupervisorMaxWorkers();
-
-        //====================================================================//
         // Add Rules
         //====================================================================//
 
@@ -54,7 +52,7 @@ class WorkersCheckerTrack extends AbstractTrack
             // At Least One Worker is Running
             "ne" => true,
             // All Expected Workers are Running (-1 if restarting)
-            "gte" => array("warning" => $maxWorkers - 1),
+            "gte" => array("warning" => self::$supervisorMaxWorkers - 1),
             // Register Value for Metrics
             "metric" => "Running"
         ));
@@ -62,7 +60,7 @@ class WorkersCheckerTrack extends AbstractTrack
         // Check Supervisors are Running
         $this->addRule("supervisor", array(
             // At Least One Supervisor
-            "ne" => array("warning" => $maxWorkers),
+            "ne" => array("warning" => self::$supervisorMaxWorkers),
             // Register Value for Metrics
             "metric" => "Supervisor"
         ));
@@ -72,7 +70,7 @@ class WorkersCheckerTrack extends AbstractTrack
             // At Least One Worker
             "ne" => true,
             // All Expected Workers
-            "gte" => array("warning" => $maxWorkers),
+            "gte" => array("warning" => self::$supervisorMaxWorkers),
             // Register Value for Metrics
             "metric" => "Total"
         ));
@@ -82,5 +80,13 @@ class WorkersCheckerTrack extends AbstractTrack
             // Register Value for Metrics
             "metric" => "Sleeping"
         ));
+    }
+
+    /**
+     * Supervisor Max Workers
+     */
+    public static function setSupervisorMaxWorkers(int $maxWorkers): void
+    {
+        self::$supervisorMaxWorkers = $maxWorkers;
     }
 }

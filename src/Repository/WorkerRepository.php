@@ -13,10 +13,10 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Repository;
+namespace BadPixxel\Tasking\Repository;
 
+use BadPixxel\Tasking\Entity\Worker;
 use Doctrine\ORM\EntityRepository;
-use Splash\Tasking\Entity\Worker;
 use Throwable;
 
 /**
@@ -27,7 +27,7 @@ use Throwable;
 class WorkerRepository extends EntityRepository
 {
     /**
-     * Identify Current Worker on this machine using it's PID
+     * Identify Current Worker on this machine using its PID
      *
      * @return null|Worker
      */
