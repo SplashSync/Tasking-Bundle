@@ -31,6 +31,73 @@
 services:
 
     ################################################################################
+    # Develop Image
+    app:
+        image: "registry.gitlab.com/badpixxel-projects/php-sdk:php-8.1"
+        container_name: dev.tasking.local
+        command:        sh /var/www/html/docker/docker-entrypoint.sh
+        hostname:       dev.tasking.local
+        depends_on:
+            - mysql
+        volumes:
+            - ./:/var/www/html/
+            - ./docker/sites-available/000-default.conf:/etc/apache2/sites-available/000-default.conf
+        networks:
+            tasking: { ipv4_address: 172.201.0.10, aliases: [ dev.tasking.local ] }
+
+    ################################################################################
+    # Symfony 7 + PHP 8.3
+    sf7:
+        image: "registry.gitlab.com/badpixxel-projects/php-sdk:php-8.3"
+        command:        sh /var/www/html/docker/docker-entrypoint.sh
+        container_name: sf7.tasking.local
+        hostname:       sf7.tasking.local
+        volumes:
+            - ./:/var/www/html
+            - ./docker/sites-available/000-default.conf:/etc/apache2/sites-available/000-default.conf
+            - sf7-var:/var/www/html/var
+            - sf7-vendor:/var/www/html/vendor
+        environment:
+            SYMFONY_REQUIRE: 7.*
+        networks:
+            tasking:        { ipv4_address: 172.201.0.74, aliases: [ sf7.tasking.local ] }
+
+    ################################################################################
+    # Symfony 6 + PHP 8.2
+    sf6:
+        image: "registry.gitlab.com/badpixxel-projects/php-sdk:php-8.2"
+        command:        sh /var/www/html/docker/docker-entrypoint.sh
+        container_name: sf6.tasking.local
+        hostname:       sf6.tasking.local
+        volumes:
+            - ./:/var/www/html
+            - ./docker/sites-available/000-default.conf:/etc/apache2/sites-available/000-default.conf
+            - sf6-var:/var/www/html/var
+            - sf6-vendor:/var/www/html/vendor
+        environment:
+            SYMFONY_REQUIRE: 6.4.*
+        networks:
+            tasking:        { ipv4_address: 172.201.0.64, aliases: [ sf6.tasking.local ] }
+
+    ################################################################################
+    # Symfony 5 + PHP 8.1
+    sf5:
+        image: "registry.gitlab.com/badpixxel-projects/php-sdk:php-8.1"
+        command:        sh /var/www/html/docker/docker-entrypoint.sh
+        container_name: sf5.tasking.local
+        hostname:       sf5.tasking.local
+        volumes:
+            - ./:/var/www/html
+            - ./docker/sites-available/000-default.conf:/etc/apache2/sites-available/000-default.conf
+            - sf5-var:/var/www/html/var
+            - sf5-vendor:/var/www/html/vendor
+        environment:
+            SYMFONY_REQUIRE: 5.4.*
+        networks:
+            tasking:        { ipv4_address: 172.201.0.54, aliases: [ sf5.tasking.local ] }
+
+
+    ################################################################################
     # MySQL Container
     mysql:
         image: mysql:5.7
@@ -43,22 +110,6 @@ services:
             - "MYSQL_PASSWORD=tasking"
         networks:
             tasking:        { ipv4_address: 172.201.0.100, aliases: [ mysql.tasking.local ] }
-
-    ################################################################################
-    # Dolibarr Latest (Develop)     
-    app:
-        build:
-            context: ./docker
-        container_name: dev.tasking.local
-        depends_on:
-            - mysql
-        volumes:
-            - "./:/var/www/html/"
-            - symfony-var:/var/www/html/var
-        command: sh /var/www/html/docker/docker-entrypoint.sh
-        hostname: dev.tasking.local
-        networks:
-            tasking:        { ipv4_address: 172.201.0.10, aliases: [ dev.tasking.local ] }
 
     ################################################################################
     # PhpMyAdmin Container
@@ -76,8 +127,25 @@ services:
         networks:
             tasking:        { ipv4_address: 172.201.0.200, aliases: [ phpmyadmin.tasking.local ] }
 
+    ################################################################################
+    # Node JS Container
+    node:
+        image:              'node:18'
+        container_name:     node.tasking.local
+        user:               'node'
+        tty:                true
+        volumes:
+            - ./:/srv
+        working_dir:        '/srv'
+        command:            ['sh', '-c', 'yarn rebuild']
+
 volumes:
-    symfony-var:    ~
+    sf7-var:        ~
+    sf7-vendor:     ~
+    sf6-var:        ~
+    sf6-vendor:     ~
+    sf5-var:        ~
+    sf5-vendor:     ~
 
 networks:
     ################################################################################

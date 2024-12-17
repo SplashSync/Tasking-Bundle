@@ -22,9 +22,14 @@
     </testsuites>
 
     <php>
-        <server name="KERNEL_CLASS"                 value="Splash\Tasking\Tests\Kernel" />
+        <server name="KERNEL_CLASS"                 value="BadPixxel\Tasking\Tests\Kernel" />
         <server name="KERNEL_DIR"                   value="tests/" />
         <env    name="SYMFONY_DEPRECATIONS_HELPER"  value="disabled" />
+
+        <!-- ###+ symfony/framework-bundle ### -->
+        <env name="APP_ENV" value="test"/>
+        <env name="APP_SECRET" value="6e8b9e9b1431cd94e93d0074f3004b2b"/>
+        <!-- ###- symfony/framework-bundle ### -->
     </php>
 
 </phpunit>

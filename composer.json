@@ -6,7 +6,8 @@
     "homepage":     "http://www.badpixxel.com",
     "license":      "MIT",
     "prefer-stable": true,
-    
+    "version":      "3.0",
+
     "authors": [
         {
             "name": "Bernard Paquier",
@@ -16,8 +17,7 @@
     
     "autoload": {
         "psr-4": {
-            "BadPixxel\\Tasking\\": "src",
-            "Splash\\Tasking\\": "oldSrc"
+            "BadPixxel\\Tasking\\": "src"
         }
     },
     "autoload-dev": {
@@ -32,31 +32,37 @@
         "ext-curl":                                     "*",
         "ext-pcntl":                                    "*",
 
-        "symfony/config":                               "^5.4 || ^6.0",
-        "symfony/dependency-injection":                 "^5.4",
-        "symfony/event-dispatcher":                     "^5.4 || ^6.0",
-        "symfony/options-resolver":                     "^5.4 || ^6.0",
+        "symfony/config":                               "^5.4|^6.4|^7.0",
+        "symfony/dependency-injection":                 "^5.4|^6.4|^7.0",
+        "symfony/event-dispatcher":                     "^5.4|^6.4|^7.0",
+        "symfony/options-resolver":                     "^5.4|^6.4|^7.0",
         "symfony/monolog-bundle":                       "^3.0",
-        
+        "twig/extra-bundle":                            ">=3.0",
+        "twig/intl-extra":                              ">=3.0",
+
         "doctrine/doctrine-bundle":                     "^2.0",
-        "doctrine/annotations":                         "^1.0|^2.0",
 
-        "sonata-project/admin-bundle":                  "^3.0|^4.0",
-        "sonata-project/doctrine-orm-admin-bundle":     "*",
-
-        "monolog/monolog":                              "^1.25.1|^2"
+        "monolog/monolog":                              "^1.25.1|^2",
+        "webmozart/assert":                             "^1.0"
     },
     
     "require-dev": {
-        "badpixxel/php-sdk":                            "~2.0",
+        "badpixxel/php-sdk":                            "3.0.x-dev",
         "badpixxel/paddock-core":                       "dev-main",
 
-        "symfony/http-kernel":                          "^5.4 || ^6.0",
-        "symfony/console":                              "^5.4 || ^6.0",
-        "symfony/framework-bundle":                     "^5.4 || ^6.0",
-        "symfony/routing":                              "^5.4 || ^6.0",
-        "symfony/debug-bundle":                         "^5.4 || ^6.0",
+        "symfony/http-kernel":                          "^5.4|^6.4|^7.0",
+        "symfony/console":                              "^5.4|^6.4|^7.0",
+        "symfony/framework-bundle":                     "^5.4|^6.4|^7.0",
+        "symfony/runtime":                              "^5.4|^6.4|^7.0",
+        "symfony/flex":                                 "^1.0|^2.0",
+        "symfony/debug-bundle":                         "^5.4|^6.4|^7.0",
+        "symfony/web-profiler-bundle":                  "^5.4|^6.4|^7.0",
         "symfony/phpunit-bridge":                       "^6.0",
+        "symfony/ux-live-component":                    "^2.0",
+        "symfony/webpack-encore-bundle": "^1.7|^2.0",
+
+        "sonata-project/admin-bundle":                  "^4.0",
+        "sonata-project/doctrine-orm-admin-bundle":     "*",
 
         "sentry/sentry-symfony":                        "^4.0"
     },
@@ -64,14 +70,24 @@
     "config": {
         "preferred-install":                        "dist",
         "allow-plugins": {
-            "phpro/grumphp": true,
-            "php-http/discovery": true,
-            "symfony/runtime": true
+            "phpro/grumphp-shim":                   true,
+            "php-http/discovery":                   true,
+            "symfony/runtime":                      true,
+            "symfony/flex":                         true
         }
     },
 
     "extra": {
-        "symfony-web-dir": "public",
-        "symfony-public-dir": "public"
-    }    
+        "public-dir":                               "tests/public",
+        "config-dir":                               "tests/config"
+
+    },
+    "scripts": {
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install %PUBLIC_DIR% --symlink": "symfony-cmd"
+        },
+        "post-update-cmd": "@auto-scripts",
+        "post-install-cmd": "@auto-scripts"
+    }
 }
