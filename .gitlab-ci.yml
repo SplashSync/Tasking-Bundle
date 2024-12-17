@@ -61,7 +61,7 @@ stages:
         # Execute Grumphp Testsuite
         - curl -s https://raw.githubusercontent.com/BadPixxel/Php-Sdk/main/ci/grumphp.sh  | sh
         - php bin/console
-        - php bin/console -env=test
+        - php bin/console --env=test
         # Execute PhpUnit Tests
         - vendor/bin/phpunit --log-junit $CI_PROJECT_DIR/test-report.xml
 
@@ -74,6 +74,6 @@ tests:php-8.1:
   image: registry.gitlab.com/badpixxel-projects/php-sdk:php-8.1
   <<: *core_tests
 
-tests:php-8.0:
-    image: registry.gitlab.com/badpixxel-projects/php-sdk:php-8.0
-    <<: *core_tests
+#tests:php-8.0:
+#    image: registry.gitlab.com/badpixxel-projects/php-sdk:php-8.0
+#    <<: *core_tests
