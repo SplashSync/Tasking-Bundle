@@ -90,3 +90,4 @@ npm-debug.log
 yarn-error.log
 ###< symfony/webpack-encore-bundle ###
 /yarn.lock
+/tests/public/bundles
