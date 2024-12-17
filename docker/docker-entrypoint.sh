@@ -17,29 +17,32 @@
 ################################################################################
 #!/bin/sh
 
+################################################################################
+# Compile Project
+################################################################################
+
+echo "Compile Project"
+composer update
+rm -Rf /var/www/html/var/cache
+php bin/console
+php bin/console --env=test
+
 if [ ! -f /var/www/html/var/install.lock ]; then
 
 	echo "Wait for MySql Container to Start"
 	sleep 10
 
-  echo "Install Git"
-  apt update && apt install -y git
-
 	echo "Update Database Schemas"
-	cd /var/www/html/
 	php bin/console doctrine:schema:update --force
 
   echo "OK" > /var/www/html/var/install.lock
 fi
 
-rm -Rf /var/www/html/var/cache
-
-php bin/console
-php bin/console --env=test
-cp /var/www/html/var/cache/test/appAppKernelTestDebugContainer.xml /project/var/cache/dev/testContainer.xml
-chown www-data:www-data -Rf /var/www/html/var
-
+################################################################################
+# Start Apache
+################################################################################
 echo "Setup Apache..."
+chown www-data:www-data -Rf /var/www/html/var
 a2enmod rewrite
 service apache2 reload
 
