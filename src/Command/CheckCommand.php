@@ -13,9 +13,9 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Command;
+namespace BadPixxel\Tasking\Command;
 
-use Splash\Tasking\Services\WorkersManager;
+use BadPixxel\Tasking\Services\WorkersManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -26,23 +26,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 class CheckCommand extends Command
 {
     /**
-     * Workers Manager Service
-     *
-     * @var WorkersManager
+     * Command Constructor
      */
-    private $manager;
-
-    /**
-     * Class Constructor
-     *
-     * @param WorkersManager $workerManager
-     */
-    public function __construct(WorkersManager $workerManager)
-    {
-        parent::__construct('tasking:check');
-        //====================================================================//
-        // Link to Worker Manager Service
-        $this->manager = $workerManager;
+    public function __construct(
+        private readonly WorkersManager $workersManager
+    ) {
+        parent::__construct();
     }
 
     /**
@@ -59,15 +48,15 @@ class CheckCommand extends Command
     /**
      * {@inheritdoc}
      *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @SuppressWarnings(UnusedFormalParameter)
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         //====================================================================//
         // Check Local Supervisor is Running
-        // Check Crontab is Setup (if Activated)
+        // Check Crontab setup (if Activated)
         // Check Remotes Supervisors Are Running (if Activated)
-        $this->manager->checkSupervisor();
+        $this->workersManager->checkSupervisor();
 
         return 0;
     }

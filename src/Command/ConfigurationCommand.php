@@ -13,9 +13,9 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Command;
+namespace BadPixxel\Tasking\Command;
 
-use Splash\Tasking\Services\Configuration;
+use BadPixxel\Tasking\Services\Configuration;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
@@ -29,26 +29,20 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class ConfigurationCommand extends Command
 {
     /**
-     * Workers Manager Service
-     *
-     * @var TranslatorInterface
-     */
-    private $translator;
-
-    /**
      * @var array
      */
-    private $tableValues = array();
+    private array $tableValues = array();
 
     /**
      * Class Constructor
      *
      * @param TranslatorInterface $translator
      */
-    public function __construct(TranslatorInterface $translator)
-    {
-        parent::__construct(null);
-        $this->translator = $translator;
+    public function __construct(
+        private readonly Configuration $configuration,
+        private readonly TranslatorInterface $translator,
+    ) {
+        parent::__construct();
     }
 
     /**
@@ -65,25 +59,25 @@ class ConfigurationCommand extends Command
     /**
      * {@inheritdoc}
      *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @SuppressWarnings(UnusedFormalParameter)
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         //====================================================================//
         // Add First Table Line
         $this->tableValues[] = array(
-            "<comment>".$this->translator->trans("config.title", array(), "SplashTaskingBundle")."</comment>",
+            "<comment>".$this->translator->trans("config.title", array(), "TaskingBundle")."</comment>",
         );
         //====================================================================//
         // Add Core Table Lines
-        foreach (Configuration::getRawConfiguration() as $key => $value) {
+        foreach ($this->configuration->getRawConfiguration() as $key => $value) {
             if (is_scalar($value)) {
                 $this->addToTable($output, $key, $value);
             }
         }
         //====================================================================//
         // Add Sub-Configuration Table Lines
-        foreach (Configuration::getRawConfiguration() as $key => $value) {
+        foreach ($this->configuration->getRawConfiguration() as $key => $value) {
             if (is_array($value)) {
                 $this->addToTable($output, $key, $value);
             }
@@ -107,13 +101,13 @@ class ConfigurationCommand extends Command
      */
     private function addToTable(OutputInterface $output, string $key, $value, string $parentKey = null): void
     {
-        $transkey = $parentKey ? "config.".$parentKey.".".$key : "config.".$key;
+        $transKey = $parentKey ? "config.".$parentKey.".".$key : "config.".$key;
         //====================================================================//
         // Add Sub-Configuration
         if (is_array($value)) {
             $this->tableValues[] = new TableSeparator();
             $this->tableValues[] = array(
-                "<comment>".$this->translator->trans($transkey.".title", array(), "SplashTaskingBundle")."</comment>",
+                "<comment>".$this->translator->trans($transKey.".title", array(), "TaskingBundle")."</comment>",
             );
 
             foreach ($value as $childKey => $childValue) {
@@ -131,9 +125,9 @@ class ConfigurationCommand extends Command
         //====================================================================//
         // Display Value
         $this->tableValues[] = array(
-            $this->translator->trans($transkey.".title", array(), "SplashTaskingBundle"),
+            $this->translator->trans($transKey.".title", array(), "TaskingBundle"),
             "<info>".$valueStr."</info>",
-            $this->translator->trans($transkey.".desc", array(), "SplashTaskingBundle"),
+            $this->translator->trans($transKey.".desc", array(), "TaskingBundle"),
         );
     }
 }

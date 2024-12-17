@@ -13,12 +13,12 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Command;
+namespace BadPixxel\Tasking\Command;
 
+use BadPixxel\Tasking\Entity\Worker;
+use BadPixxel\Tasking\Services\Configuration;
+use BadPixxel\Tasking\Services\SystemManager;
 use Exception;
-use Splash\Tasking\Entity\Worker;
-use Splash\Tasking\Services\Configuration;
-use Splash\Tasking\Services\SystemManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -36,21 +36,13 @@ class StatusCommand extends Command
     private ProgressBar $progress;
 
     /**
-     * @var SystemManager
+     * Command Constructor
      */
-    private SystemManager $system;
-
-    /**
-     * Class Constructor
-     *
-     * @param SystemManager $systemManager
-     */
-    public function __construct(SystemManager $systemManager)
-    {
-        parent::__construct('tasking:status');
-        //====================================================================//
-        // Link to System Manager Service
-        $this->system = $systemManager;
+    public function __construct(
+        private readonly SystemManager $system,
+        private readonly Configuration $configuration,
+    ) {
+        parent::__construct();
     }
 
     /**
@@ -67,7 +59,7 @@ class StatusCommand extends Command
     /**
      * {@inheritdoc}
      *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @SuppressWarnings(UnusedFormalParameter)
      *
      * @throws Exception
      */
@@ -84,7 +76,7 @@ class StatusCommand extends Command
         }
         //====================================================================//
         // Load Tasks Repository
-        $repo = Configuration::getTasksRepository();
+        $repo = $this->configuration->getTasksRepository();
         while (!$this->system->hasStopSignal()) {
             //====================================================================//
             // Ensure System is NOT Paused
@@ -129,23 +121,17 @@ class StatusCommand extends Command
      *
      * @param OutputInterface $output
      *
-     * @SuppressWarnings(PHPMD.ElseExpression)
-     *
      * @throws Exception
      */
     protected function showWorkers(OutputInterface $output): void
     {
-        //====================================================================//
-        // Load Tasks Repository
-        $repo = Configuration::getWorkerRepository();
-
         //====================================================================//
         // List Workers Status
         $output->writeln('==============================================');
         $output->writeln('= Workers : ');
         $disabled = 0;
         /** @var Worker $worker */
-        foreach ($repo->findAll() as $worker) {
+        foreach ($this->configuration->getWorkerRepository()->findAll() as $worker) {
             //====================================================================//
             // Workers is Disabled
             if (!$worker->isEnabled()) {
@@ -181,11 +167,8 @@ class StatusCommand extends Command
     protected function getWorkersStatusStr(): string
     {
         //====================================================================//
-        // Load Worker Repository
-        $workers = Configuration::getWorkerRepository();
-        //====================================================================//
         // Fetch Workers Status
-        $status = $workers->getWorkersStatus();
+        $status = $this->configuration->getWorkerRepository()->getWorkersStatus();
         //====================================================================//
         // Generate Signals String
         $signalsStatus = $this->system->getSignalsStatus();
@@ -248,8 +231,6 @@ class StatusCommand extends Command
      * @param int $token
      *
      * @return string
-     *
-     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     private function getTasksStatusStr(int $finished, int $total, int $token): string
     {
@@ -262,8 +243,9 @@ class StatusCommand extends Command
         if ($token > 0) {
             $message .= $token.' Tokens... ';
         }
-        if (($finished < $total) && (Configuration::getTasksDeleteDelay() > 0)) {
-            $speed = sprintf("%.02f", 60 * $finished / Configuration::getTasksDeleteDelay());
+        $taskDeleteDelay = $this->configuration->getTasksDeleteDelay();
+        if (($finished < $total) && ($taskDeleteDelay > 0)) {
+            $speed = sprintf("%.02f", 60 * $finished / $taskDeleteDelay);
             $message .= $speed.' Tasks/min';
         }
 

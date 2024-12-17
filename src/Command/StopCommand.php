@@ -13,11 +13,11 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Command;
+namespace BadPixxel\Tasking\Command;
 
+use BadPixxel\Tasking\Services\WorkersManager;
 use DateTime;
 use Exception;
-use Splash\Tasking\Services\WorkersManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -29,13 +29,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 class StopCommand extends Command
 {
     /**
-     * Workers Manager Service
-     *
-     * @var WorkersManager
-     */
-    private WorkersManager $manager;
-
-    /**
      * Timeout for Worker Stop
      *
      * @var DateTime
@@ -43,16 +36,12 @@ class StopCommand extends Command
     private DateTime $timeout;
 
     /**
-     * Class Constructor
-     *
-     * @param WorkersManager $workerManager
+     * Command Constructor
      */
-    public function __construct(WorkersManager $workerManager)
-    {
-        parent::__construct('tasking:stop');
-        //====================================================================//
-        // Link to Worker Manager Service
-        $this->manager = $workerManager;
+    public function __construct(
+        private readonly WorkersManager $manager
+    ) {
+        parent::__construct();
     }
 
     /**
@@ -133,7 +122,7 @@ class StopCommand extends Command
     }
 
     /**
-     * Check if Command Timeout is Exceded
+     * Check if Command Timeout is Exceeded
      *
      * @return bool
      */

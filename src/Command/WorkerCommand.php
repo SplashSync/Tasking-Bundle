@@ -13,12 +13,12 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Command;
+namespace BadPixxel\Tasking\Command;
 
+use BadPixxel\Tasking\Services\Runner;
+use BadPixxel\Tasking\Services\SystemManager;
+use BadPixxel\Tasking\Services\WorkersManager;
 use Exception;
-use Splash\Tasking\Services\Runner;
-use Splash\Tasking\Services\SystemManager;
-use Splash\Tasking\Services\WorkersManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -41,43 +41,14 @@ class WorkerCommand extends Command
     private int $taskTotal = 0;
 
     /**
-     * Workers Manager Service
-     *
-     * @var WorkersManager
+     * Service Constructor
      */
-    private WorkersManager $manager;
-
-    /**
-     * @var SystemManager
-     */
-    private SystemManager $system;
-
-    /**
-     * Task Runner Service
-     *
-     * @var Runner
-     */
-    private Runner $runner;
-
-    /**
-     * Class Constructor
-     *
-     * @param WorkersManager $workerManager
-     * @param SystemManager  $system
-     * @param Runner         $james
-     */
-    public function __construct(WorkersManager $workerManager, SystemManager $system, Runner $james)
-    {
-        parent::__construct('tasking:worker');
-        //====================================================================//
-        // Link to Worker Manager Service
-        $this->manager = $workerManager;
-        //====================================================================//
-        // Link to System Manager Service
-        $this->system = $system;
-        //====================================================================//
-        // Link to Task Runner Service
-        $this->runner = $james;
+    public function __construct(
+        private readonly WorkersManager $workersManager,
+        private readonly SystemManager  $systemManager,
+        private readonly Runner         $runner
+    ) {
+        parent::__construct();
     }
 
     /**
@@ -113,12 +84,12 @@ class WorkerCommand extends Command
             }
             //====================================================================//
             // Refresh Worker Status (WatchDog)
-            $this->manager->refresh(false);
+            $this->workersManager->refresh(false);
         }
 
         //==============================================================================
         // Set Status as Stopped
-        $this->manager->stop();
+        $this->workersManager->stop();
         //====================================================================//
         // Ensure Release All Token Before Exit
         $this->runner->ensureTokenRelease();
@@ -141,14 +112,14 @@ class WorkerCommand extends Command
         //====================================================================//
         // Safety Checks
         if (!is_scalar($processId) || ($processId <= 0)) {
-            throw new Exception('You must provide a proccess Id Number');
+            throw new Exception('You must provide a process Id Number');
         }
         //====================================================================//
         // Init Worker
-        $this->manager->initialize((int) $processId);
+        $this->workersManager->initialize((int) $processId);
         //====================================================================//
         // Init System Manager
-        $this->system->initSignalHandlers();
+        $this->systemManager->initSignalHandlers();
         //====================================================================//
         // Setup PHP Error Reporting Level
         error_reporting(E_ERROR);
@@ -165,12 +136,12 @@ class WorkerCommand extends Command
      */
     private function isToKill(OutputInterface $output): bool
     {
-        if ($this->system->hasStopOrPauseSignal()) {
+        if ($this->systemManager->hasStopOrPauseSignal()) {
             $output->writeln("<comment>Stop or Pause Signal Received</comment>");
 
             return true;
         }
 
-        return $this->manager->isToKill($this->taskTotal);
+        return $this->workersManager->isToKill($this->taskTotal);
     }
 }

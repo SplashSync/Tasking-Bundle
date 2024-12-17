@@ -13,12 +13,13 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Command;
+namespace BadPixxel\Tasking\Command;
 
+use BadPixxel\Tasking\Services\SupervisorsManager;
+use BadPixxel\Tasking\Services\SystemManager;
+use BadPixxel\Tasking\Services\Tasks\StaticTasksUpdater;
+use BadPixxel\Tasking\Services\TasksManager;
 use Exception;
-use Splash\Tasking\Services\SupervisorsManager;
-use Splash\Tasking\Services\SystemManager;
-use Splash\Tasking\Services\TasksManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -29,46 +30,15 @@ use Symfony\Component\Console\Output\OutputInterface;
 class SupervisorCommand extends Command
 {
     /**
-     * Supervisor Manager Service
-     *
-     * @var SupervisorsManager
-     */
-    private SupervisorsManager $manager;
-
-    /**
-     * @var SystemManager
-     */
-    private SystemManager $system;
-
-    /**
-     * Tasks Manager Service
-     *
-     * @var TasksManager
-     */
-    private TasksManager $tasks;
-
-    /**
-     * Class Constructor
-     *
-     * @param SupervisorsManager $supervisorsManager
-     * @param SystemManager      $system
-     * @param TasksManager       $tasksManager
+     * Command Constructor
      */
     public function __construct(
-        SupervisorsManager $supervisorsManager,
-        SystemManager $system,
-        TasksManager $tasksManager
+        private readonly SupervisorsManager $supervisorsManager,
+        private readonly SystemManager      $systemManager,
+        private readonly StaticTasksUpdater $staticTasksUpdater,
+        private readonly TasksManager $tasksManager
     ) {
-        parent::__construct('tasking:supervisor');
-        //====================================================================//
-        // Link to Supervisor Manager Service
-        $this->manager = $supervisorsManager;
-        //====================================================================//
-        // Link to System Manager Service
-        $this->system = $system;
-        //====================================================================//
-        // Link to Tasks Manager
-        $this->tasks = $tasksManager;
+        parent::__construct();
     }
 
     /**
@@ -87,7 +57,7 @@ class SupervisorCommand extends Command
     /**
      * {@inheritdoc}
      *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @SuppressWarnings(UnusedFormalParameter)
      *
      * @throws Exception
      */
@@ -102,24 +72,24 @@ class SupervisorCommand extends Command
         while (!$this->isToKill($output)) {
             //====================================================================//
             // Ensure System is NOT Paused
-            if (!$this->system->hasPauseSignal()) {
+            if (!$this->systemManager->hasPauseSignal()) {
                 //====================================================================//
                 // Refresh Status of Each Worker
-                $this->manager->doSupervision();
+                $this->supervisorsManager->doSupervision();
                 //====================================================================//
                 // Clean All Old Tasks
-                $this->tasks->cleanUp();
+                $this->tasksManager->cleanUp();
                 //====================================================================//
                 // Refresh Worker Status (WatchDog)
-                $this->manager->refresh(false);
+                $this->supervisorsManager->refresh(false);
             }
             //====================================================================//
             // Wait
-            $this->manager->doPause();
+            $this->supervisorsManager->doPause();
         }
         //==============================================================================
         // Set Status as Stopped
-        $this->manager->stop();
+        $this->supervisorsManager->stop();
 
         return 0;
     }
@@ -133,14 +103,14 @@ class SupervisorCommand extends Command
     {
         //====================================================================//
         // Init Worker
-        $this->manager->initialize(0);
-        $this->manager->getMaxWorkers();
+        $this->supervisorsManager->initialize(0);
+        $this->supervisorsManager->getMaxWorkers();
         //====================================================================//
         // Init System Manager
-        $this->system->initSignalHandlers();
+        $this->systemManager->initSignalHandlers();
         //====================================================================//
         // Init Static Tasks List
-        $this->tasks->loadStaticTasks();
+        $this->staticTasksUpdater->loadStaticTasks();
         //====================================================================//
         // Setup PHP Error Reporting Level
         error_reporting(E_ERROR);
@@ -157,12 +127,12 @@ class SupervisorCommand extends Command
      */
     private function isToKill(OutputInterface $output): bool
     {
-        if ($this->system->hasStopSignal()) {
+        if ($this->systemManager->hasStopSignal()) {
             $output->writeln("<comment>Stop Signal Received</comment>");
 
             return true;
         }
 
-        return $this->manager->isToKill(null);
+        return $this->supervisorsManager->isToKill(null);
     }
 }

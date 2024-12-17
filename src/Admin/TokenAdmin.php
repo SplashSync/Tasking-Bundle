@@ -13,17 +13,27 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Admin;
+namespace BadPixxel\Tasking\Admin;
 
+use BadPixxel\Tasking\Entity\Token;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Show\ShowMapper;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
 /**
- * @author Bernard Paquier <eshop.bpaquier@gmail.com>
+ * @extends  AbstractAdmin<Token>
  */
+#[AutoconfigureTag("sonata.admin", array(
+    "name" => "sonata.admin",
+    "manager_type" => "orm",
+    "model_class" => Token::class,
+    "label" => "Token",
+    "group" => "Tasking",
+    "icon" => "<i class='fa fa-server'></i>",
+))]
 class TokenAdmin extends AbstractAdmin
 {
     /**

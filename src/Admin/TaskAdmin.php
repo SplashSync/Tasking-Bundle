@@ -13,18 +13,30 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Admin;
+namespace BadPixxel\Tasking\Admin;
 
+use BadPixxel\Tasking\Entity\Task;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Show\ShowMapper;
 use Sonata\Form\Type\DateTimePickerType;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
 /**
  * Sonata Admin Management for Tasks
+ *
+ * @extends  AbstractAdmin<Task>
  */
+#[AutoconfigureTag("sonata.admin", array(
+    "name" => "sonata.admin",
+    "manager_type" => "orm",
+    "model_class" => Task::class,
+    "label" => "Tasks",
+    "group" => "Tasking",
+    "icon" => "<i class='fa fa-server'></i>",
+))]
 class TaskAdmin extends AbstractAdmin
 {
     /**

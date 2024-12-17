@@ -13,39 +13,30 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Controller;
+namespace BadPixxel\Tasking\Actions;
 
-use Exception;
-use Splash\Tasking\Services\Configuration;
+use BadPixxel\Tasking\Services\Configuration;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
- * @author Bernard Paquier <eshop.bpaquier@gmail.com>
+ * Get Server Tasking Status as Json Response
  */
-class StatusController extends AbstractController
+class Status extends AbstractController
 {
-    /**
-     * Tasking Status
-     *
-     * @throws Exception
-     *
-     * @return JsonResponse
-     */
-    public function mainAction() : JsonResponse
+    public function __construct(
+        private readonly Configuration $configuration,
+    ) {
+    }
+
+    public function __invoke() : JsonResponse
     {
-        //====================================================================//
-        // Load Tasks Repository
-        $tasks = Configuration::getTasksRepository();
-        //====================================================================//
-        // Load Worker Repository
-        $workers = Configuration::getWorkerRepository();
         //==============================================================================
         // Build Status Array
         $status = array(
             'status' => 'ok',
-            'tasks' => $tasks->getTasksSummary(),
-            'workers' => $workers->getWorkersStatus(),
+            'tasks' => $this->configuration->getTasksRepository()->getTasksSummary(),
+            'workers' => $this->configuration->getWorkerRepository()->getWorkersStatus(),
         );
         if ($status["workers"]["total"] != $status["workers"]["disabled"]) {
             //====================================================================//
