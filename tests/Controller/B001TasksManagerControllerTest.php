@@ -13,13 +13,16 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tests\Controller;
+namespace BadPixxel\Tasking\Tests\Controller;
 
+use BadPixxel\Tasking\Dictionary\JobOptions;
+use BadPixxel\Tasking\Dictionary\TaskPriority;
+use BadPixxel\Tasking\Entity\Task;
+use BadPixxel\Tasking\Tests\Bundle\Jobs\SimpleJob;
+use BadPixxel\Tasking\Tests\Bundle\Jobs\StaticJob;
 use Exception;
 use PHPUnit\Framework\Assert;
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Tests\Jobs\TestJob;
-use Splash\Tasking\Tests\Jobs\TestStaticJob;
+use Webmozart\Assert\InvalidArgumentException;
 
 /**
  * Test of Symfony Tasks Manager
@@ -27,32 +30,34 @@ use Splash\Tasking\Tests\Jobs\TestStaticJob;
 class B001TasksManagerControllerTest extends AbstractTestController
 {
     /**
-     * Test of Task Event Listener Job Validate Function
+     * Test of Job with Invalid Action Throw an Exception
      *
      * @throws Exception
      */
-    public function testJobValidate(): void
+    public function testJobWithInvalidAction(): void
     {
         $tasksManager = $this->getTasksManager();
-        //====================================================================//
-        // Test Standard Result
-        $testJob = new TestJob();
-        Assert::assertTrue(
-            $this->invokeMethod($tasksManager, "validate", array($testJob))
-        );
 
-        //====================================================================//
-        // Detect Wrong Action
-        $testJob->setInputs(array("Error-Wrong-Action" => true));
-        Assert::assertFalse(
-            $this->invokeMethod($tasksManager, "validate", array($testJob))
+        $this->expectException(InvalidArgumentException::class);
+        $tasksManager->start(
+            SimpleJob::class,
+            array(JobOptions::ACTION => "this-action-does-not-exists")
         );
+    }
 
-        //====================================================================//
-        // Detect Wrong Priority
-        $testJob->setInputs(array("Error-Wrong-Priority" => true));
-        Assert::assertFalse(
-            $this->invokeMethod($tasksManager, "validate", array($testJob))
+    /**
+     * Test of Job with Invalid Priority Throw an Exception
+     *
+     * @throws Exception
+     */
+    public function testJobWithInvalidPriority(): void
+    {
+        $tasksManager = $this->getTasksManager();
+
+        $this->expectException(InvalidArgumentException::class);
+        $tasksManager->start(
+            SimpleJob::class,
+            array(JobOptions::PRIORITY => -666)
         );
     }
 
@@ -63,23 +68,29 @@ class B001TasksManagerControllerTest extends AbstractTestController
      */
     public function testJobPrepare(): void
     {
-        $tasksManager = $this->getTasksManager();
+        $taskFactory = $this->getTaskFactory();
         //====================================================================//
         // Convert Generic Job to Task
-        $job = new TestJob();
-        $task = $this->invokeMethod($tasksManager, "prepare", array($job));
+        $task = $taskFactory->fromConfiguration(SimpleJob::class, array());
+
+        //====================================================================//
+        // Resolve Job Inputs
+        Assert::assertInstanceOf(
+            SimpleJob::class,
+            $jobService = $this->getContainer()->get(SimpleJob::class)
+        );
 
         //====================================================================//
         // Verify Generic Job Result
         Assert::assertInstanceOf(Task::class, $task);
         Assert::assertNotEmpty($task->getName());
-        Assert::assertEquals($task->getJobClass(), get_class($job));
-        Assert::assertEquals($task->getJobInputs(), $job->getRawInputs());
-        Assert::assertEquals($task->getJobPriority(), $job->getPriority());
-        Assert::assertEquals($task->getJobToken(), $job->getToken());
-        Assert::assertEquals($task->getSettings(), $job->getSettings());
-        Assert::assertEquals($task->getJobIndexKey1(), $job->getIndexKey1());
-        Assert::assertEquals($task->getJobIndexKey2(), $job->getIndexKey2());
+        Assert::assertEquals(SimpleJob::class, $task->getJobClass());
+        Assert::assertEquals($jobService->resolveInputs(array()), $task->getJobInputs());
+        Assert::assertEquals(TaskPriority::NORMAL, $task->getJobPriority());
+        Assert::assertEquals(SimpleJob::class, $task->getJobToken());
+        Assert::assertEquals($task->getSettings(), $jobService->resolveSettings(array()));
+        Assert::assertNull($task->getJobIndexKey1());
+        Assert::assertNull($task->getJobIndexKey2());
         Assert::assertFalse($task->isRunning());
         Assert::assertFalse($task->isFinished());
         Assert::assertEquals(0, $task->getTry());
@@ -88,8 +99,7 @@ class B001TasksManagerControllerTest extends AbstractTestController
 
         //====================================================================//
         // Convert Static Job to Task
-        $staticJob = new TestStaticJob();
-        $staticTask = $this->invokeMethod($tasksManager, "prepare", array($staticJob));
+        $staticTask = $taskFactory->fromConfiguration(StaticJob::class, array());
 
         //====================================================================//
         // Verify Static Job Result
@@ -111,14 +121,13 @@ class B001TasksManagerControllerTest extends AbstractTestController
         // Add Task To List
         for ($i = 0; $i < $nbTasks; $i++) {
             //====================================================================//
-            // Create a New Job
-            $job = (new TestJob())
-                ->setToken($token)
-                ->setInputs(array( "Delay-Ms" => 100 ))
-            ;
+            // Build Task Options
+            $options = SimpleJob::toOptions(delay: 0, delayMs: 100, token: $token);
             //====================================================================//
-            // Add Job to Queue
-            $job->add();
+            // Start Task
+            Assert::assertNotEmpty(
+                $this->getTasksManager()->start(SimpleJob::class, $options)
+            );
         }
         //====================================================================//
         //Verify Only One Task Added

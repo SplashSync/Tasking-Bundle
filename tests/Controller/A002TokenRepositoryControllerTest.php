@@ -13,13 +13,12 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tests\Controller;
+namespace BadPixxel\Tasking\Tests\Controller;
 
+use BadPixxel\Tasking\Entity\Token;
 use DateTime;
 use Exception;
 use PHPUnit\Framework\Assert;
-use Splash\Tasking\Entity\Token;
-use Splash\Tasking\Services\Configuration;
 
 /**
  * Test of Tasks Tokens Repository
@@ -156,26 +155,27 @@ class A002TokenRepositoryControllerTest extends AbstractTestController
         // Acquire Token and Change LockedAt Date
         //====================================================================//
         $token->acquire();
-        $minAge = new DateTime("-".(Configuration::getTokenSelfReleaseDelay() - 2)." Seconds");
+        $minAge = new DateTime("-".($this->getConfiguration()->getTokenSelfReleaseDelay() - 2)." Seconds");
         $token->setLockedAt($minAge);
         $this->entityManager->persist($token);
         $this->entityManager->flush();
         //====================================================================//
         // Test Acquire a Token
+        Assert::assertTrue($token->isLocked());
         Assert::assertNull($this->tokenRepository->acquire($this->randomStr));
 
         //====================================================================//
         // Acquire Token and Change LockedAt Date
         //====================================================================//
         $token->acquire();
-        $maxAge = new DateTime("-".(Configuration::getTokenSelfReleaseDelay() + 1)." Seconds");
+        $maxAge = new DateTime("-".($this->getConfiguration()->getTokenSelfReleaseDelay() + 1)." Seconds");
         $token->setLockedAt($maxAge);
         $this->entityManager->persist($token);
         $this->entityManager->flush();
 
         //====================================================================//
         // Test Acquire a Token
-        /** @var null|Token $acquiredToken */
+        Assert::assertFalse($token->isLocked());
         $acquiredToken = $this->tokenRepository->acquire($this->randomStr);
         Assert::assertInstanceOf(Token::class, $acquiredToken);
 

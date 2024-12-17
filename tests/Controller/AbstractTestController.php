@@ -13,20 +13,24 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tests\Controller;
+namespace BadPixxel\Tasking\Tests\Controller;
 
+use BadPixxel\Tasking\Repository\TaskRepository;
+use BadPixxel\Tasking\Repository\TokenRepository;
+use BadPixxel\Tasking\Repository\WorkerRepository;
+use BadPixxel\Tasking\Services\Configuration;
+use BadPixxel\Tasking\Services\Jobs\JobConfigurator;
+use BadPixxel\Tasking\Services\ProcessManager;
+use BadPixxel\Tasking\Services\Runner;
+use BadPixxel\Tasking\Services\Tasks\TaskFactory;
+use BadPixxel\Tasking\Services\TasksManager;
+use BadPixxel\Tasking\Services\TokenManager;
+use BadPixxel\Tasking\Services\WorkersManager;
 use Doctrine\Persistence\ObjectManager;
 use Exception;
+use PHPUnit\Framework\Assert;
 use ReflectionClass;
 use ReflectionException;
-use Splash\Tasking\Repository\TaskRepository;
-use Splash\Tasking\Repository\TokenRepository;
-use Splash\Tasking\Repository\WorkerRepository;
-use Splash\Tasking\Services\Configuration;
-use Splash\Tasking\Services\ProcessManager;
-use Splash\Tasking\Services\Runner;
-use Splash\Tasking\Services\TasksManager;
-use Splash\Tasking\Services\WorkersManager;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -34,7 +38,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 /**
  * Base Test Controller for Tasking Bundle PhpUnit Tests
  *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(CouplingBetweenObjects)
  */
 abstract class AbstractTestController extends WebTestCase
 {
@@ -69,31 +73,6 @@ abstract class AbstractTestController extends WebTestCase
     protected string $randomStr;
 
     /**
-     * @var null|TasksManager
-     */
-    private ?TasksManager $tasks;
-
-    /**
-     * @var WorkersManager
-     */
-    private WorkersManager $worker;
-
-    /**
-     * @var Runner
-     */
-    private Runner $runner;
-
-    /**
-     * @var ProcessManager
-     */
-    private ProcessManager $process;
-
-    /**
-     * @var EventDispatcherInterface
-     */
-    private EventDispatcherInterface $dispatcher;
-
-    /**
      * {@inheritDoc}
      *
      * @throws Exception
@@ -103,22 +82,45 @@ abstract class AbstractTestController extends WebTestCase
         self::bootKernel();
         //====================================================================//
         // Link to entity manager Services
-        $this->entityManager = Configuration::getEntityManager();
+        $this->entityManager = $this->getConfiguration()->getEntityManager();
         //====================================================================//
         // Link to Tasks Repository
-        $this->tasksRepository = Configuration::getTasksRepository();
+        $this->tasksRepository = $this->getConfiguration()->getTasksRepository();
         //====================================================================//
         // Link to Token Repository
-        $this->tokenRepository = Configuration::getTokenRepository();
+        $this->tokenRepository = $this->getConfiguration()->getTokenRepository();
         //====================================================================//
         // Link to Workers Repository
-        $this->workersRepository = Configuration::getWorkerRepository();
+        $this->workersRepository = $this->getConfiguration()->getWorkerRepository();
         //====================================================================//
         // Generate a Fake Output
         $this->output = new NullOutput();
         //====================================================================//
         // Generate a Random Token Name
         $this->randomStr = self::randomStr();
+    }
+
+    /**
+     * Return List of Repeatable Jobs Configurations
+     *
+     * @return array
+     */
+    public static function jobsRepeatableProvider() : array
+    {
+        return array(
+            "small" => array(
+                "nbTasks" => 5,
+                "msDelay" => 500
+            ),
+            "medium" => array(
+                "nbTasks" => 20,
+                "msDelay" => 500
+            ),
+            "intense" => array(
+                "nbTasks" => 100,
+                "msDelay" => 150,
+            ),
+        );
     }
 
     /**
@@ -153,22 +155,36 @@ abstract class AbstractTestController extends WebTestCase
 
     /**
      * Get Tasks Manager
-     *
-     * @throws Exception
-     *
-     * @return TasksManager
      */
     protected function getTasksManager(): TasksManager
     {
-        if (!isset($this->tasks)) {
-            $tasksManager = static::getContainer()->get(TasksManager::class);
-            if (!($tasksManager instanceof TasksManager)) {
-                throw new Exception("Unable to Load Tasks Manager");
-            }
-            $this->tasks = $tasksManager;
+        static $service;
+
+        if (!isset($service)) {
+            Assert::assertInstanceOf(
+                TasksManager::class,
+                $service = $this->getContainer()->get(TasksManager::class)
+            );
         }
 
-        return $this->tasks;
+        return $service;
+    }
+
+    /**
+     * Get Token Manager
+     */
+    protected function getTokenManager(): TokenManager
+    {
+        static $service;
+
+        if (!isset($service)) {
+            Assert::assertInstanceOf(
+                TokenManager::class,
+                $service = $this->getContainer()->get(TokenManager::class)
+            );
+        }
+
+        return $service;
     }
 
     /**
@@ -180,55 +196,50 @@ abstract class AbstractTestController extends WebTestCase
      */
     protected function getWorkersManager(): WorkersManager
     {
-        if (!isset($this->worker)) {
-            $workersManager = static::$container->get(WorkersManager::class);
-            if (!($workersManager instanceof WorkersManager)) {
-                throw new Exception("Unable to Load Worker Manager");
-            }
-            $this->worker = $workersManager;
+        static $service;
+
+        if (!isset($service)) {
+            Assert::assertInstanceOf(
+                WorkersManager::class,
+                $service = $this->getContainer()->get(WorkersManager::class)
+            );
         }
 
-        return $this->worker;
+        return $service;
     }
 
     /**
      * Get Tasks Runner
-     *
-     * @throws Exception
-     *
-     * @return Runner
      */
     protected function getTasksRunner(): Runner
     {
-        if (!isset($this->runner)) {
-            $tasksRunner = static::$container->get(Runner::class);
-            if (!($tasksRunner instanceof Runner)) {
-                throw new Exception("Unable to Load Tasks Runner");
-            }
-            $this->runner = $tasksRunner;
+        static $service;
+
+        if (!isset($service)) {
+            Assert::assertInstanceOf(
+                Runner::class,
+                $service = $this->getContainer()->get(Runner::class)
+            );
         }
 
-        return $this->runner;
+        return $service;
     }
 
     /**
      * Get Process Manager
-     *
-     * @throws Exception
-     *
-     * @return ProcessManager
      */
     protected function getProcessManager(): ProcessManager
     {
-        if (!isset($this->process)) {
-            $processManager = static::$container->get(ProcessManager::class);
-            if (!($processManager instanceof ProcessManager)) {
-                throw new Exception("Unable to Load Process Manager");
-            }
-            $this->process = $processManager;
+        static $service;
+
+        if (!isset($service)) {
+            Assert::assertInstanceOf(
+                ProcessManager::class,
+                $service = $this->getContainer()->get(ProcessManager::class)
+            );
         }
 
-        return $this->process;
+        return $service;
     }
 
     /**
@@ -240,16 +251,66 @@ abstract class AbstractTestController extends WebTestCase
      */
     protected function getEventDispatcher(): EventDispatcherInterface
     {
-        if (!isset($this->dispatcher)) {
-            //====================================================================//
-            // Load Symfony Event Dispatcher
-            $dispatcher = static::$container->get(EventDispatcherInterface::class);
-            if (!($dispatcher instanceof EventDispatcherInterface)) {
-                throw new Exception("Unable to Load Event Dispatcher");
-            }
-            $this->dispatcher = $dispatcher;
+        static $service;
+
+        if (!isset($service)) {
+            Assert::assertInstanceOf(
+                EventDispatcherInterface::class,
+                $service = $this->getContainer()->get(EventDispatcherInterface::class)
+            );
         }
 
-        return $this->dispatcher;
+        return $service;
+    }
+
+    /**
+     * Get Configuration Manager
+     */
+    protected function getConfiguration(): Configuration
+    {
+        static $service;
+
+        if (!isset($service)) {
+            Assert::assertInstanceOf(
+                Configuration::class,
+                $service = $this->getContainer()->get(Configuration::class)
+            );
+        }
+
+        return $service;
+    }
+
+    /**
+     * Get Task Factory
+     */
+    protected function getTaskFactory(): TaskFactory
+    {
+        static $service;
+
+        if (!isset($service)) {
+            Assert::assertInstanceOf(
+                TaskFactory::class,
+                $service = $this->getContainer()->get(TaskFactory::class)
+            );
+        }
+
+        return $service;
+    }
+
+    /**
+     * Get Job Configurator
+     */
+    protected function getJobConfigurator(): JobConfigurator
+    {
+        static $service;
+
+        if (!isset($service)) {
+            Assert::assertInstanceOf(
+                JobConfigurator::class,
+                $service = $this->getContainer()->get(JobConfigurator::class)
+            );
+        }
+
+        return $service;
     }
 }

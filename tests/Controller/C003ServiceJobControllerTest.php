@@ -13,10 +13,10 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tests\Controller;
+namespace BadPixxel\Tasking\Tests\Controller;
 
+use BadPixxel\Tasking\Tests\Bundle\Jobs\ServiceJob;
 use PHPUnit\Framework\Assert;
-use Splash\Tasking\Tests\Jobs\TestServiceJob;
 
 /**
  * Test of Service Jobs
@@ -25,27 +25,21 @@ class C003ServiceJobControllerTest extends AbstractTestController
 {
     /**
      * Test of A Service Job Execution
-     *
-     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function testServiceJob() : void
     {
         $nbTasks = 2;
         $watchDog = 0;
+        $token = ServiceJob::class;
 
         //====================================================================//
-        // Create a New Job
-        $job = (new TestServiceJob());
+        // Build Task Options
+        $options = ServiceJob::toOptions();
         //====================================================================//
-        // Add Job To Queue
-        for ($i = 0; $i < $nbTasks; $i++) {
-            //====================================================================//
-            // Create a New Job
-            $job = (new TestServiceJob());
-            //====================================================================//
-            // Add Job to Queue
-            $job->add();
-        }
+        // Start Task
+        Assert::assertNotEmpty(
+            $this->getTasksManager()->start(ServiceJob::class, $options)
+        );
 
         //====================================================================//
         // While Tasks Are Running
@@ -56,15 +50,15 @@ class C003ServiceJobControllerTest extends AbstractTestController
 
             //====================================================================//
             // We Found Our Task Running
-            if ($this->tasksRepository->getActiveTasksCount($job->getToken()) > 0) {
+            if ($this->tasksRepository->getActiveTasksCount($token) > 0) {
                 $taskFound = true;
             }
 
             //====================================================================//
             // We Found Only One Task Running
-            Assert::assertLessThan(2, $this->tasksRepository->getActiveTasksCount($job->getToken()));
+            Assert::assertLessThan(2, $this->tasksRepository->getActiveTasksCount($token));
 
-            if (0 == $this->tasksRepository->getActiveTasksCount($job->getToken())) {
+            if (0 == $this->tasksRepository->getActiveTasksCount($token)) {
                 $taskEnded++;
             } else {
                 $taskEnded = 0;
@@ -75,11 +69,11 @@ class C003ServiceJobControllerTest extends AbstractTestController
 
         //====================================================================//
         //Verify All Tasks Are Finished
-        Assert::assertEquals(0, $this->tasksRepository->getWaitingTasksCount($job->getToken()));
+        Assert::assertEquals(0, $this->tasksRepository->getWaitingTasksCount($token));
 
         //====================================================================//
         // Delete Current Token
-        $this->tokenRepository->delete((string) $job->getToken());
+        $this->tokenRepository->delete((string) $token);
         //====================================================================//
         // Finished Tasks
         sleep(1);

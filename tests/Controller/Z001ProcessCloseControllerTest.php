@@ -13,12 +13,11 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tests\Controller;
+namespace BadPixxel\Tasking\Tests\Controller;
 
+use BadPixxel\Tasking\Entity\Worker;
 use Exception;
 use PHPUnit\Framework\Assert;
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Entity\Worker;
 use Symfony\Component\Process\Process;
 
 /**

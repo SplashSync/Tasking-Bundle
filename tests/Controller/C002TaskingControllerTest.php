@@ -13,23 +13,20 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tests\Controller;
+namespace BadPixxel\Tasking\Tests\Controller;
 
+use BadPixxel\Tasking\Tests\Bundle\Jobs\JobWithRandomInputs;
 use PHPUnit\Framework\Assert;
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Tests\Jobs\TestJob;
 
 /**
  * Test of Tasking Controller
  */
 class C002TaskingControllerTest extends AbstractTestController
 {
-    const TEST_DETPH = 100;
+    const TEST_DEPTH = 100;
 
     /**
      * Test of A Simple Long Task List Execution
-     *
-     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function testSimpleTask(): void
     {
@@ -86,12 +83,10 @@ class C002TaskingControllerTest extends AbstractTestController
 
     /**
      * Test of Multiple Micro Tasks Execution
-     *
-     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function testMicroTask(): void
     {
-        $nbTasks = self::TEST_DETPH;
+        $nbTasks = self::TEST_DEPTH;
         $delay = 100;     // 30ms
 
         //====================================================================//
@@ -148,11 +143,11 @@ class C002TaskingControllerTest extends AbstractTestController
     /**
      * Test of Multiple Micro Tasks Execution
      *
-     * @SuppressWarnings(PHPMD.ElseExpression)
+     * @SuppressWarnings(ElseExpression)
      */
     public function testMultiMicroTask(): void
     {
-        $nbTasks = self::TEST_DETPH;
+        $nbTasks = self::TEST_DEPTH;
         $delay = 30;        // 30ms
         $taskAFound = $taskBFound = $taskCFound = false;
 
@@ -230,52 +225,31 @@ class C002TaskingControllerTest extends AbstractTestController
 
     /**
      * Create a New Simple Job to Queue
-     *
-     * @param string $token
-     *
-     * @return TestJob
      */
-    private function addTask(string $token): TestJob
+    private function addTask(string $token): void
     {
         //====================================================================//
-        // Create a New Job
-        $job = (new TestJob())
-            ->setToken($token)
-            ->setInputs(array(
-                "Delay-S" => 1,
-                "random" => self::randomStr(),
-            ))
-        ;
+        // Build Task Options
+        $options = JobWithRandomInputs::toOptions(token: $token);
         //====================================================================//
-        // Add Job to Queue
-        $job->add();
-
-        return $job;
+        // Start Task
+        Assert::assertNotEmpty(
+            $this->getTasksManager()->start(JobWithRandomInputs::class, $options)
+        );
     }
 
     /**
      * Create a New Micro Job to Queue
-     *
-     * @param string $token
-     * @param int    $delay
-     *
-     * @return TestJob
      */
-    private function addMicroTask(string $token, int $delay): TestJob
+    private function addMicroTask(string $token, int $delay): void
     {
         //====================================================================//
-        // Create a New Job
-        $job = (new TestJob())
-            ->setToken($token)
-            ->setInputs(array(
-                "Delay-Ms" => $delay,
-                "random" => self::randomStr(),
-            ))
-        ;
+        // Build Task Options
+        $options = JobWithRandomInputs::toOptions(delay: 0, delayMs: $delay, token: $token);
         //====================================================================//
-        // Add Job to Queue
-        $job->add();
-
-        return $job;
+        // Start Task
+        Assert::assertNotEmpty(
+            $this->getTasksManager()->start(JobWithRandomInputs::class, $options)
+        );
     }
 }

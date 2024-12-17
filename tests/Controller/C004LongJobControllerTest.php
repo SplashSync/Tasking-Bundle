@@ -13,13 +13,12 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tests\Controller;
+namespace BadPixxel\Tasking\Tests\Controller;
 
+use BadPixxel\Tasking\Tests\Bundle\Jobs\LongJob;
 use DateTime;
 use Exception;
 use PHPUnit\Framework\Assert;
-use Splash\Tasking\Services\Configuration;
-use Splash\Tasking\Tests\Jobs\LongJob;
 
 /**
  * Test of Long Jobs
@@ -33,21 +32,21 @@ class C004LongJobControllerTest extends AbstractTestController
      */
     public function testLongJobNoRenewal() : void
     {
+        $startedAt = new DateTime();
         //====================================================================//
         // Start a Long Job
-        $startedAt = new DateTime();
-        Assert::assertInstanceOf(LongJob::class, $this->addTask(false));
+        $this->addTask(false);
         //====================================================================//
         // Wait for Job Finished
         Assert::assertTrue(
-            $this->getTasksManager()->waitUntilTaskCompleted(Configuration::getTokenSelfReleaseDelay())
+            $this->getTasksManager()->waitUntilTaskCompleted($this->getConfiguration()->getTokenSelfReleaseDelay())
         );
         $finishedAt = new DateTime();
         //====================================================================//
         // Verify Job Duration
         $delay = $finishedAt->getTimestamp() - $startedAt->getTimestamp();
         Assert::assertGreaterThan(10, $delay);
-        Assert::assertLessThan(Configuration::getWorkerWatchdogDelay(), $delay);
+        Assert::assertLessThan($this->getConfiguration()->getWorkerWatchdogDelay(), $delay);
     }
 
     /**
@@ -57,45 +56,38 @@ class C004LongJobControllerTest extends AbstractTestController
      */
     public function testLongJobWith() : void
     {
+        $startedAt = new DateTime();
         //====================================================================//
         // Start a Long Job
-        $startedAt = new DateTime();
-        Assert::assertInstanceOf(LongJob::class, $this->addTask(true));
+        $this->addTask(true);
         //====================================================================//
         // Wait for Job Finished
         Assert::assertTrue(
-            $this->getTasksManager()->waitUntilTaskCompleted(Configuration::getTokenSelfReleaseDelay())
+            $this->getTasksManager()->waitUntilTaskCompleted($this->getConfiguration()->getTokenSelfReleaseDelay())
         );
         $finishedAt = new DateTime();
         //====================================================================//
         // Verify Job Duration
         $delay = $finishedAt->getTimestamp() - $startedAt->getTimestamp();
         Assert::assertGreaterThan(0, $delay);
-        Assert::assertGreaterThanOrEqual(Configuration::getWorkerWatchdogDelay(), $delay);
-        Assert::assertLessThan(Configuration::getTokenSelfReleaseDelay(), $delay);
+        Assert::assertGreaterThanOrEqual($this->getConfiguration()->getWorkerWatchdogDelay(), $delay);
+        Assert::assertLessThan($this->getConfiguration()->getTokenSelfReleaseDelay(), $delay);
     }
 
     /**
      * Add a New Test Long Task & Run
      *
      * @param bool $renewal
-     *
-     * @return LongJob
      */
-    private function addTask(bool $renewal): LongJob
+    private function addTask(bool $renewal): void
     {
         //====================================================================//
-        // Create a New Test Job
-        $job = new LongJob();
+        // Build Task Options
+        $options = LongJob::toOptions(renewal: $renewal, token: self::randomStr());
         //====================================================================//
-        // Setup Task Parameters
-        $job
-            ->setInputs(array("Allow-Renewal" => $renewal))
-            ->setToken(self::randomStr());
-        //====================================================================//
-        // Save Task
-        $job->add();
-
-        return $job;
+        // Start Task
+        Assert::assertNotEmpty(
+            $this->getTasksManager()->start(LongJob::class, $options)
+        );
     }
 }

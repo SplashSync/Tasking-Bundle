@@ -13,23 +13,10 @@
  *  file that was distributed with this source code.
  */
 
-namespace BadPixxel\Tasking\Tests;
+use BadPixxel\Tasking\Tests\Kernel;
 
-use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
-use Symfony\Component\HttpKernel\Kernel as BaseKernel;
+require_once dirname(__DIR__, 2).'/vendor/autoload_runtime.php';
 
-/**
- * Tasking Bundle Test App Kernel
- */
-class Kernel extends BaseKernel
-{
-    use MicroKernelTrait;
-
-    /**
-     * Gets the path to the configuration directory.
-     */
-    protected function getConfigDir(): string
-    {
-        return $this->getProjectDir().'/tests/config';
-    }
-}
+return function (array $context): Kernel {
+    return new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
+};

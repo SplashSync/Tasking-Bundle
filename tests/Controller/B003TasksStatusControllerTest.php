@@ -13,13 +13,12 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tests\Controller;
+namespace BadPixxel\Tasking\Tests\Controller;
 
+use BadPixxel\Tasking\Entity\Task;
+use BadPixxel\Tasking\Services\Tasks\StatusMonitor;
 use Exception;
 use PHPUnit\Framework\Assert;
-use Splash\Tasking\Entity\Token;
-use Splash\Tasking\Services\Configuration;
-use Splash\Tasking\Tools\Status;
 
 /**
  * Test of Tasks Status Helper
@@ -33,29 +32,31 @@ class B003TasksStatusControllerTest extends AbstractTestController
      */
     public function testTokenStatusManager() : void
     {
+        $statusMonitor = $this->getStatusMonitor();
+        $task = new Task();
+        $task->setJobToken(self::randomStr());
         //====================================================================//
         // Acquire a Random Token
-        $token = $this->tokenRepository->acquire(self::randomStr());
-        Assert::assertInstanceOf(Token::class, $token);
+        Assert::assertTrue($this->getTokenManager()->acquire($task));
         //====================================================================//
         // Check Token Status
-        Assert::assertTrue(Status::hasToken());
-        $lifetime = Status::getTokenLifetime();
-        Assert::assertGreaterThanOrEqual(Configuration::getTokenSelfReleaseDelay(), $lifetime);
+        Assert::assertTrue($statusMonitor->hasToken());
+        $lifetime = $statusMonitor->getTokenLifetime();
+        Assert::assertGreaterThanOrEqual($this->getConfiguration()->getTokenSelfReleaseDelay(), $lifetime);
         //====================================================================//
         // Check Token Lifetime
         for ($i = 0; $i < 2; $i++) {
             sleep(1);
-            Assert::assertLessThan($lifetime, Status::getTokenLifetime());
-            $lifetime = Status::getTokenLifetime();
+            Assert::assertLessThan($lifetime, $statusMonitor->getTokenLifetime());
+            $lifetime = $statusMonitor->getTokenLifetime();
         }
         //====================================================================//
         // Release Token
-        Assert::assertTrue($this->tokenRepository->release($token->getName()));
+        Assert::assertTrue($this->getTokenManager()->release());
         //====================================================================//
         // Check Token Status
-        Assert::assertFalse(Status::hasToken());
-        Assert::assertNull(Status::getTokenLifetime());
+        Assert::assertFalse($statusMonitor->hasToken());
+        Assert::assertNull($statusMonitor->getTokenLifetime());
     }
 
     /**
@@ -65,10 +66,11 @@ class B003TasksStatusControllerTest extends AbstractTestController
      */
     public function testLifetimeStatusManager() : void
     {
+        $config = $this->getConfiguration();
+        $statusMonitor = $this->getStatusMonitor();
         //====================================================================//
         // Check Initial Status
-        $initialStatus = Status::getStatus();
-        Assert::assertArrayHasKey("job", $initialStatus);
+        $initialStatus = $statusMonitor->getStatus();
         Assert::assertNull($initialStatus["job"]);
         Assert::assertArrayHasKey("token", $initialStatus);
         Assert::assertNull($initialStatus["token"]);
@@ -81,31 +83,31 @@ class B003TasksStatusControllerTest extends AbstractTestController
 
         //====================================================================//
         // Simulate Token Acquired
-        Status::setTokenAcquired($this->randomStr);
-        Assert::assertGreaterThanOrEqual(Configuration::getTokenSelfReleaseDelay(), Status::getTokenLifetime());
-        Assert::assertEquals(Configuration::getTokenSelfReleaseDelay(), Status::getStatus()["remaining"]);
-        Assert::assertEquals(Configuration::getTokenSelfReleaseDelay(), Status::getStatus()["expandable"]);
+        $statusMonitor->setTokenAcquired($this->randomStr);
+        Assert::assertGreaterThanOrEqual($config->getTokenSelfReleaseDelay(), $statusMonitor->getTokenLifetime());
+        Assert::assertEquals($config->getTokenSelfReleaseDelay(), $statusMonitor->getStatus()["remaining"]);
+        Assert::assertEquals($config->getTokenSelfReleaseDelay(), $statusMonitor->getStatus()["expandable"]);
 
         //====================================================================//
         // Simulate Job Started
-        Status::setJobStarted();
-        Assert::assertGreaterThanOrEqual(Configuration::getTasksErrorDelay(), Status::getJobLifetime());
-        Assert::assertEquals(Configuration::getTasksErrorDelay(), Status::getStatus()["remaining"]);
-        Assert::assertEquals(Configuration::getTasksErrorDelay(), Status::getStatus()["expandable"]);
+        $statusMonitor->setJobStarted();
+        Assert::assertGreaterThanOrEqual($config->getTasksErrorDelay(), $statusMonitor->getJobLifetime());
+        Assert::assertEquals($config->getTasksErrorDelay(), $statusMonitor->getStatus()["remaining"]);
+        Assert::assertEquals($config->getTasksErrorDelay(), $statusMonitor->getStatus()["expandable"]);
 
         //====================================================================//
         // Reset Watchdog
-        Status::resetWatchdog();
-        Assert::assertGreaterThanOrEqual(Configuration::getWorkerWatchdogDelay(), Status::getWatchdogLifetime());
-        Assert::assertEquals(Configuration::getWorkerWatchdogDelay(), Status::getStatus()["remaining"]);
-        Assert::assertEquals(Configuration::getTasksErrorDelay(), Status::getStatus()["expandable"]);
+        $statusMonitor->resetWatchdog();
+        Assert::assertGreaterThanOrEqual($config->getWorkerWatchdogDelay(), $statusMonitor->getWatchdogLifetime());
+        Assert::assertEquals($config->getWorkerWatchdogDelay(), $statusMonitor->getStatus()["remaining"]);
+        Assert::assertEquals($config->getTasksErrorDelay(), $statusMonitor->getStatus()["expandable"]);
 
         //====================================================================//
         // Simulate Job Finished
-        Status::setJobFinished();
-        Assert::assertNull(Status::getJobLifetime());
-        Assert::assertEquals(Configuration::getWorkerWatchdogDelay(), Status::getStatus()["remaining"]);
-        Assert::assertEquals(Configuration::getTokenSelfReleaseDelay(), Status::getStatus()["expandable"]);
+        $statusMonitor->setJobFinished();
+        Assert::assertNull($statusMonitor->getJobLifetime());
+        Assert::assertEquals($config->getWorkerWatchdogDelay(), $statusMonitor->getStatus()["remaining"]);
+        Assert::assertEquals($config->getTokenSelfReleaseDelay(), $statusMonitor->getStatus()["expandable"]);
     }
 
     /**
@@ -115,14 +117,33 @@ class B003TasksStatusControllerTest extends AbstractTestController
      */
     public function testLifetimeExpandRequests() : void
     {
+        $config = $this->getConfiguration();
+        $statusMonitor = $this->getStatusMonitor();
         //====================================================================//
         // Simulate Task Startup
-        Status::resetWatchdog();
-        Status::setTokenAcquired($this->randomStr);
-        Status::setJobStarted();
+        $statusMonitor->resetWatchdog();
+        $statusMonitor->setTokenAcquired($this->randomStr);
+        $statusMonitor->setJobStarted();
         //====================================================================//
         // Verify Status
-        Assert::assertEquals(Configuration::getWorkerWatchdogDelay(), Status::getRemainingLifetime());
-        Assert::assertEquals(Configuration::getTasksErrorDelay(), Status::getExpendableLifetime());
+        Assert::assertEquals($config->getWorkerWatchdogDelay(), $statusMonitor->getRemainingLifetime());
+        Assert::assertEquals($config->getTasksErrorDelay(), $statusMonitor->getExpendableLifetime());
+    }
+
+    /**
+     * Get Task Factory
+     */
+    protected function getStatusMonitor(): StatusMonitor
+    {
+        static $service;
+
+        if (!isset($service)) {
+            Assert::assertInstanceOf(
+                StatusMonitor::class,
+                $service = $this->getContainer()->get(StatusMonitor::class)
+            );
+        }
+
+        return $service;
     }
 }

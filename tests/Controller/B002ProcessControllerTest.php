@@ -13,12 +13,11 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tests\Controller;
+namespace BadPixxel\Tasking\Tests\Controller;
 
+use BadPixxel\Tasking\Entity\Worker;
 use Exception;
 use PHPUnit\Framework\Assert;
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Entity\Worker;
 use Symfony\Component\Process\Process;
 
 /**
@@ -36,7 +35,7 @@ class B002ProcessControllerTest extends AbstractTestController
         //====================================================================//
         // CHECK if Crontab Management is Active
         //====================================================================//
-        $config = $this->getContainer()->getParameter('splash_tasking');
+        $config = $this->getContainer()->getParameter('badpixxel_tasking');
         Assert::assertIsArray($config);
         if (!$config["server"]["force_crontab"]) {
             Assert::assertNotEmpty($this->getProcessManager()->checkCrontab());
@@ -67,7 +66,6 @@ class B002ProcessControllerTest extends AbstractTestController
         $cronTab = array();
         exec("crontab -l", $cronTab);
         Assert::assertCount(1, $cronTab);
-        Assert::assertIsString(array_shift($cronTab));
     }
 
     /**
@@ -96,7 +94,6 @@ class B002ProcessControllerTest extends AbstractTestController
         //====================================================================//
         // Check all Workers are Stopped
         foreach ($workers as $worker) {
-            Assert::assertInstanceOf(Worker::class, $worker);
             Assert::assertFalse($worker->isRunning());
             Assert::assertNotEmpty($worker->getLastSeen());
             Assert::assertFalse($this->doCheckProcessIsAlive($worker->getPid()));
@@ -134,10 +131,11 @@ class B002ProcessControllerTest extends AbstractTestController
         // CHECK EXPECTED WORKERS are RUNNING
         //====================================================================//
 
-        $config = $this->getContainer()->getParameter('splash_tasking');
+        $config = $this->getContainer()->getParameter('badpixxel_tasking');
         Assert::assertIsArray($config);
         $config = $config["supervisor"];
         Assert::assertIsArray($config);
+        Assert::assertIsInt($config['max_workers'] ?? null);
 
         //====================================================================//
         // Load Workers for Local Supervisor

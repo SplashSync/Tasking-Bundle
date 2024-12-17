@@ -13,12 +13,16 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tests\Controller;
+namespace BadPixxel\Tasking\Tests\Controller;
 
+use BadPixxel\Tasking\Dictionary\JobOptions;
+use BadPixxel\Tasking\Entity\Task;
+use BadPixxel\Tasking\Tests\Bundle\Jobs\JobWithErrors;
+use BadPixxel\Tasking\Tests\Bundle\Jobs\JobWithExceptions;
+use BadPixxel\Tasking\Tests\Bundle\Jobs\JobWithRandomInputs;
+use BadPixxel\Tasking\Tests\Bundle\Jobs\SimpleJob;
 use Exception;
 use PHPUnit\Framework\Assert;
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Tests\Jobs\TestJob;
 
 /**
  * Test of Tasks Execution
@@ -42,16 +46,13 @@ class C001TasksExecutionControllerTest extends AbstractTestController
     public function testBasic(): void
     {
         //====================================================================//
-        // Create a Simple Test Job
-        $job = new TestJob();
-        $job
-            ->setInputs(array("Delay-Ms" => 100))
-            ->setToken($this->randomStr);
-
+        // Build Task Options
+        $options = SimpleJob::toOptions(delay: 0, delayMs: 100, token: $this->randomStr);
         //====================================================================//
-        // Add Job to Queue
-        $job->add();
-
+        // Start Task
+        Assert::assertNotEmpty(
+            $this->getTasksManager()->start(SimpleJob::class, $options)
+        );
         //====================================================================//
         // Wait Until All Tasks are Completed
         $this->waitUntilCompleted(2);
@@ -85,19 +86,18 @@ class C001TasksExecutionControllerTest extends AbstractTestController
     public function testTaskErrors(string $method, bool $finished): void
     {
         //====================================================================//
-        // Create a Simple Test Job
-        $job = new TestJob();
-        $job
-            ->setInputs(array(
-                "Delay-Ms" => 50,
-                "Error-On-".$method => true,
-            ))
-            ->setToken($this->randomStr);
-
+        // Build Task Options
+        $options = array(
+            JobOptions::TOKEN => $this->randomStr,
+            JobOptions::INPUTS => array(
+                $method => true
+            )
+        );
         //====================================================================//
-        // Add Job to Queue
-        $job->add();
-
+        // Start Task
+        Assert::assertNotEmpty(
+            $this->getTasksManager()->start(JobWithErrors::class, $options)
+        );
         //====================================================================//
         // Wait Until All Tasks are Completed
         $this->waitUntilCompleted(2);
@@ -131,23 +131,21 @@ class C001TasksExecutionControllerTest extends AbstractTestController
     public function testTaskExceptions(string $method): void
     {
         //====================================================================//
-        // Create a Simple Test Job
-        $job = new TestJob();
-        $job
-            ->setInputs(array(
-                "Delay-Ms" => 50,
-                "Exception-On-".$method => true,
-            ))
-            ->setToken($this->randomStr);
-
+        // Build Task Options
+        $options = array(
+            JobOptions::TOKEN => $this->randomStr,
+            JobOptions::INPUTS => array(
+                $method => true
+            )
+        );
         //====================================================================//
-        // Add Job to Queue
-        $job->add();
-
+        // Start Task
+        Assert::assertNotEmpty(
+            $this->getTasksManager()->start(JobWithExceptions::class, $options)
+        );
         //====================================================================//
         // Wait Until All Tasks are Completed
         $this->waitUntilCompleted(2);
-
         //====================================================================//
         // Load a Task
         $this->entityManager->clear();
@@ -224,40 +222,30 @@ class C001TasksExecutionControllerTest extends AbstractTestController
      *
      * @return array
      */
-    public function jobsMethodsProvider() : array
+    public static function jobsMethodsProvider() : array
     {
         return array(
-            array("Validate"    , false),
-            array("Prepare"     , false),
-            array("Execute"     , false),
-            array("Finalize"    , true),
-            array("Close"       , true),
+            "validate" => array("validate"    , false),
+            "prepare" => array("prepare"     , false),
+            "execute" => array("execute"     , false),
+            "finalize" => array("finalize"    , true),
+            "close" => array("close"       , true),
         );
     }
 
     /**
      * Add a New Test Simple Task & Run
-     *
-     * @param string $token
-     * @param int    $delay
-     *
-     * @return TestJob
      */
-    private function addTask(string $token, int $delay = 1): TestJob
+    private function addTask(string $token, int $delay = 1): void
     {
         //====================================================================//
-        // Create a New Test Job
-        $job = new TestJob();
+        // Build Task Options
+        $options = JobWithRandomInputs::toOptions(delay: $delay, token: $token);
         //====================================================================//
-        // Setup Task Parameters
-        $job
-            ->setInputs(array("Delay-S" => $delay, "random" => self::randomStr()))
-            ->setToken($token);
-        //====================================================================//
-        // Save Task
-        $job->add();
-
-        return $job;
+        // Start Task
+        Assert::assertNotEmpty(
+            $this->getTasksManager()->start(JobWithRandomInputs::class, $options)
+        );
     }
 
     /**

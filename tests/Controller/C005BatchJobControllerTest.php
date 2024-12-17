@@ -13,13 +13,12 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tests\Controller;
+namespace BadPixxel\Tasking\Tests\Controller;
 
+use BadPixxel\Tasking\Tests\Bundle\Jobs\BatchJob;
 use DateTime;
 use Exception;
 use PHPUnit\Framework\Assert;
-use Splash\Tasking\Services\Configuration;
-use Splash\Tasking\Tests\Jobs\TestBatchJob;
 
 /**
  * Test of Batch Jobs
@@ -29,48 +28,46 @@ class C005BatchJobControllerTest extends AbstractTestController
     /**
      * Test of a Batch Job Execution
      *
+     * @dataProvider jobsRepeatableProvider
+     *
      * @throws Exception
      */
-    public function testBatchJob() : void
+    public function testBatchJob(int $nbTasks, int $msDelay) : void
     {
         //====================================================================//
         // Start a Long Job
         $startedAt = new DateTime();
-        Assert::assertInstanceOf(TestBatchJob::class, $this->addTask());
+        $this->addTask($nbTasks, $msDelay);
         //====================================================================//
         // Wait for Job Finished
         Assert::assertTrue(
-            $this->getTasksManager()->waitUntilTaskCompleted(Configuration::getTokenSelfReleaseDelay())
+            $this->getTasksManager()->waitUntilTaskCompleted($this->getConfiguration()->getTokenSelfReleaseDelay())
         );
         $finishedAt = new DateTime();
         //====================================================================//
         // Verify Job Duration
         $delay = $finishedAt->getTimestamp() - $startedAt->getTimestamp();
-        Assert::assertGreaterThan(3, $delay);
-        Assert::assertLessThan(8, $delay);
+        $estimated = $nbTasks * $msDelay / 1E3;
+        Assert::assertGreaterThan(0.75 * $estimated, $delay);
+        Assert::assertLessThan(1.25 * $estimated, $delay);
     }
 
     /**
      * Add a New Test Batch Task & Run
-     *
-     * @return TestBatchJob
      */
-    private function addTask(): TestBatchJob
+    private function addTask(int $nbTasks, int $msDelay): void
     {
         //====================================================================//
-        // Create a New Test Job
-        $job = new TestBatchJob();
+        // Build Task Options
+        $options = BatchJob::toOptions(
+            nbTasks: $nbTasks,
+            msDelay: $msDelay,
+            token: self::randomStr()
+        );
         //====================================================================//
-        // Setup Task Parameters
-        $job
-            ->setToken(self::randomStr())
-            // Setup for 30 Tasks of 100ms
-            ->setup(30)
-        ;
-        //====================================================================//
-        // Save Task
-        $job->add();
-
-        return $job;
+        // Start Task
+        Assert::assertNotEmpty(
+            $this->getTasksManager()->start(BatchJob::class, $options)
+        );
     }
 }

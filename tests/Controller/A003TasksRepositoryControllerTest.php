@@ -13,13 +13,14 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tests\Controller;
+namespace BadPixxel\Tasking\Tests\Controller;
 
+use BadPixxel\Tasking\Dictionary\JobOptions;
+use BadPixxel\Tasking\Entity\Task;
+use BadPixxel\Tasking\Tests\Bundle\Jobs\JobWithRandomInputs;
+use BadPixxel\Tasking\Tests\Bundle\Jobs\SimpleJob;
 use Exception;
 use PHPUnit\Framework\Assert;
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Services\Configuration;
-use Splash\Tasking\Tests\Jobs\TestJob;
 
 /**
  * Test Tasks Repository
@@ -349,7 +350,7 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
     /**
      * Test Get Next Task Function
      *
-     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     * @SuppressWarnings(ExcessiveMethodLength)
      *
      * @throws Exception
      */
@@ -357,7 +358,7 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
     {
         //====================================================================//
         // Load Tasks Parameters
-        $options = Configuration::getTasksConfiguration();
+        $options = $this->getConfiguration()->getTasksSearchOptions();
         $options["try_delay"] = $options["error_delay"] = 10;
         $noErrorsOptions = $options;
         $noErrorsOptions["error_delay"] = -1;
@@ -385,8 +386,8 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
         // Verify
         $nextTask2 = $this->tasksRepository->getNextTask($options, null, false);
         Assert::assertInstanceOf(Task::class, $nextTask2);
-        Assert::assertInstanceOf(Task::class, $this->tasksRepository->getNextTask($options, $this->randomStr, false));
         $task = $this->tasksRepository->getNextTask($options, $this->randomStr, false);
+        Assert::assertInstanceOf(Task::class, $task);
 
         //====================================================================//
         // Create Task Token
@@ -502,66 +503,43 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
 
     /**
      * Add a New Test Simple Task & Run
-     *
-     * @param string $token
-     *
-     * @return TestJob
      */
-    public function addTask(string $token): TestJob
+    public function addTask(string $token): ?Task
     {
         //====================================================================//
-        // Create a New Test Job
-        $job = new TestJob();
-        //====================================================================//
-        // Setup Task Parameters
-        $job
-            ->setInputs(array("Delay-S" => 1))
-            ->setToken($token);
-        //====================================================================//
-        // Save Task
-        $job->add();
+        // Build Task Options
+        $options = SimpleJob::toOptions(delay: 1, token: $token);
 
-        return $job;
+        //====================================================================//
+        // Start Task
+        return $this->getTasksManager()->start(SimpleJob::class, $options);
     }
 
     /**
      * Insert a New Test Simple Task (Do Not Start Workers)
-     *
-     * @param null|string $token
-     * @param null|string $index1
-     * @param null|string $index2
-     *
-     * @return TestJob
      */
-    public function insertTask(string $token = null, string $index1 = null, string $index2 = null): TestJob
+    public function insertTask(string $token = null, string $index1 = null, string $index2 = null): ?Task
     {
         //====================================================================//
         // Generate Token if Needed
         if (is_null($token)) {
             $token = self::randomStr();
         }
-
         //====================================================================//
-        // Create a New Test Job
-        $job = new TestJob();
-        //====================================================================//
-        // Setup Task Parameters
-        $job
-            ->setInputs(array("Delay-S" => 2, "random" => self::randomStr()))
-            ->setToken($token);
+        // Build Task Options
+        $options = JobWithRandomInputs::toOptions(delay: 1, token: $token);
         //====================================================================//
         // Setup Indexes
         if (!is_null($index1)) {
-            $job->__set('indexKey1', $index1);
+            $options[JobOptions::INDEX_KEY_1] = $index1;
         }
         if (!is_null($index2)) {
-            $job->__set('indexKey2', $index2);
+            $options[JobOptions::INDEX_KEY_2] = $index2;
         }
-        //====================================================================//
-        // Save Task
-        $job->insert();
 
-        return $job;
+        //====================================================================//
+        // Start Task
+        return $this->getTasksManager()->start(JobWithRandomInputs::class, $options, false);
     }
 
     /**

@@ -13,7 +13,7 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tests\Controller;
+namespace BadPixxel\Tasking\Tests\Controller;
 
 use PHPUnit\Framework\Assert;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -37,14 +37,6 @@ class A001InitialisationControllerTest extends KernelTestCase
      */
     public function testDisplayLogo(): void
     {
-        echo PHP_EOL;
-        echo " ______     ______   __         ______     ______     __  __    ".PHP_EOL;
-        echo "/\\  ___\\   /\\  == \\ /\\ \\       /\\  __ \\   /\\  ___\\   /\\ \\_\\ \\   ".PHP_EOL;
-        echo "\\ \\___  \\  \\ \\  _-/ \\ \\ \\____  \\ \\  __ \\  \\ \\___  \\  \\ \\  __ \\  ".PHP_EOL;
-        echo " \\/\\_____\\  \\ \\_\\    \\ \\_____\\  \\ \\_\\ \\_\\  \\/\\_____\\  \\ \\_\\ \\_\\ ".PHP_EOL;
-        echo "  \\/_____/   \\/_/     \\/_____/   \\/_/\\/_/   \\/_____/   \\/_/\\/_/ ".PHP_EOL;
-        echo "                                                                ".PHP_EOL;
-
         //====================================================================//
         // Create Process (SF 4 Versions)
         $process = Process::fromShellCommandline("php bin/console tasking:stop --no-restart");
