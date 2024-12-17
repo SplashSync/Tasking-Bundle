@@ -11,7 +11,7 @@
             "ref": "c170ded8fc587d6bd670550c43dafcf093762245"
         },
         "files": [
-            "config/packages/doctrine.yaml",
+            "tests/config/packages/doctrine.yaml",
             "src/Entity/.gitignore",
             "src/Repository/.gitignore"
         ]
@@ -43,7 +43,7 @@
             "ref": "f45b5dd173a27873ab19f5e3180b2f661c21de02"
         },
         "files": [
-            "config/packages/http_discovery.yaml"
+            "tests/config/packages/http_discovery.yaml"
         ]
     },
     "phpstan/phpstan": {
@@ -85,12 +85,7 @@
             "branch": "main",
             "version": "4.0",
             "ref": "0e5931df1732e3dccfba42a20853049e5e9db6ae"
-        },
-        "files": [
-            "config/packages/sonata_admin.yaml",
-            "config/routes/sonata_admin.yaml",
-            "src/Admin/.gitignore"
-        ]
+        }
     },
     "sonata-project/block-bundle": {
         "version": "5.1",
@@ -162,7 +157,7 @@
         ]
     },
     "symfony/debug-bundle": {
-        "version": "6.4",
+        "version": "7.2",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
@@ -170,7 +165,7 @@
             "ref": "5aa8aa48234c8eb6dbdd7b3cd5d791485d2cec4b"
         },
         "files": [
-            "config/packages/debug.yaml"
+            "tests/config/packages/debug.yaml"
         ]
     },
     "symfony/flex": {
@@ -195,7 +190,7 @@
             "ref": "7d86a6723f4a623f59e2bf966b6aad2fc461d36b"
         },
         "files": [
-            "config/packages/csrf.yaml"
+            "tests/config/packages/csrf.yaml"
         ]
     },
     "symfony/framework-bundle": {
@@ -207,12 +202,12 @@
             "ref": "32126346f25e1cee607cc4aa6783d46034920554"
         },
         "files": [
-            "config/packages/cache.yaml",
-            "config/packages/framework.yaml",
-            "config/preload.php",
-            "config/routes/framework.yaml",
-            "config/services.yaml",
-            "public/index.php",
+            "tests/config/packages/cache.yaml",
+            "tests/config/packages/framework.yaml",
+            "tests/config/preload.php",
+            "tests/config/routes/framework.yaml",
+            "tests/config/services.yaml",
+            "tests/public/index.php",
             "src/Controller/.gitignore",
             "src/Kernel.php"
         ]
@@ -226,7 +221,7 @@
             "ref": "aff23899c4440dd995907613c1dd709b6f59503f"
         },
         "files": [
-            "config/packages/monolog.yaml"
+            "tests/config/packages/monolog.yaml"
         ]
     },
     "symfony/phpunit-bridge": {
@@ -245,7 +240,7 @@
         ]
     },
     "symfony/routing": {
-        "version": "6.4",
+        "version": "7.2",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
@@ -253,8 +248,8 @@
             "ref": "e0a11b4ccb8c9e70b574ff5ad3dfdcd41dec5aa6"
         },
         "files": [
-            "config/packages/routing.yaml",
-            "config/routes.yaml"
+            "tests/config/packages/routing.yaml",
+            "tests/config/routes.yaml"
         ]
     },
     "symfony/security-bundle": {
@@ -266,8 +261,8 @@
             "ref": "2ae08430db28c8eb4476605894296c82a642028f"
         },
         "files": [
-            "config/packages/security.yaml",
-            "config/routes/security.yaml"
+            "tests/config/packages/security.yaml",
+            "tests/config/routes/security.yaml"
         ]
     },
     "symfony/stimulus-bundle": {
@@ -293,7 +288,7 @@
             "ref": "e28e27f53663cc34f0be2837aba18e3a1bef8e7b"
         },
         "files": [
-            "config/packages/translation.yaml",
+            "tests/config/packages/translation.yaml",
             "translations/.gitignore"
         ]
     },
@@ -306,7 +301,7 @@
             "ref": "cab5fd2a13a45c266d45a7d9337e28dee6272877"
         },
         "files": [
-            "config/packages/twig.yaml",
+            "tests/config/packages/twig.yaml",
             "templates/base.html.twig"
         ]
     },
@@ -343,7 +338,7 @@
             "ref": "c32cfd98f714894c4f128bb99aa2530c1227603c"
         },
         "files": [
-            "config/packages/validator.yaml"
+            "tests/config/packages/validator.yaml"
         ]
     },
     "symfony/web-profiler-bundle": {
@@ -368,7 +363,7 @@
             "ref": "35ee1edee91a1a7137095f53db7ed0c20884b745"
         },
         "files": [
-            "assets/dashboard.js",
+            "assets/app.js",
             "assets/styles/app.css",
             "tests/config/packages/webpack_encore.yaml",
             "package.json",

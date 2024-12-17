@@ -91,3 +91,6 @@ yarn-error.log
 ###< symfony/webpack-encore-bundle ###
 /yarn.lock
 /tests/public/bundles
+/.env.test
+/.env.dev
+/.php-cs-fixer.dist.php
