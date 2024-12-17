@@ -13,40 +13,29 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Services;
+namespace BadPixxel\Tasking\Services;
 
+use BadPixxel\Tasking\Entity\Task;
+use BadPixxel\Tasking\Events\CheckSupervisorEvent;
+use BadPixxel\Tasking\Events\InsertTaskEvent;
+use BadPixxel\Tasking\Events\StartTaskEvent;
+use BadPixxel\Tasking\Helper\Timer;
+use BadPixxel\Tasking\Services\Tasks\TaskFactory;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
 use Psr\Log\LoggerInterface;
-use ReflectionException;
-use ReflectionMethod;
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Events\AddEvent;
-use Splash\Tasking\Events\CheckEvent;
-use Splash\Tasking\Events\InsertEvent;
-use Splash\Tasking\Events\StaticTasksListingEvent;
-use Splash\Tasking\Model\AbstractBatchJob;
-use Splash\Tasking\Model\AbstractJob;
-use Splash\Tasking\Model\AbstractStaticJob;
-use Splash\Tasking\Model\StaticJobInterface;
-use Splash\Tasking\Tools\Timer;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\EventDispatcher\GenericEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * Tasks Management Service
  *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
- * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(CouplingBetweenObjects)
+ * @SuppressWarnings(ExcessiveClassComplexity)
  */
-class TasksManager
+class TasksManager implements EventSubscriberInterface
 {
-    /**
-     * @var TasksManager
-     */
-    private static TasksManager $staticInstance;
-
     //====================================================================//
     //  CONSTRUCTOR
     //====================================================================//
@@ -57,18 +46,30 @@ class TasksManager
      * @throws Exception
      */
     public function __construct(
-        private Configuration $configuration,
-        private EventDispatcherInterface $dispatcher,
-        private LoggerInterface $logger,
-        private JobsManager $jobs,
-        private TokenManager $token
+        private readonly Configuration            $configuration,
+        private readonly TaskFactory              $taskFactory,
+        private readonly TokenManager             $token,
+        private readonly EventDispatcherInterface $dispatcher,
+        private readonly LoggerInterface          $logger,
     ) {
         //====================================================================//
         // Ensure Configuration is Ready
         $this->configuration->isReady();
-        //==============================================================================
-        // Store Static Instance for Access as Static
-        self::$staticInstance = $this;
+    }
+
+    //====================================================================//
+    //  Event Subscriber
+    //====================================================================//
+
+    /**
+     * Register Subscribed Events Actions
+     */
+    public static function getSubscribedEvents(): array
+    {
+        return array(
+            StartTaskEvent::class => "onStartEvent",
+            InsertTaskEvent::class => "onInsertEvent",
+        );
     }
 
     //====================================================================//
@@ -76,47 +77,67 @@ class TasksManager
     //====================================================================//
 
     /**
-     * Start Tasking Supervisor on This Machine
-     *
-     * @return void
+     * Start a New Task on Scheduler
      */
-    public static function check(): void
+    public function start(string $serviceIdOrClass, array $options, bool $check = true): ?Task
+    {
+        //====================================================================//
+        // Prepare Task from received Configuration
+        $task = $this->taskFactory->fromConfiguration($serviceIdOrClass, $options);
+        if (!$task) {
+            $this->logger->error("Tasks Manager: Invalid Job Received >> Rejected");
+
+            return null;
+        }
+        //==============================================================================
+        // Validate Token Before Task Insert
+        //==============================================================================
+        $this->token->validate($task);
+
+        //====================================================================//
+        // Add Task To Queue
+        try {
+            $this->insert($task);
+        } catch (NoResultException|NonUniqueResultException $e) {
+            $this->logger->error("Tasks Manager: ".$e->getMessage());
+
+            return null;
+        }
+
+        //==============================================================================
+        // Ensure Supervisor is Running
+        //==============================================================================
+        if ($check) {
+            $this->checkSupervisor();
+        }
+
+        return $task;
+    }
+
+    /**
+     * Add a New Task on Scheduler & Check Supervisor
+     */
+    public function onStartEvent(StartTaskEvent $event): bool
+    {
+        return (bool) $this->start($event->getSubject(), $event->getArguments());
+    }
+
+    /**
+     * Only Add a New Task on Scheduler
+     */
+    public function onInsertEvent(InsertTaskEvent $event): bool
+    {
+        return (bool) $this->start($event->getSubject(), $event->getArguments(), false);
+    }
+
+    /**
+     * Start Tasking Supervisor on This Machine
+     */
+    public function checkSupervisor(): void
     {
         //====================================================================//
         // Dispatch Task Check Event
-        self::dispatch(new CheckEvent());
-    }
-
-    /**
-     * Add Tasks in DataBase
-     *
-     * @param AbstractJob $job An Object Extending Base Job Object
-     *
-     * @return null|AddEvent
-     */
-    public static function add(AbstractJob $job): ?AddEvent
-    {
-        //====================================================================//
-        // Dispatch Task Added Event
-        $event = self::dispatch(new AddEvent($job));
-
-        return ($event instanceof AddEvent) ? $event : null;
-    }
-
-    /**
-     * Insert Tasks in DataBase
-     *
-     * @param AbstractJob $job An Object Extending Base Job Object
-     *
-     * @return null|InsertEvent
-     */
-    public static function addNoCheck(AbstractJob $job): ?InsertEvent
-    {
-        //====================================================================//
-        // Dispatch Task Added Event
-        $event = self::dispatch(new InsertEvent($job));
-
-        return ($event instanceof InsertEvent) ? $event : null;
+        $this->dispatcher->dispatch(new CheckSupervisorEvent());
     }
 
     /**
@@ -132,8 +153,8 @@ class TasksManager
      */
     public function next(?string $currentToken, bool $staticMode): ?Task
     {
-        return  Configuration::getTasksRepository()->getNextTask(
-            Configuration::getTasksConfiguration(),
+        return  $this->configuration->getTasksRepository()->getNextTask(
+            $this->configuration->getTasksSearchOptions(),
             $currentToken,
             $staticMode
         );
@@ -150,7 +171,10 @@ class TasksManager
     {
         //====================================================================//
         // Delete Old Tasks from Database
-        $cleanCounter = Configuration::getTasksRepository()->clean(Configuration::getTasksDeleteDelay());
+        $cleanCounter = $this->configuration
+            ->getTasksRepository()
+            ->clean($this->configuration->getTasksDeleteDelay())
+        ;
         //====================================================================//
         // User Information
         if ($cleanCounter > 0) {
@@ -158,11 +182,14 @@ class TasksManager
         }
         //====================================================================//
         // Delete Old Token from Database
-        $cleanCounter = Configuration::getTokenRepository()->clean(Configuration::getTokenDeleteDelay());
+        $cleanCounter = $this->configuration
+            ->getTokenRepository()
+            ->clean($this->configuration->getTokenDeleteDelay())
+        ;
 
         //====================================================================//
         // Reload Repository Data
-        Configuration::getEntityManager()->clear();
+        $this->configuration->getEntityManager()->clear();
 
         return $cleanCounter;
     }
@@ -211,7 +238,7 @@ class TasksManager
             Timer::msSleep($msSteps);
             //==============================================================================
             // Get Number of Pending Tasks
-            $pending = Configuration::getTasksRepository()->getPendingTasksCount($token, $md5, $key1, $key2);
+            $pending = $this->configuration->getTasksRepository()->getPendingTasksCount($token, $md5, $key1, $key2);
             //==============================================================================
             // Check If Tasks Completed
             if ((0 == $pending) && (0 == $lastPending)) {
@@ -234,235 +261,7 @@ class TasksManager
     }
 
     //====================================================================//
-    //  Static Tasks Management
-    //====================================================================//
-
-    /**
-     *  Initialize Static Task Buffer in Database
-     *  => Tasks are Loaded from Parameters
-     *  => Or by registering Event dispatcher
-     *
-     * @throws Exception
-     *
-     * @return $this
-     */
-    public function loadStaticTasks(): self
-    {
-        //====================================================================//
-        // Get List of Static Tasks to Setup
-        $staticJobs = $this->jobs->getStaticJobs();
-        //====================================================================//
-        // Get List of Static Tasks in Database
-        $database = Configuration::getTasksRepository()->getStaticTasks();
-        //====================================================================//
-        // Loop on All Database Tasks to Identify Static Tasks
-        foreach ($database as $task) {
-            $found = false;
-            //====================================================================//
-            // Try to Identify Task in Static Task List
-            foreach ($staticJobs as $index => $staticTask) {
-                //====================================================================//
-                // If Tasks Are Similar => Delete From List
-                if ($this->compareStaticTask($staticTask, $task)) {
-                    $found = true;
-                    unset($staticJobs[$index]);
-                }
-            }
-            //====================================================================//
-            // Task Not to Run (Doesn't Exists) => Delete from Database
-            if (!$found) {
-                Configuration::getEntityManager()->remove($task);
-                Configuration::getEntityManager()->flush();
-            }
-        }
-        //====================================================================//
-        // Loop on Tasks to Add it On Database
-        foreach ($staticJobs as $staticTask) {
-            $this->onAddAction(new GenericEvent($staticTask));
-        }
-
-        return $this;
-    }
-
-    //====================================================================//
-    //  Tasking Events Actions
-    //====================================================================//
-
-    /**
-     * Add a New Task on Scheduler
-     *
-     * @param GenericEvent $event
-     *
-     * @throws Exception
-     *
-     * @return bool
-     */
-    public function onAddAction(GenericEvent $event): bool
-    {
-        $job = $event->getSubject();
-        //====================================================================//
-        // Validate Job
-        if (!($job instanceof AbstractJob)) {
-            $this->logger->error("Tasks Manager: Invalid Job Received >> Rejected");
-
-            return false;
-        }
-        if (!$this->validate($job)) {
-            $job->setInputs(array("error" => "Invalid Job: Rejected"));
-            $this->logger->error("Tasks Manager: Invalid Job Received >> Rejected");
-
-            return false;
-        }
-        //====================================================================//
-        // Prepare Task From Job Class
-        $task = $this->prepare($job);
-
-        //====================================================================//
-        // Add Task To Queue
-        try {
-            $this->insert($task);
-        } catch (NoResultException|NonUniqueResultException $e) {
-            $this->logger->error("Tasks Manager: ".$e->getMessage());
-
-            return false;
-        }
-
-        return true;
-    }
-
-    //====================================================================//
-    //  PRIVATE - Jobs Validation Function
-    //====================================================================//
-
-    /**
-     * Verify given Job before being added to scheduler
-     *
-     * @param AbstractJob $job An Object Extending Base Job Object
-     *
-     * @return bool
-     */
-    private function validate(AbstractJob $job): bool
-    {
-        //====================================================================//
-        // Job Class and Action are not empty
-        if (strlen($job->getAction()) < 3) {
-            return false;
-        }
-        //====================================================================//
-        // Job Action Method Exists
-        if (!method_exists($job, $job->getAction())) {
-            return false;
-        }
-        //====================================================================//
-        // Job Priority is Valid
-        if ($job->getPriority() < 0) {
-            return false;
-        }
-
-        //====================================================================//
-        // Validate Static & Batch Jobs Specific Options
-        return $this->validateStaticJob($job) && $this->validateBatchJob($job);
-    }
-
-    /**
-     * Take Given Job Parameters and convert it on a Task for Storage
-     *
-     * @param AbstractJob $job User Job Object
-     *
-     * @throws Exception
-     *
-     * @return Task
-     */
-    private function prepare(AbstractJob $job): Task
-    {
-        //====================================================================//
-        // Create a New Task
-        $task = new Task();
-        //====================================================================//
-        // Setup Task Parameters
-        $task
-            ->setName(get_class($job)."::".$job->getAction())
-            ->setJobClass(get_class($job))
-            ->setJobAction($job->getAction())
-            ->setJobInputs($job->getRawInputs())
-            ->setJobPriority($job->getPriority())
-            ->setJobToken($job->getToken())
-            ->setSettings($job->getSettings())
-            ->setJobIndexKey1($job->getIndexKey1())
-            ->setJobIndexKey2($job->getIndexKey2())
-        ;
-        //====================================================================//
-        // If is a Static Job
-        //====================================================================//
-        if (is_subclass_of($job, StaticJobInterface::class)) {
-            $task
-                ->setName("[S] ".$task->getName())
-                ->setJobIsStatic(true)
-                ->setJobFrequency($job->getFrequency());
-        }
-
-        //====================================================================//
-        // If is a Static Job
-        //====================================================================//
-        if (is_subclass_of($job, AbstractBatchJob::class)) {
-            $task
-                ->setName("[B] ".$task->getName());
-        }
-
-        //====================================================================//
-        // Update Task Discriminator
-        $task->updateDiscriminator();
-
-        //==============================================================================
-        // Validate Token Before Task Insert
-        //==============================================================================
-        $this->token->validate($task);
-
-        return $task;
-    }
-
-    /**
-     * Verify given Static Job before being added to scheduler
-     *
-     * @param AbstractJob $job An Object Extending Base Job Object
-     *
-     * @return bool
-     */
-    private function validateStaticJob(AbstractJob $job): bool
-    {
-        //====================================================================//
-        // If is a Static Job
-        //====================================================================//
-        if (is_subclass_of($job, AbstractStaticJob::class)) {
-            if ($job->getFrequency() <= 0) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Verify given Batch Job before being added to scheduler
-     *
-     * @param AbstractJob $job An Object Extending Base Job Object
-     *
-     * @return bool
-     */
-    private function validateBatchJob(AbstractJob $job): bool
-    {
-        //====================================================================//
-        // If is a Batch Job
-        //====================================================================//
-        if (is_subclass_of($job, AbstractBatchJob::class)) {
-            return $job::validateBatchJobActions();
-        }
-
-        return true;
-    }
-
-    //====================================================================//
-    //  PRIVATE - Static Tasks Management
+    //  PRIVATE - Tasks Management
     //====================================================================//
 
     /**
@@ -472,13 +271,12 @@ class TasksManager
      *
      * @throws NoResultException
      * @throws NonUniqueResultException
-     * @throws Exception
      */
     private function insert(Task $task): void
     {
         //====================================================================//
         // Ensure no Similar Task Already Waiting
-        $count = Configuration::getTasksRepository()->getWaitingTasksCount(
+        $count = $this->configuration->getTasksRepository()->getWaitingTasksCount(
             $task->getJobToken(),
             $task->getDiscriminator(),
             $task->getJobIndexKey1(),
@@ -489,76 +287,7 @@ class TasksManager
         }
         //====================================================================//
         // Persist New Task to Db
-        Configuration::getEntityManager()->persist($task);
-        Configuration::getEntityManager()->flush();
-    }
-
-    /**
-     * Identify Static Task in Parameters
-     *
-     * @param AbstractJob $staticJob
-     * @param Task        $task
-     *
-     * @return bool true if Static Tasks are Similar
-     */
-    private function compareStaticTask(AbstractJob $staticJob, Task $task) : bool
-    {
-        //====================================================================//
-        // Filter by Class Name
-        if (get_class($staticJob) != $task->getJobClass()) {
-            return false;
-        }
-        //====================================================================//
-        // Filter by Token
-        if ($staticJob->getToken() != $task->getJobToken()) {
-            return false;
-        }
-        //====================================================================//
-        // Filter by Frequency
-        if ($staticJob->getFrequency() != $task->getJobFrequency()) {
-            return false;
-        }
-        //====================================================================//
-        // Filter by Inputs
-        if (serialize($staticJob->getInputs()) !== serialize($task->getJobInputs())) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Dispatch an Event with Args Detection
-     *
-     * @param GenericEvent $event
-     *
-     * @return null|AddEvent|CheckEvent|InsertEvent|StaticTasksListingEvent
-     */
-    private static function dispatch(GenericEvent $event): ?GenericEvent
-    {
-        try {
-            $reflection = new ReflectionMethod(self::$staticInstance->dispatcher, "dispatch");
-            $args = array();
-            foreach ($reflection->getParameters() as $param) {
-                if ("event" == $param->getName()) {
-                    $args[] = $event;
-                }
-                if ("eventName" == $param->getName()) {
-                    $args[] = get_class($event);
-                }
-            }
-            $response = $reflection->invokeArgs(self::$staticInstance->dispatcher, $args);
-        } catch (ReflectionException) {
-            return null;
-        }
-
-        if (($response instanceof AddEvent) || ($response instanceof CheckEvent)) {
-            return $response;
-        }
-        if (($response instanceof InsertEvent) || ($response instanceof StaticTasksListingEvent)) {
-            return $response;
-        }
-
-        return null;
+        $this->configuration->getEntityManager()->persist($task);
+        $this->configuration->getEntityManager()->flush();
     }
 }

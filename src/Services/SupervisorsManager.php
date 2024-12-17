@@ -13,16 +13,18 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Services;
+namespace BadPixxel\Tasking\Services;
 
+use BadPixxel\Tasking\Events\CheckSupervisorEvent;
+use BadPixxel\Tasking\Helper\Timer;
 use DateTime;
 use Exception;
-use Splash\Tasking\Tools\Timer;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * Supervisor Worker Management Service
  */
-class SupervisorsManager extends WorkersManager
+class SupervisorsManager extends WorkersManager implements EventSubscriberInterface
 {
     /**
      * Max Number of Workers
@@ -30,6 +32,20 @@ class SupervisorsManager extends WorkersManager
      * @var int
      */
     private int $maxWorkers = 5;
+
+    //====================================================================//
+    //  Event Subscriber
+    //====================================================================//
+
+    /**
+     * Register Subscribed Events Actions
+     */
+    public static function getSubscribedEvents(): array
+    {
+        return array(
+            CheckSupervisorEvent::class => "checkSupervisor",
+        );
+    }
 
     //==============================================================================
     //      Supervisor Operations
@@ -46,7 +62,7 @@ class SupervisorsManager extends WorkersManager
     {
         //====================================================================//
         // Load Config Value
-        $maxWorkers = Configuration::getSupervisorMaxWorkers();
+        $maxWorkers = $this->configuration->getSupervisorMaxWorkers();
         //====================================================================//
         // Safety Checks
         if ($maxWorkers <= 0) {
@@ -93,7 +109,7 @@ class SupervisorsManager extends WorkersManager
     {
         //====================================================================//
         // Wait
-        Timer::msSleep(Configuration::getSupervisorRefreshDelay());
+        Timer::msSleep($this->configuration->getSupervisorRefreshDelay());
     }
 
     //==============================================================================
@@ -120,10 +136,10 @@ class SupervisorsManager extends WorkersManager
     protected function getWorkerMaxDate(): DateTime
     {
         $this->logger->info(
-            "Supervisor Manager: This Worker will die in ".Configuration::getSupervisorMaxAge()." Seconds"
+            "Supervisor Manager: This Worker will die in ".$this->configuration->getSupervisorMaxAge()." Seconds"
         );
 
-        return new DateTime("+".Configuration::getSupervisorMaxAge()."Seconds");
+        return new DateTime("+".$this->configuration->getSupervisorMaxAge()."Seconds");
     }
 
     /**
@@ -133,6 +149,6 @@ class SupervisorsManager extends WorkersManager
      */
     protected function getWorkerMaxMemory(): int
     {
-        return Configuration::getSupervisorMaxMemory();
+        return $this->configuration->getSupervisorMaxMemory();
     }
 }

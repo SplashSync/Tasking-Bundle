@@ -13,16 +13,19 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Services;
+namespace BadPixxel\Tasking\Services;
 
+use BadPixxel\Tasking\Entity\Task;
+use BadPixxel\Tasking\Helper\Timer;
 use Psr\Log\LoggerInterface;
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Tools\Timer;
-use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
  * Linux Process Manager
  */
+#[Autoconfigure(bind: array(
+    '$projectDir' => '%kernel.project_dir%',
+))]
 class ProcessManager
 {
     //==============================================================================
@@ -40,40 +43,14 @@ class ProcessManager
     const CHECK = "tasking:check";                              // Check Start Console Command
     const CRON = "* * * * * ";                                  // Crontab Frequency
 
-    //==============================================================================
-    //  Variables Definition
-    //==============================================================================
-
     /**
-     * @var LoggerInterface
+     * Service Constructor
      */
-    private LoggerInterface $logger;
-
-    /**
-     * Sf Project Root Dir
-     *
-     * @var string
-     */
-    private string $projectDir;
-
-    //====================================================================//
-    //  CONSTRUCTOR
-    //====================================================================//
-
-    /**
-     * Class Constructor
-     *
-     * @param KernelInterface $kernel
-     * @param LoggerInterface $logger
-     */
-    public function __construct(KernelInterface $kernel, LoggerInterface $logger)
-    {
-        //====================================================================//
-        // Link to Symfony Logger
-        $this->logger = $logger;
-        //====================================================================//
-        // Init Parameters
-        $this->projectDir = $kernel->getProjectDir();
+    public function __construct(
+        private readonly string $projectDir,
+        private readonly Configuration $configuration,
+        private readonly LoggerInterface $logger
+    ) {
     }
 
     //==============================================================================
@@ -89,16 +66,16 @@ class ProcessManager
     {
         //====================================================================//
         // Check Crontab Management is Activated
-        if (!Configuration::isServerForceCrontab()) {
+        if (!$this->configuration->isServerForceCrontab()) {
             $this->logger->debug("Process Manager: Crontab is Disabled.");
 
             return Task::CRONTAB_DISABLED;
         }
         //====================================================================//
         // Compute Expected Cron Tab Command
-        $command = self::CRON." ".Configuration::getServerPhpVersion()." ";
+        $command = self::CRON." ".$this->configuration->getServerPhpVersion()." ";
         $command .= " ".$this->projectDir."/".self::CMD_CONSOLE;
-        $command .= " ".self::CHECK." --env=".Configuration::getEnvironmentName()." ".self::CMD_SUFIX;
+        $command .= " ".self::CHECK." --env=".$this->configuration->getEnvironmentName()." ".self::CMD_SUFIX;
         //====================================================================//
         // Read Current Cron Tab Configuration
         $cronTab = array();
@@ -132,11 +109,11 @@ class ProcessManager
     {
         //====================================================================//
         // Select Environment
-        $env = is_null($environment) ? Configuration::getEnvironmentName() : $environment;
+        $env = is_null($environment) ? $this->configuration->getEnvironmentName() : $environment;
 
         //====================================================================//
         // Finalize Command
-        $rawCmd = self::CMD_NOHUP.Configuration::getServerPhpVersion()." ";
+        $rawCmd = self::CMD_NOHUP.$this->configuration->getServerPhpVersion()." ";
         $rawCmd .= $this->projectDir."/".self::CMD_CONSOLE;
         $rawCmd .= $command." --env=".$env.self::CMD_SUFIX;
 
@@ -172,11 +149,11 @@ class ProcessManager
     {
         //====================================================================//
         // Select Environment
-        $env = is_null($environment) ? Configuration::getEnvironmentName() : $environment;
+        $env = is_null($environment) ? $this->configuration->getEnvironmentName() : $environment;
 
         //====================================================================//
         // Find Command
-        $listCommand = Configuration::getServerPhpVersion()." ";
+        $listCommand = $this->configuration->getServerPhpVersion()." ";
         $listCommand .= $this->projectDir."/".self::CMD_CONSOLE;
         $listCommand .= $command." --env=".$env;
 

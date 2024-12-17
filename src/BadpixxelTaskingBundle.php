@@ -13,24 +13,24 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking;
+namespace BadPixxel\Tasking;
 
-use Splash\Tasking\Services\TasksManager;
+use BadPixxel\Tasking\DependencyInjection\Compiler\TaggedJobsCompiler;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
- * Splash Tasking Bundle
+ * Badpixxel Tasking Bundle
  *
  * 100% PHP Advanced Tasks Scheduler for Symfony Applications
  */
-class SplashTaskingBundle extends Bundle
+class BadpixxelTaskingBundle extends Bundle
 {
-    public function boot(): void
+    public function build(ContainerBuilder $container): void
     {
+        parent::build($container);
         //==============================================================================
-        // Force Loading of Tasks Manager
-        if (isset($this->container)) {
-            $this->container->get(TasksManager::class);
-        }
+        // Register Tagged Tasking Services
+        $container->addCompilerPass(new TaggedJobsCompiler());
     }
 }

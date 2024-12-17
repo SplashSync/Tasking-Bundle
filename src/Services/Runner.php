@@ -13,22 +13,22 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Services;
+namespace BadPixxel\Tasking\Services;
 
+use BadPixxel\Tasking\Entity\Task;
+use BadPixxel\Tasking\Handler\TaskHandler;
+use BadPixxel\Tasking\Helper\Timer;
+use BadPixxel\Tasking\Interfaces\JobInterface;
+use BadPixxel\Tasking\Interfaces\RepeatableJobInterface;
+use BadPixxel\Tasking\Services\Jobs\JobsManager;
+use BadPixxel\Tasking\Services\Tasks\StatusMonitor;
 use DateTime;
 use Doctrine\Persistence\ManagerRegistry as Registry;
 use Exception;
+use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use Sentry;
 use Sentry\State\Scope;
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Handler\TaskHandler;
-use Splash\Tasking\Model\AbstractBatchJob;
-use Splash\Tasking\Model\AbstractJob;
-use Splash\Tasking\Model\AbstractMassJob;
-use Splash\Tasking\Tools\Status;
-use Splash\Tasking\Tools\Timer;
-use Symfony\Bridge\Monolog\Logger;
 
 /**
  * Tasks Runner
@@ -36,7 +36,7 @@ use Symfony\Bridge\Monolog\Logger;
  * Load Available Tasks from database, Acquire Token & Execute
  * Look so simple... but!
  *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(CouplingBetweenObjects)
  */
 class Runner
 {
@@ -53,18 +53,20 @@ class Runner
     private ?Task $task = null;
 
     /**
-     * @var AbstractJob
+     * Currently Executed Job
      */
-    private AbstractJob $job;
+    private JobInterface $job;
 
     /**
      * Service Constructor
      */
     public function __construct(
-        private JobsManager $jobs,
-        private LoggerInterface $logger,
-        private Registry $registry,
-        private TokenManager $token
+        private readonly Configuration $configuration,
+        private readonly JobsManager     $jobs,
+        private readonly LoggerInterface $logger,
+        private readonly Registry        $registry,
+        private readonly StatusMonitor        $statusMonitor,
+        private readonly TokenManager $token
     ) {
         //====================================================================//
         // Setup Tasks Logger
@@ -92,7 +94,7 @@ class Runner
         Timer::start();
         //==============================================================================
         // Clear Current Entity Manager
-        Configuration::getTasksRepository()->clear();
+        $this->configuration->getTasksRepository()->clear();
         //==============================================================================
         // Clear Global Entity Manager
         $this->registry->getManager()->clear();
@@ -176,14 +178,14 @@ class Runner
             $this->task->setTry($this->task->getTry() + 1);
             //==============================================================================
             // Save Status in Db
-            Configuration::getTasksRepository()->flush();
+            $this->configuration->getTasksRepository()->flush();
 
             return true;
         }
 
         //==============================================================================
         // Save Status in Db
-        Configuration::getTasksRepository()->flush();
+        $this->configuration->getTasksRepository()->flush();
 
         //====================================================================//
         // Execute Task
@@ -193,11 +195,11 @@ class Runner
         if (isset($this->task)) {
             //==============================================================================
             // Do Post Execution Actions
-            $this->closeJob($this->task, Configuration::getTasksMaxRetry());
+            $this->closeJob($this->task, $this->configuration->getTasksMaxRetry());
             $this->clearEntityManagers();
             //==============================================================================
             // Save Status in Db
-            Configuration::getTasksRepository()->flush();
+            $this->configuration->getTasksRepository()->flush();
         }
 
         //====================================================================//
@@ -216,14 +218,14 @@ class Runner
     {
         //====================================================================//
         // Use Current Task Token or Null
-        $currentToken = isset($this->task) && (Status::getTokenLifetime() >= Configuration::getWorkerWatchdogDelay())
-                ? $this->task->getJobToken()
-                : null
+        $currentToken = isset($this->task) && $this->statusMonitor->hasTokenEnoughLifetime()
+            ? $this->task->getJobToken()
+            : null
         ;
         //====================================================================//
         // Load Next Task To Run with Current Token
-        $this->task = Configuration::getTasksRepository()->getNextTask(
-            Configuration::getTasksConfiguration(),
+        $this->task = $this->configuration->getTasksRepository()->getNextTask(
+            $this->configuration->getTasksSearchOptions(),
             $currentToken,
             $staticMode
         );
@@ -244,18 +246,27 @@ class Runner
     {
         //==============================================================================
         // Load Requested Job Service
-        try {
-            $this->job = $this->jobs->get($task->getJobClass());
-        } catch (Exception $e) {
-            $task->setFaultStr($e->getMessage());
+        if (!$job = $this->jobs->getService($task->getJobClass())) {
+            $task->setFaultStr("Unable to find Requested Job Service");
 
             return false;
         }
+        $this->job = $job;
         //==============================================================================
         // Verify Requested Method Exists
         $jobAction = $task->getJobAction();
         if (!method_exists($this->job, $jobAction)) {
-            $task->setFaultStr("Unable to find Requested Job Function");
+            $task->setFaultStr("Unable to find Requested Job Method");
+
+            return false;
+        }
+
+        //==============================================================================
+        // Verify Job Inputs
+        try {
+            $this->job->resolveInputs($task->getJobInputs());
+        } catch (Exception $e) {
+            $task->setFaultStr($e->getMessage());
 
             return false;
         }
@@ -295,10 +306,10 @@ class Runner
         }
         //====================================================================//
         // Init Task Status Manager
-        Status::setJobStarted();
+        $this->statusMonitor->setJobStarted();
         //====================================================================//
         // Init User Job
-        $this->job->__set("inputs", $task->getJobInputs());
+        $this->job->setInputs($task->getJobInputs());
 
         //====================================================================//
         // User Information
@@ -398,7 +409,7 @@ class Runner
     {
         //====================================================================//
         // Init Task Status Manager
-        Status::setJobFinished();
+        $this->statusMonitor->setJobFinished();
         //==============================================================================
         // End of Task Execution
         $task->setRunning(false);
@@ -420,11 +431,10 @@ class Runner
         }
         //==============================================================================
         // IF Batch Job or Mass Job
-        $job = $this->getBatchOrMassJob();
-        if ($job) {
+        if ($job = $this->isRepeatableJob()) {
             //==============================================================================
             // If Batch Task Not Completed => Setup For Next Execution
-            if (!$job->getStateItem("isCompleted")) {
+            if (!$job->isCompleted()) {
                 $task->setTry(0);
                 $task->setFinished(false);
             }
@@ -449,24 +459,22 @@ class Runner
     private function clearEntityManagers(): void
     {
         foreach (array_keys($this->registry->getManagerNames()) as $managerName) {
-            if ($managerName != Configuration::getEntityManagerName()) {
+            if ($managerName != $this->configuration->getEntityManagerName()) {
                 $this->registry->getManager($managerName)->clear();
             }
         }
     }
 
     /**
-     * Check if Batch or Mass Job
-     *
-     * @return null|AbstractBatchJob|AbstractMassJob
+     * Check if Repeatable Job (Batch or Mass Job)
      */
-    private function getBatchOrMassJob(): ?AbstractJob
+    private function isRepeatableJob(): null|RepeatableJobInterface
     {
         if (!isset($this->job)) {
             return null;
         }
 
-        if (is_a($this->job, AbstractBatchJob::class) || is_a($this->job, AbstractMassJob::class)) {
+        if ($this->job instanceof RepeatableJobInterface) {
             return $this->job;
         }
 

@@ -13,58 +13,59 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tools;
+namespace BadPixxel\Tasking\Services\Tasks;
 
+use BadPixxel\Tasking\Services\Configuration;
 use DateTime;
 use Exception;
 use Psr\Log\LoggerInterface;
-use Splash\Tasking\Services\Configuration;
 
 /**
  * Tasking Status Helper
  * Provide information for Task Management inside Workers
  */
-class Status
+class StatusMonitor
 {
     /**
      * @var null|string
      */
-    private static ?string $token = null;
+    private ?string $token = null;
 
     /**
      * @var null|DateTime
      */
-    private static ?DateTime $tokenAcquiredAt = null;
+    private ?DateTime $tokenAcquiredAt = null;
 
     /**
      * @var null|DateTime
      */
-    private static ?DateTime $tokenExpireAt = null;
+    private ?DateTime $tokenExpireAt = null;
 
     /**
      * @var null|DateTime
      */
-    private static ?DateTime $watchdogResetAt = null;
+    private ?DateTime $watchdogResetAt = null;
 
     /**
      * @var null|DateTime
      */
-    private static ?DateTime $watchdogExpireAt = null;
+    private ?DateTime $watchdogExpireAt = null;
 
     /**
      * @var null|DateTime
      */
-    private static ?DateTime $jobStartedAt = null;
+    private ?DateTime $jobStartedAt = null;
 
     /**
      * @var null|DateTime
      */
-    private static ?DateTime $jobExpireAt = null;
+    private ?DateTime $jobExpireAt = null;
 
-    /**
-     * @var null|LoggerInterface
-     */
-    private static ?LoggerInterface $logger = null;
+    public function __construct(
+        private readonly LoggerInterface $logger,
+        private readonly Configuration $configuration,
+    ) {
+    }
 
     //==============================================================================
     // MAIN DELAYS MANAGEMENT
@@ -75,27 +76,23 @@ class Status
      *
      * If possible, watchdog (PHP Time Limit) will be extended.
      *
-     * @param int $nbSeconds
-     *
-     * @throws Exception
-     *
      * @return bool True if this delay is Allowed
      */
-    public static function requireLifetime(int $nbSeconds): bool
+    public function requireLifetime(int $nbSeconds): bool
     {
-        $remaining = self::getRemainingLifetime();
+        $remaining = $this->getRemainingLifetime();
         //==============================================================================
         // Current Situation allow this delay
         if (is_null($remaining) || ($nbSeconds <= $remaining)) {
             return true;
         }
-        $extendable = self::getExpendableLifetime();
+        $extendable = $this->getExpendableLifetime();
         //==============================================================================
         // Watchdog Reset is Still Possible
-        if (!is_null($extendable) && (Configuration::getWorkerWatchdogDelay() < $extendable)) {
+        if (!is_null($extendable) && ($this->configuration->getWorkerWatchdogDelay() < $extendable)) {
             //==============================================================================
             // Reset Watchdog
-            self::resetWatchdog();
+            $this->resetWatchdog();
 
             return true;
         }
@@ -110,13 +107,11 @@ class Status
      *
      * @param int $nbSeconds
      *
-     * @throws Exception
-     *
      * @return bool True if this delay is Allowed
      */
-    public static function hasLifetime(int $nbSeconds): bool
+    public function hasLifetime(int $nbSeconds): bool
     {
-        $remaining = self::getRemainingLifetime();
+        $remaining = $this->getRemainingLifetime();
         //==============================================================================
         // Current Situation allow this delay
         if (is_null($remaining) || ($nbSeconds <= $remaining)) {
@@ -129,18 +124,16 @@ class Status
     /**
      * Get Job Delays Status
      *
-     * @throws Exception
-     *
-     * @return array
+     * @return array<string, null|int>
      */
-    public static function getStatus(): array
+    public function getStatus(): array
     {
         return array(
-            "job" => self::getJobLifetime(),
-            "token" => self::getTokenLifetime(),
-            "watchdog" => self::getWatchdogLifetime(),
-            "remaining" => self::getRemainingLifetime(),
-            "expandable" => self::getExpendableLifetime(),
+            "job" => $this->getJobLifetime(),
+            "token" => $this->getTokenLifetime(),
+            "watchdog" => $this->getWatchdogLifetime(),
+            "remaining" => $this->getRemainingLifetime(),
+            "expandable" => $this->getExpendableLifetime(),
         );
     }
 
@@ -151,17 +144,13 @@ class Status
      *  - PHP script may fall in timeout.
      *  - Job Token may expire
      *  - Job may be considered as faulty by scheduler
-     *
-     * @throws Exception
-     *
-     * @return int
      */
-    public static function getRemainingLifetime(): ?int
+    public function getRemainingLifetime(): ?int
     {
         $min = min(array(
-            self::getJobLifetime() ? self::getJobLifetime() : PHP_INT_MAX,
-            self::getTokenLifetime() ? self::getTokenLifetime() : PHP_INT_MAX,
-            self::getWatchdogLifetime() ? self::getWatchdogLifetime() : PHP_INT_MAX,
+            $this->getJobLifetime() ? $this->getJobLifetime() : PHP_INT_MAX,
+            $this->getTokenLifetime() ? $this->getTokenLifetime() : PHP_INT_MAX,
+            $this->getWatchdogLifetime() ? $this->getWatchdogLifetime() : PHP_INT_MAX,
         ));
 
         return (PHP_INT_MAX == $min) ? null : (int) $min;
@@ -173,16 +162,12 @@ class Status
      * This delay is a technical value indicating Max Time before:
      *  - Job Token may expire
      *  - Job may be considered as faulty by scheduler
-     *
-     * @throws Exception
-     *
-     * @return int
      */
-    public static function getExpendableLifetime(): ?int
+    public function getExpendableLifetime(): ?int
     {
         $min = min(array(
-            self::getJobLifetime() ? self::getJobLifetime() : PHP_INT_MAX,
-            self::getTokenLifetime() ? self::getTokenLifetime() : PHP_INT_MAX,
+            $this->getJobLifetime() ? $this->getJobLifetime() : PHP_INT_MAX,
+            $this->getTokenLifetime() ? $this->getTokenLifetime() : PHP_INT_MAX,
         ));
 
         return (PHP_INT_MAX == $min) ? null : (int) $min;
@@ -194,56 +179,57 @@ class Status
 
     /**
      * Notify Status controller a job was Started
-     *
-     * @throws Exception
      */
-    public static function setJobStarted(): void
+    public function setJobStarted(): void
     {
         //==============================================================================
         // Store Job Time Limits
-        self::$jobStartedAt = new DateTime();
-        self::$jobExpireAt = new DateTime("+".Configuration::getTasksErrorDelay()." Seconds");
+        $this->jobStartedAt = new DateTime();
+
+        try {
+            $this->jobExpireAt = new DateTime("+".$this->configuration->getTasksErrorDelay()." Seconds");
+        } catch (Exception) {
+            $this->jobExpireAt = new DateTime("+250 Seconds");
+        }
     }
 
     /**
      * Notify Status controller a job was Finished
-     *
-     * @throws Exception
      */
-    public static function setJobFinished(): void
+    public function setJobFinished(): void
     {
         //==============================================================================
         // Store Job Time Limits
-        self::$jobStartedAt = null;
-        self::$jobExpireAt = null;
+        $this->jobStartedAt = null;
+        $this->jobExpireAt = null;
     }
 
     /**
      * Get Number of Seconds before Job Expiration
      */
-    public static function getJobLifetime(): ?int
+    public function getJobLifetime(): ?int
     {
-        if (!self::$jobExpireAt instanceof DateTime) {
-            return null;
+        if ($this->jobExpireAt) {
+            return $this->jobExpireAt->getTimestamp() - (new DateTime())->getTimestamp();
         }
 
-        return self::$jobExpireAt->getTimestamp() - (new DateTime())->getTimestamp();
+        return null;
     }
 
     /**
      * @return null|DateTime
      */
-    public static function getJobStartedAt(): ?DateTime
+    public function getJobStartedAt(): ?DateTime
     {
-        return self::$jobStartedAt;
+        return $this->jobStartedAt;
     }
 
     /**
      * @return null|DateTime
      */
-    public static function getJobExpireAt(): ?DateTime
+    public function getJobExpireAt(): ?DateTime
     {
-        return self::$jobExpireAt;
+        return $this->jobExpireAt;
     }
 
     //==============================================================================
@@ -252,51 +238,45 @@ class Status
 
     /**
      * Reset Worker & Tasks WatchDog
-     *
-     * @param null|LoggerInterface $logger
-     *
-     * @throws Exception
      */
-    public static function resetWatchdog(LoggerInterface $logger = null): void
+    public function resetWatchdog(): void
     {
-        $watchdogDelay = Configuration::getWorkerWatchdogDelay();
+        $watchdogDelay = $this->configuration->getWorkerWatchdogDelay();
         //==============================================================================
         // Store New Process Execution Time Limit
-        self::$watchdogResetAt = new DateTime();
-        self::$watchdogExpireAt = new DateTime("+".$watchdogDelay." Seconds");
+        $this->watchdogResetAt = new DateTime();
+
+        try {
+            $this->watchdogExpireAt = new DateTime("+".$watchdogDelay." Seconds");
+        } catch (Exception) {
+            $this->watchdogExpireAt = new DateTime("+30 Seconds");
+        }
         //==============================================================================
         // Set Script Execution Time
         set_time_limit($watchdogDelay);
         //==============================================================================
-        // Connect Logger
-        if ($logger && !isset(self::$logger)) {
-            self::$logger = $logger;
-        }
-        //==============================================================================
         // Add Log Message
-        if (isset(self::$logger)) {
-            self::$logger->warning("Status Manager: Watchdog reset for ".$watchdogDelay." Seconds");
-        }
+        $this->logger->warning(sprintf("Status Manager: Watchdog reset for %d Seconds", $watchdogDelay));
     }
 
     /**
      * Get Number of Seconds before Watchdog Expiration
      */
-    public static function getWatchdogLifetime(): ?int
+    public function getWatchdogLifetime(): ?int
     {
-        if (!self::$watchdogExpireAt instanceof DateTime) {
-            return null;
+        if ($this->watchdogExpireAt) {
+            return $this->watchdogExpireAt->getTimestamp() - (new DateTime())->getTimestamp();
         }
 
-        return self::$watchdogExpireAt->getTimestamp() - (new DateTime())->getTimestamp();
+        return null;
     }
 
     /**
      * @return null|DateTime
      */
-    public static function getWatchdogResetAt(): ?DateTime
+    public function getWatchdogResetAt(): ?DateTime
     {
-        return self::$watchdogResetAt;
+        return $this->watchdogResetAt;
     }
 
     //==============================================================================
@@ -305,64 +285,70 @@ class Status
 
     /**
      * Notify Status controller a token was Acquired
-     *
-     * @param string $token
      */
-    public static function setTokenAcquired(string $token): void
+    public function setTokenAcquired(string $token): void
     {
-        self::$token = $token;
-        self::$tokenAcquiredAt = new DateTime();
+        $this->token = $token;
+        $this->tokenAcquiredAt = new DateTime();
 
         try {
-            self::$tokenExpireAt = new DateTime("+".Configuration::getTokenSelfReleaseDelay()." Seconds");
+            $this->tokenExpireAt = new DateTime("+".$this->configuration->getTokenSelfReleaseDelay()." Seconds");
         } catch (Exception) {
-            self::$tokenExpireAt = new DateTime("+300 Seconds");
+            $this->tokenExpireAt = new DateTime("+300 Seconds");
         }
     }
 
     /**
      * Notify Status controller a token was Released
      */
-    public static function setTokenReleased(): void
+    public function setTokenReleased(): void
     {
-        self::$token = null;
-        self::$tokenAcquiredAt = null;
-        self::$tokenExpireAt = null;
+        $this->token = null;
+        $this->tokenAcquiredAt = null;
+        $this->tokenExpireAt = null;
     }
 
     /**
      * Check if a Token is Used
      */
-    public static function hasToken(): bool
+    public function hasToken(): bool
     {
-        return isset(self::$token);
+        return isset($this->token);
     }
 
     /**
      * Get Currently Used Token
      */
-    public static function getToken(): ?string
+    public function getToken(): ?string
     {
-        return self::$token;
+        return $this->token;
     }
 
     /**
      * Get Number of Seconds before Token Expiration
      */
-    public static function getTokenLifetime(): ?int
+    public function getTokenLifetime(): ?int
     {
-        if (!self::$tokenExpireAt instanceof DateTime) {
-            return null;
+        if ($this->tokenExpireAt) {
+            return $this->tokenExpireAt->getTimestamp() - (new DateTime())->getTimestamp();
         }
 
-        return self::$tokenExpireAt->getTimestamp() - (new DateTime())->getTimestamp();
+        return null;
     }
 
     /**
-     * @return null|DateTime
+     * Does Current token Have Enough Lifetime for Another Task Execution
      */
-    public static function getTokenAcquiredAt(): ?DateTime
+    public function hasTokenEnoughLifetime(): bool
     {
-        return self::$tokenAcquiredAt;
+        return $this->getTokenLifetime() >= $this->configuration->getWorkerWatchdogDelay();
+    }
+
+    /**
+     * Get Date of Token Expirations
+     */
+    public function getTokenAcquiredAt(): ?DateTime
+    {
+        return $this->tokenAcquiredAt;
     }
 }

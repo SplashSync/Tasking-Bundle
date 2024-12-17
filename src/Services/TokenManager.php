@@ -13,12 +13,13 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Services;
+namespace BadPixxel\Tasking\Services;
 
+use BadPixxel\Tasking\Entity\Task;
+use BadPixxel\Tasking\Entity\Token;
+use BadPixxel\Tasking\Services\Tasks\StatusMonitor;
 use Exception;
 use Psr\Log\LoggerInterface;
-use Splash\Tasking\Entity\Task;
-use Splash\Tasking\Entity\Token;
 
 /**
  * Token Management Service
@@ -30,16 +31,11 @@ class TokenManager
     //==============================================================================
 
     /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
      * Current Acquired Token
      *
      * @var null|string
      */
-    private $currentToken;
+    private ?string $currentToken = null;
 
     //====================================================================//
     //  CONSTRUCTOR
@@ -47,16 +43,12 @@ class TokenManager
 
     /**
      * Class Constructor
-     *
-     * @param LoggerInterface $logger
-     *
-     * @throws Exception
      */
-    public function __construct(LoggerInterface $logger)
-    {
-        //====================================================================//
-        // Link to Symfony Logger
-        $this->logger = $logger;
+    public function __construct(
+        private readonly Configuration $configuration,
+        private readonly StatusMonitor $statusMonitor,
+        private readonly LoggerInterface $logger
+    ) {
     }
 
     //====================================================================//
@@ -77,7 +69,7 @@ class TokenManager
         //==============================================================================
         // Safety Check - If Task Counter is Over => Close Directly This Task
         // This means task was aborted due to a uncached fatal error
-        if ($task->getTry() > Configuration::getTasksMaxRetry()) {
+        if ($task->getTry() > $this->configuration->getTasksMaxRetry()) {
             $task->setFaultStr("Fatal Error: Task Counter is Over!");
             $this->logger->notice("Token Manager: Task Counter is Over!");
 
@@ -110,12 +102,13 @@ class TokenManager
         }
         //==============================================================================
         // Try Acquire this Token
-        $acquiredToken = Configuration::getTokenRepository()->acquire($jobToken);
+        $acquiredToken = $this->configuration->getTokenRepository()->acquire($jobToken);
 
         //==============================================================================
         // Check If token is Available
         if ($acquiredToken instanceof Token) {
             $this->currentToken = $acquiredToken->getName();
+            $this->statusMonitor->setTokenAcquired($acquiredToken->getName());
             $this->logger->info('Token Manager: Token Acquired! ('.$jobToken.')');
 
             return true;
@@ -145,12 +138,13 @@ class TokenManager
         }
         //==============================================================================
         // Release Token
-        $release = Configuration::getTokenRepository()->release($this->currentToken);
+        $release = $this->configuration->getTokenRepository()->release($this->currentToken);
         //==============================================================================
         // Token Released => Clear Current Token
         if (true === $release) {
             $this->logger->info('Token Manager: Token Released! ('.$this->currentToken.')');
             $this->currentToken = null;
+            $this->statusMonitor->setTokenReleased();
         }
 
         return $release;
@@ -161,8 +155,6 @@ class TokenManager
      *
      * @param Task $task
      *
-     * @throws Exception
-     *
      * @return bool
      */
     public function validate(Task $task): bool
@@ -172,6 +164,6 @@ class TokenManager
             return true;
         }
 
-        return Configuration::getTokenRepository()->validate($token);
+        return $this->configuration->getTokenRepository()->validate($token);
     }
 }

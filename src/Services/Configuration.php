@@ -13,12 +13,21 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Services;
+namespace BadPixxel\Tasking\Services;
 
+use BadPixxel\Tasking\Model\Configuration as ConfigurationTraits;
+use BadPixxel\Tasking\Paddock\Tracks\WorkersCheckerTrack;
 use Doctrine\Persistence\ManagerRegistry as Registry;
 use Exception;
-use Splash\Tasking\Model\Configuration as ConfigurationTraits;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use Webmozart\Assert\Assert;
 
+/**
+ * Manage Tasking Bundle Configuration
+ */
+#[Autoconfigure(bind: array(
+    '$configuration' => "%badpixxel_tasking%"
+))]
 class Configuration
 {
     use ConfigurationTraits\CoreParametersGettersTrait;
@@ -34,7 +43,7 @@ class Configuration
      *
      * @var array
      */
-    protected static array $config;
+    protected array $config;
 
     /**
      * Class Constructor
@@ -63,7 +72,7 @@ class Configuration
      */
     public function isReady(): bool
     {
-        if (!isset(self::$config)) {
+        if (!isset($this->config)) {
             throw new Exception("Tasking Bundle Configuration is NOT Loaded");
         }
 
@@ -72,53 +81,45 @@ class Configuration
 
     /**
      * Get Raw Configuration for Tasking
-     *
-     * @param array $configuration
-     *
-     * @throws Exception
-     *
-     * @return array
      */
-    public static function loadConfiguration(array $configuration): array
+    public function loadConfiguration(array $configuration): array
     {
         //====================================================================//
         // Validate Configuration
-        $validation = self::validateConfiguration($configuration);
-        if (!is_null($validation)) {
-            throw new Exception($validation);
-        }
+        self::validateConfiguration($configuration);
         //====================================================================//
         // Complete & Store Configuration
-        self::$config = self::completeConfiguration($configuration);
+        $this->config = self::completeConfiguration($configuration);
+        //====================================================================//
+        // Setup Static Parameters
+        WorkersCheckerTrack::setSupervisorMaxWorkers($this->getSupervisorMaxWorkers());
 
-        return self::$config;
+        return $this->config;
     }
 
     /**
      * Validate Initial Configuration for Tasking
-     *
-     * @return null|string
      */
-    private static function validateConfiguration(array $configuration): ?string
+    private static function validateConfiguration(array $configuration): void
     {
         //====================================================================//
         // Validate Number of Workers
-        if (empty($configuration['supervisor']['max_workers']) || (0 >= $configuration['supervisor']['max_workers'])) {
-            return "Number of Workers must by above 0";
-        }
+        Assert::greaterThan(
+            $configuration['supervisor']['max_workers'] ?? 0,
+            0,
+            "Number of Workers must by above 0"
+        );
         //====================================================================//
         // Validate Watchdog delay
-        if ($configuration['watchdog_delay'] <= $configuration['refresh_delay']) {
-            return "Watchdog delay MUST be greater than Refresh delay";
-        }
-
-        return null;
+        Assert::greaterThanEq(
+            $configuration['watchdog_delay'],
+            $configuration['refresh_delay'],
+            "Watchdog delay MUST be greater than Refresh delay"
+        );
     }
 
     /**
      * Complete Initial Configuration for Tasking
-     *
-     * @return array
      */
     private static function completeConfiguration(array $configuration): array
     {

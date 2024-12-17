@@ -13,7 +13,7 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Services;
+namespace BadPixxel\Tasking\Services;
 
 use Exception;
 use Psr\Log\LoggerInterface;
@@ -25,11 +25,6 @@ use Psr\Log\LoggerInterface;
  */
 class SystemManager
 {
-    /**
-     * @var LoggerInterface
-     */
-    private LoggerInterface $logger;
-
     /**
      * Get Last Stop System Received
      *
@@ -50,16 +45,9 @@ class SystemManager
 
     /**
      * Class Constructor
-     *
-     * @param LoggerInterface $logger
-     *
-     * @throws Exception
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(private readonly LoggerInterface $logger)
     {
-        //====================================================================//
-        // Link to Symfony Logger
-        $this->logger = $logger;
     }
 
     //====================================================================//
@@ -312,8 +300,6 @@ class SystemManager
 
     /**
      * Get List of Tracked Stop Signal
-     *
-     * @throws Exception
      *
      * @return array<int, string>
      */
