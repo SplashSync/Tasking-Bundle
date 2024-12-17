@@ -1,0 +1,13 @@
+{
+  "entrypoints": {
+    "tasking": {
+      "js": [
+        "/bundles/badpixxeltasking/dashboard/runtime.js",
+        "/bundles/badpixxeltasking/dashboard/tasking.js"
+      ],
+      "css": [
+        "/bundles/badpixxeltasking/dashboard/tasking.css"
+      ]
+    }
+  }
+}

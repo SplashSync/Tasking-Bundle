@@ -1,0 +1,35 @@
+<div {{ attributes }}>
+
+    <table class="table table-sm">
+        <thead>
+        <tr>
+            <th scope="col"># Service ID</th>
+            <th scope="col">Type</th>
+            <th scope="col">Label</th>
+            <th scope="col">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+
+            {% for jobId, jobConfig in jobs %}
+                <tr>
+                    <th scope="row">{{ jobId }}</th>
+                    <td>{{ this.jobsManager.type(jobId) }}</td>
+                    <td>{{ this.jobsManager.label(jobConfig.settings) }}</td>
+                    <td>
+                        <button
+                                class="btn btn-sm btn-success"
+                                data-action="live#action"
+                                data-live-action-param="start"
+                                data-live-job-id-param="{{ jobId }}"
+                        >Start</button>
+                    </td>
+
+                </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+</div>
+

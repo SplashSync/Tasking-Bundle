@@ -1,0 +1,39 @@
+{%  trans_default_domain "TaskingBundle" %}
+
+<div {{ attributes }} data-poll="delay({{ this.delayMs }})|$render" >
+    <table class="table table-sm">
+        <thead>
+        <tr>
+            <th scope="col"># Tasks Summary </th>
+            <th scope="col">Value</th>
+        </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">{{ "status.waiting"|trans }}</th>
+                <td>
+                    {{ tasks.Waiting }}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">{{ "status.running"|trans }}</th>
+                <td>
+                    {{ tasks.Running }}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">{{ "status.done"|trans }}</th>
+                <td>
+                    {{ tasks.Finished }}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">{{ "status.tokens"|trans }}</th>
+                <td>
+                    {{ tasks.Token }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+

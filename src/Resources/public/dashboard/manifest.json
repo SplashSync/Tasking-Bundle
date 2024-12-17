@@ -1,0 +1,5 @@
+{
+  "dashboard/tasking.css": "/bundles/badpixxeltasking/dashboard/tasking.css",
+  "dashboard/tasking.js": "/bundles/badpixxeltasking/dashboard/tasking.js",
+  "dashboard/runtime.js": "/bundles/badpixxeltasking/dashboard/runtime.js"
+}

@@ -1,0 +1,59 @@
+{% extends "@BadpixxelTasking/Dashboard/layout.html.twig" %}
+
+{% block body %}
+
+    <div class="row justify-content-center m-5">
+        <div class="col-12 col-md-6">
+            <h3>Welcome to Tasking Bundle Demo Website !</h3>
+        </div>
+    </div>
+
+    <div class="row  m-5">
+        <div class="col-12 col-md-6">
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Available test jobs</h5>
+                    <twig:Tasking:Test:Launcher />
+
+                </div>
+            </div>
+
+            <br />
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Workers Status</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">Curent Status of Workers via Twig Component </h6>
+                    <twig:Tasking:Workers:Status />
+                </div>
+                <div class="card-footer ">
+                    <div class="row justify-content-end">
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <twig:Tasking:Workers:Actions />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Global Tasking Status</h5>
+                    <twig:Tasking:Status />
+                </div>
+            </div>
+
+            <br />
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Active Tasks List</h5>
+                    <twig:Tasking:List />
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,41 @@
+<div {{ attributes }} data-poll="delay({{ this.delayMs }})|$render" >
+    <table class="table table-sm">
+        <thead>
+        <tr>
+            <th scope="col"># Name</th>
+            <th scope="col">Enabled</th>
+            <th scope="col">Running</th>
+            <th scope="col">Last Seen</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        {% for worker in workers %}
+            <tr>
+                <th scope="row">
+                    {% if worker.process == 0 %}
+                        <span class="badge badge-warning text-bg-warning">S</span>
+                    {% endif %}
+                    {{ worker.name }}
+                </th>
+                <td>
+                    {% if worker.enabled %}
+                        <span class="badge badge-success text-bg-success">Enabled</span>
+                    {% else %}
+                        <span class="badge badge-secondary text-bg-secondary">Disabled</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if worker.running %}
+                        <span class="badge badge-success text-bg-success">Running</span>
+                    {% else %}
+                        <span class="badge badge-secondary text-bg-secondary">Stopped</span>
+                    {% endif %}
+                </td>
+                <td>{{ worker.lastseen|format_datetime }}</td>
+            </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+</div>

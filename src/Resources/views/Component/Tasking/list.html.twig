@@ -1,0 +1,32 @@
+{%  trans_default_domain "TaskingBundle" %}
+
+<div {{ attributes }} data-poll="delay({{ this.delayMs }})|$render" >
+    <!-- Running Tasks -->
+    {% for status in statuses %}
+        {% if status.running %}
+            <twig:Tasking:Task:Progress :status="status" />
+        {% endif %}
+    {% endfor %}
+    <!-- END Running Tasks -->
+
+    <!-- Waiting Tasks -->
+    {% for status in statuses %}
+        {% if not status.running %}
+            <twig:Tasking:Task:Progress :status="status" />
+        {% endif %}
+    {% endfor %}
+    <!-- END Waiting Tasks -->
+
+    {% if statuses is empty %}
+        <!-- No Tasks -->
+        <div class="col-12 text-success text-center mt-5">
+            <i class="fas fa-check fa-4x"></i>
+            <div class="alert alert-transparent text-success text-center">
+                <h4>{{ 'status.empty'|trans|raw }}</h4>
+            </div>
+        </div>
+        <!-- END No Tasks -->
+    {% endif %}
+
+</div>
+

@@ -1,0 +1,90 @@
+{% trans_default_domain "TaskingBundle" %}
+{% import _self as Macros %}
+
+
+<div class="col-12 px-1">
+    <div class="alert alert-light show w-100 m-1 py-2" role="alert">
+        <div class="d-flex">
+
+            <div class="alert-icon width-1 px-1">
+                {{ Macros.AlertIco(this) }}
+            </div>
+
+            <div class="ml-3 d-flex w-100 justify-content-middle justify-content-between">
+                {{ this.label|raw }}
+                <span class="pl-auto mr-0 text-right">
+                    {{ Macros.Status(this) }}
+                </span>
+            </div>
+
+        </div>
+
+        {{ Macros.Bar(this) }}
+
+    </div>
+</div>
+
+{% macro AlertIco(this) %}
+    {% if this.running  %}
+        <i class="fa fa-sync fa-spin"></i>
+    {% elseif this.waiting %}
+        <i class="fa fa-clock text-warning"></i>
+    {% else %}
+        <i class="fa fa-check text-success"></i>
+    {% endif %}
+{% endmacro %}
+
+
+{% macro Status(this) %}
+
+    {% if this.running %}
+        <span class="badge badge-waring text-bg-warning text-white">
+            <i class="fa fa-play-circle fs-xs pull-right ">
+                &nbsp;{{ this.progress }}%&nbsp|&nbsp<i>{{ this.waiting }}</i>
+            </i>
+        </span>
+
+    {% elseif this.finished %}
+        <span class="badge badge-success text-bg-success">
+            <i class="fa fa-check"></i>
+            {{ "status.done" | trans }}
+        </span>
+    {% else %}
+        <span class="badge badge-secondary text-bg-secondary">
+            <i class="fa fa-clock fs-xs pull-right ">
+                &nbsp;{{ "status.waiting" | trans }}&nbsp|&nbsp<i>{{this.waiting}}</i>
+            </i>
+        </span>
+    {% endif %}
+
+{% endmacro %}
+
+{% macro Bar(this) %}
+
+    {% if this.running  %}
+        <div class="progress mt-1 progress-xs progress-striped active">
+            <div
+                    class="progress-bar progress-bar-striped progress-bar-animated bg-warning"
+                    role="progressbar"
+                    style="width: {{ this.progress }}%;"
+            ></div>
+        </div>
+    {% elseif this.finished %}
+        <div class="progress mt-1 progress-xs">
+            <div
+                    class="progress-bar progress-bar-striped bg-success"
+                    role="progressbar"
+                    style="width: {{ this.progress }}%;"
+            ></div>
+        </div>
+    {% else %}
+        <div class="progress mt-1 progress-xs">
+            <div
+                    class="progress-bar progress-bar-striped progress-bar-animated bg-secondary"
+                    role="progressbar"
+                    style="width: {{ this.progress }}%;"
+            ></div>
+        </div>
+    {% endif %}
+
+{% endmacro %}

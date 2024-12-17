@@ -4,9 +4,28 @@
 ################################################################################    
 
 status:
-    waiting:    Waiting
-    running:    Running
-    done:       Finished
+    empty:      "No background tasks running"
+    waiting:    "Waiting"
+    running:    "Running"
+    done:       "Finished"
+    tokens:     "Used Tokens"
+
+priority:
+    10:
+        title:  "Highest"
+        color:  "error"
+    7:
+        title:  "High"
+        color:  "comment"
+    5:
+        title:  "Normal"
+        color:  "info"
+    3:
+        title:  "Low"
+        color:  "info"
+    1:
+        title:  "Lowest"
+        color:  "info"
 
 config:
 
