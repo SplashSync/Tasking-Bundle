@@ -13,7 +13,7 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\DependencyInjection;
+namespace BadPixxel\Tasking\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -34,7 +34,7 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder(): TreeBuilder
     {
-        $treeBuilder = new TreeBuilder('splash_tasking');
+        $treeBuilder = new TreeBuilder('badpixxel_tasking');
         $this->rootNode = $treeBuilder->getRootNode();
 
         $this->configureCommonParameters();
@@ -59,7 +59,7 @@ class Configuration implements ConfigurationInterface
             //====================================================================//
             // COMMON Parameters
             //====================================================================//
-            ->scalarNode('environement')
+            ->scalarNode('environment')
             ->defaultValue('prod')
             ->cannotBeEmpty()
             ->info('Specify the environnement to use for running background tasks.')

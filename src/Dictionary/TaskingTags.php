@@ -13,17 +13,15 @@
  *  file that was distributed with this source code.
  */
 
-use Splash\Tasking\Tests\Kernel;
-use Symfony\Component\HttpFoundation\Request;
+namespace BadPixxel\Tasking\Dictionary;
 
-umask(0000);
-
-/** @var Composer\Autoload\ClassLoader $loader */
-$loader = require __DIR__.'/../vendor/autoload.php';
-
-$kernel = new Kernel('dev', true);
-
-$request = Request::createFromGlobals();
-$response = $kernel->handle($request);
-$response->send();
-$kernel->terminate($request, $response);
+/**
+ * Dictionary for Tasking Service Tags
+ */
+enum TaskingTags
+{
+    /**
+     * Tag a Basic Job Service
+     */
+    const JOB = "badpixxel.tasking.job";
+}
