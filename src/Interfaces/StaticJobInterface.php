@@ -13,13 +13,8 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Events;
+namespace BadPixxel\Tasking\Interfaces;
 
-use Symfony\Component\EventDispatcher\GenericEvent;
-
-/**
- * Status Check Event : Ask Tasking Bundle to Check if All Workers & Supervisor are Running
- */
-class CheckEvent extends GenericEvent
+interface StaticJobInterface extends JobInterface
 {
 }

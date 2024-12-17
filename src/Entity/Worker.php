@@ -13,12 +13,12 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Entity;
+namespace BadPixxel\Tasking\Entity;
 
+use BadPixxel\Tasking\Repository\WorkerRepository;
 use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Splash\Tasking\Repository\WorkerRepository;
 
 /**
  * System Task Worker Tracker
@@ -38,7 +38,7 @@ class Worker
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
-    private ?int $id = null;
+    protected ?int $id = null;
 
     /**
      * Worker Location Name
@@ -74,13 +74,13 @@ class Worker
      * Worker Enable Flag
      */
     #[ORM\Column(name: "Enabled", type: Types::BOOLEAN, nullable: true)]
-    private ?bool $enabled = true;
+    private bool $enabled = true;
 
     /**
      * Worker Running Flag
      */
     #[ORM\Column(name: "Running", type: Types::BOOLEAN, nullable: true)]
-    private ?bool $running = false;
+    private bool $running = false;
 
     /**
      * Last Seen DateTime
@@ -92,7 +92,7 @@ class Worker
      * Current Task
      */
     #[ORM\Column(name: "Task", type: Types::STRING, length: 250, nullable: true)]
-    private ?string $task;
+    private string $task;
 
     //==============================================================================
     //      Getters & Setters

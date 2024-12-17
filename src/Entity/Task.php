@@ -13,12 +13,12 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Entity;
+namespace BadPixxel\Tasking\Entity;
 
+use BadPixxel\Tasking\Model\AbstractTask;
+use BadPixxel\Tasking\Repository\TaskRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
-use Splash\Tasking\Model\AbstractTask;
-use Splash\Tasking\Repository\TaskRepository;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -31,21 +31,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 #[ORM\HasLifecycleCallbacks]
 class Task extends AbstractTask
 {
-    //==============================================================================
-    //      Task Priority
-    //==============================================================================
-
-    /** @var int */
-    const DO_HIGHEST = 10;
-    /** @var int */
-    const DO_HIGH = 7;
-    /** @var int */
-    const DO_NORMAL = 5;
-    /** @var int */
-    const DO_LOW = 3;
-    /** @var int */
-    const DO_LOWEST = 1;
-
     //==============================================================================
     //      Crontab Status
     //==============================================================================

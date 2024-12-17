@@ -13,14 +13,13 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Entity;
+namespace BadPixxel\Tasking\Entity;
 
+use BadPixxel\Tasking\Repository\TokenRepository;
 use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Exception;
-use Splash\Tasking\Repository\TokenRepository;
-use Splash\Tasking\Services\Configuration;
 
 /**
  * System Global DBAL Task Token
@@ -28,6 +27,7 @@ use Splash\Tasking\Services\Configuration;
  */
 #[ORM\Entity(repositoryClass: TokenRepository::class)]
 #[ORM\Table("system__tokens")]
+//#[ORM\EntityListeners([DoctrineEventsSubscriber::class])]
 #[ORM\HasLifecycleCallbacks]
 class Token
 {
@@ -41,7 +41,7 @@ class Token
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
-    private ?int $id = null;
+    protected ?int $id = null;
 
     //==============================================================================
     //      Token Information
@@ -98,6 +98,11 @@ class Token
      */
     private string $condition;
 
+    /**
+     * Self-Release Delay in Seconds
+     */
+    private ?int $selfReleaseDelay = null;
+
     //==============================================================================
     //      Object Operations
     //==============================================================================
@@ -139,13 +144,7 @@ class Token
 
         //====================================================================//
         // Verify if Token Validity
-        try {
-            $maxAge = new DateTime("-".Configuration::getTokenSelfReleaseDelay()." Seconds");
-        } catch (Exception $e) {
-            return false;
-        }
-
-        return $this->lockedAt > $maxAge;
+        return $this->lockedAt > self::getSelfReleaseDate();
     }
 
     /**
@@ -227,6 +226,28 @@ class Token
         //====================================================================//
         // Set Created Date
         $this->setCreatedAt(new DateTime());
+    }
+
+    /**
+     * Set Token Self-Release delay
+     */
+    public function setSelfReleaseDelay(int $seconds): void
+    {
+        $this->selfReleaseDelay = $seconds;
+    }
+
+    /**
+     * Get Token Self-Release Date
+     */
+    public function getSelfReleaseDate(): DateTime
+    {
+        //====================================================================//
+        // Verify if Token Validity
+        try {
+            return new DateTime("-".$this->selfReleaseDelay." Seconds");
+        } catch (Exception $e) {
+            return new DateTime("-350 Seconds");
+        }
     }
 
     //==============================================================================

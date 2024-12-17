@@ -13,24 +13,23 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Events;
+namespace BadPixxel\Tasking\Events;
 
-use Splash\Tasking\Model\AbstractJob;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
 /**
- * New Add Event : Add a new Task to Queue
+ * Start Task Event : Add a new Task to Queue & Start Runners
+ *
+ * @method string getSubject()
  */
-class AddEvent extends GenericEvent
+class StartTaskEvent extends GenericEvent
 {
     /**
-     * Encapsulate an event with $subject and $args.
-     *
-     * @param AbstractJob $subject   The subject of the event, usually an object or a callable
-     * @param array       $arguments Arguments to store in the event
+     * @param string $serviceIdOrClass Job Service ID or Class
+     * @param array  $arguments        Task Configuration
      */
-    public function __construct(AbstractJob $subject, array $arguments = array())
+    public function __construct(string $serviceIdOrClass, array $arguments = array())
     {
-        parent::__construct($subject, $arguments);
+        parent::__construct($serviceIdOrClass, $arguments);
     }
 }

@@ -13,7 +13,7 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Tools;
+namespace BadPixxel\Tasking\Helper;
 
 /**
  * Description of Timer

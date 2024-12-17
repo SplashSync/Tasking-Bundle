@@ -13,12 +13,11 @@
  *  file that was distributed with this source code.
  */
 
-namespace Splash\Tasking\Model;
+namespace BadPixxel\Tasking\Events;
 
-interface StaticJobInterface
+/**
+ * New Insert Event : Add a new Task to Queue but Do Not Check Worker Activity
+ */
+class InsertTaskEvent extends StartTaskEvent
 {
-    /**
-     * Get Job Frequency in Minutes
-     */
-    public function getFrequency(): int;
 }
