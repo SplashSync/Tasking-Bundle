@@ -15,6 +15,7 @@
 
 namespace BadPixxel\Tasking\Services;
 
+use BadPixxel\Paddock\Core\Models\Tracks\AbstractTrack;
 use BadPixxel\Tasking\Model\Configuration as ConfigurationTraits;
 use BadPixxel\Tasking\Paddock\Tracks\WorkersCheckerTrack;
 use Doctrine\Persistence\ManagerRegistry as Registry;
@@ -92,7 +93,9 @@ class Configuration
         $this->config = self::completeConfiguration($configuration);
         //====================================================================//
         // Setup Static Parameters
-        WorkersCheckerTrack::setSupervisorMaxWorkers($this->getSupervisorMaxWorkers());
+        if (class_exists(AbstractTrack::class)) {
+            WorkersCheckerTrack::setSupervisorMaxWorkers($this->getSupervisorMaxWorkers());
+        }
 
         return $this->config;
     }
