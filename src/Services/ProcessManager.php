@@ -160,7 +160,7 @@ class ProcessManager
         //====================================================================//
         // Verify This Command Not Already Running
         $list = null;
-        $count = (int) exec("pgrep '".$listCommand."' -xfc ", $list);
+        $count = (int) exec("pgrep '".$listCommand."' -xf | wc -l", $list);
 
         //====================================================================//
         // Debug
