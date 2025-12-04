@@ -78,7 +78,7 @@ class TaskProgress
         //====================================================================//
         // Check if Batch Task
         if ($this->jobsManager->isRepeatable($this->status["jobClass"])) {
-            Assert::scalar($this->status["id"]);
+            Assert::notEmpty($this->status["id"]);
             //====================================================================//
             // Try to Load Batch Task
             $this->task = $this->configuration->getTasksRepository()->find((int) $this->status["id"]);
@@ -110,7 +110,7 @@ class TaskProgress
     }
 
     /**
-     * Get total number of tasks waiting
+     * Get the Total Number of Tasks Waiting
      */
     public function getWaiting(): int
     {
@@ -131,7 +131,7 @@ class TaskProgress
     }
 
     /**
-     * Get total number of tasks
+     * Get the Total Number of Tasks
      */
     public function getTotal(): int
     {
@@ -180,8 +180,6 @@ class TaskProgress
      */
     public function getLabel(): string
     {
-        Assert::isArray($this->status["settings"]);
-
         return $this->jobsManager->getLabel($this->status["settings"]);
     }
 }

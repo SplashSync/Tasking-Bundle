@@ -16,19 +16,14 @@
 namespace BadPixxel\Tasking\Model\Jobs;
 
 use BadPixxel\Tasking\Services\Tasks\StatusMonitor;
-use Webmozart\Assert\Assert;
 
 trait StatusMonitorAwareTrait
 {
-    protected readonly StatusMonitor $statusMonitor;
-
     /**
      * @inheritdoc
      */
     public function getStatusMonitor(): StatusMonitor
     {
-        Assert::notEmpty($this->statusMonitor);
-
         return $this->statusMonitor;
     }
 

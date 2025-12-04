@@ -259,7 +259,7 @@ class SystemManager
             //====================================================================//
             // Verify This Command Not Already Running
             $list = null;
-            $count = (int) exec(sprintf("pgrep %s -c -a", $process), $list);
+            $count = (int) exec(sprintf("pgrep %s -a  | wc -l", $process), $list);
             if ($count > 0) {
                 return true;
             }
