@@ -3,6 +3,11 @@
 framework:
     secret:             "$ecretf0rt3st"
     assets:             ~
+    http_client:        ~
+    validation:         ~
+    form:               ~
+    property_access:    ~
+    property_info:      ~
     # Enables session support. Note that the session will ONLY be started if you read or write from it.
     # Remove or comment this section to explicitly disable session support.
     session:
