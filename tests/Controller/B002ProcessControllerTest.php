@@ -265,8 +265,8 @@ class B002ProcessControllerTest extends AbstractTestController
     {
         //====================================================================//
         // Check if Process is Running (POSIX compatible, works on Alpine/BusyBox)
-        exec("kill -0 ".$pid." 2>/dev/null", $output, $exitCode);
+        exec("kill -0 ".$pid." 2>/dev/null", result_code: $exitCode);
 
-        return 0 === $exitCode;
+        return 0 == $exitCode;
     }
 }
