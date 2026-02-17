@@ -35,7 +35,7 @@ public function registerBundles()
 {
     return array(
         // ...
-        new Splash\Tasking\SplashTaskingBundle(),
+        new \BadPixxel\Tasking\BadpixxelTaskingBundle(),
         // ...
     );
 }
@@ -46,7 +46,7 @@ public function registerBundles()
 Background jobs must extend [Splash\Tasking\Model\AbstractJob](https://github.com/SplashSync/Tasking-Bundle/blob/master/src/Model/AbstractJob.php).
 
 ```php
-use Splash\Tasking\Model\AbstractJob;
+use BadPixxel\Tasking\Model\AbstractJob;
 
 class MyJob extends AbstractJob
 {
@@ -60,10 +60,10 @@ class MyJob extends AbstractJob
 }
 ```
 
-Job Token may be defined multiple way: 
+Job Token may be defined multiple way:
 
 ```php
-use Splash\Tasking\Model\AbstractJob;
+use BadPixxel\Tasking\Model\AbstractJob;
 
 class MyJob extends AbstractJob
 {

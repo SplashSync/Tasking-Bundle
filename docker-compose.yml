@@ -2,16 +2,16 @@
 ################################################################################
 #
 #  This file is part of SplashSync Project.
-# 
+#
 #  Copyright (C) Splash Sync <www.splashsync.com>
-# 
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# 
+#
 #  For the full copyright and license information, please view the LICENSE
 #  file that was distributed with this source code.
-# 
+#
 #  @author Bernard Paquier <contact@splashsync.com>
 #
 ################################################################################
@@ -22,110 +22,26 @@
 # This Docker File intend to Create a Complete Dev Environment
 #
 # To us different Versions configured, you need to add hosts to /etc/hosts
-# 
+#
 #    172.201.0.10        dev.tasking.local
+#    172.201.0.64        sf6.tasking.local
+#    172.201.0.74        sf7.tasking.local
+#    172.201.0.84        sf8.tasking.local
+#    172.201.0.100       mysql.tasking.local
 #    172.201.0.200       phpmyadmin.tasking.local
 #
 ################################################################################
 
+name: "badpixxel-tasking"
+
+include:
+    - docker/database.yaml
+    - docker/develop.yaml
+    - docker/symfony-6.yaml
+    - docker/symfony-7.yaml
+    - docker/symfony-8.yaml
+
 services:
-
-    ################################################################################
-    # Develop Image
-    app:
-        image: "registry.gitlab.com/badpixxel-projects/php-sdk:php-8.1"
-        container_name: dev.tasking.local
-        command:        sh /var/www/html/docker/docker-entrypoint.sh
-        hostname:       dev.tasking.local
-        depends_on:
-            - mysql
-        volumes:
-            - ./:/var/www/html/
-            - ./docker/sites-available/000-default.conf:/etc/apache2/sites-available/000-default.conf
-        networks:
-            tasking: { ipv4_address: 172.201.0.10, aliases: [ dev.tasking.local ] }
-
-    ################################################################################
-    # Symfony 7 + PHP 8.3
-    sf7:
-        image: "registry.gitlab.com/badpixxel-projects/php-sdk:php-8.3"
-        command:        sh /var/www/html/docker/docker-entrypoint.sh
-        container_name: sf7.tasking.local
-        hostname:       sf7.tasking.local
-        volumes:
-            - ./:/var/www/html
-            - ./docker/sites-available/000-default.conf:/etc/apache2/sites-available/000-default.conf
-            - sf7-var:/var/www/html/var
-            - sf7-vendor:/var/www/html/vendor
-        environment:
-            SYMFONY_REQUIRE: 7.*
-        networks:
-            tasking:        { ipv4_address: 172.201.0.74, aliases: [ sf7.tasking.local ] }
-
-    ################################################################################
-    # Symfony 6 + PHP 8.2
-    sf6:
-        image: "registry.gitlab.com/badpixxel-projects/php-sdk:php-8.2"
-        command:        sh /var/www/html/docker/docker-entrypoint.sh
-        container_name: sf6.tasking.local
-        hostname:       sf6.tasking.local
-        volumes:
-            - ./:/var/www/html
-            - ./docker/sites-available/000-default.conf:/etc/apache2/sites-available/000-default.conf
-            - sf6-var:/var/www/html/var
-            - sf6-vendor:/var/www/html/vendor
-        environment:
-            SYMFONY_REQUIRE: 6.4.*
-        networks:
-            tasking:        { ipv4_address: 172.201.0.64, aliases: [ sf6.tasking.local ] }
-
-    ################################################################################
-    # Symfony 5 + PHP 8.1
-    sf5:
-        image: "registry.gitlab.com/badpixxel-projects/php-sdk:php-8.1"
-        command:        sh /var/www/html/docker/docker-entrypoint.sh
-        container_name: sf5.tasking.local
-        hostname:       sf5.tasking.local
-        volumes:
-            - ./:/var/www/html
-            - ./docker/sites-available/000-default.conf:/etc/apache2/sites-available/000-default.conf
-            - sf5-var:/var/www/html/var
-            - sf5-vendor:/var/www/html/vendor
-        environment:
-            SYMFONY_REQUIRE: 5.4.*
-        networks:
-            tasking:        { ipv4_address: 172.201.0.54, aliases: [ sf5.tasking.local ] }
-
-
-    ################################################################################
-    # MySQL Container
-    mysql:
-        image: mysql:5.7
-        container_name: mysql.tasking.local
-        logging: { driver: "none" }
-        environment:
-            - "MYSQL_ROOT_PASSWORD=tasking"
-            - "MYSQL_DATABASE=tasking"
-            - "MYSQL_USER=tasking"
-            - "MYSQL_PASSWORD=tasking"
-        networks:
-            tasking:        { ipv4_address: 172.201.0.100, aliases: [ mysql.tasking.local ] }
-
-    ################################################################################
-    # PhpMyAdmin Container
-    phpmyadmin:
-        image: phpmyadmin/phpmyadmin:5
-        container_name: phpmyadmin.tasking.local
-        logging: { driver: "none" }
-        depends_on:
-            - mysql
-        environment:
-            - PMA_HOST=mysql
-            - MYSQL_USER=tasking
-            - MYSQL_ROOT_PASSWORD=tasking
-            - MYSQL_PASSWORD=tasking
-        networks:
-            tasking:        { ipv4_address: 172.201.0.200, aliases: [ phpmyadmin.tasking.local ] }
 
     ################################################################################
     # Node JS Container
@@ -138,14 +54,6 @@ services:
             - ./:/srv
         working_dir:        '/srv'
         command:            ['sh', '-c', 'yarn rebuild']
-
-volumes:
-    sf7-var:        ~
-    sf7-vendor:     ~
-    sf6-var:        ~
-    sf6-vendor:     ~
-    sf5-var:        ~
-    sf5-vendor:     ~
 
 networks:
     ################################################################################
