@@ -96,14 +96,9 @@ class Z001ProcessCloseControllerTest extends AbstractTestController
     public function doCheckProcessIsAlive(int $pid) : bool
     {
         //====================================================================//
-        // Init Result Array
-        $list = array();
-        //====================================================================//
-        // Execute Search Command
-        exec("ps ".(string) $pid, $list);
+        // Check if Process is Running (POSIX compatible, works on Alpine/BusyBox)
+        exec("kill -0 ".$pid." 2>/dev/null", result_code: $exitCode);
 
-        //====================================================================//
-        // Check Result
-        return (count($list) > 1) ? true : false;
+        return 0 == $exitCode;
     }
 }
