@@ -1,0 +1,40 @@
+
+################################################################################
+#
+#  This file is part of SplashSync Project.
+#
+#  Copyright (C) Splash Sync <www.splashsync.com>
+#
+################################################################################
+
+services:
+
+    ################################################################################
+    # MySQL Container
+    mysql:
+        image: mysql:5.7
+        container_name: mysql.tasking.local
+        logging: { driver: "none" }
+        environment:
+            - "MYSQL_ROOT_PASSWORD=tasking"
+            - "MYSQL_DATABASE=tasking"
+            - "MYSQL_USER=tasking"
+            - "MYSQL_PASSWORD=tasking"
+        networks:
+            tasking:        { ipv4_address: 172.201.0.100, aliases: [ mysql.tasking.local ] }
+
+    ################################################################################
+    # PhpMyAdmin Container
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin:5
+        container_name: phpmyadmin.tasking.local
+        logging: { driver: "none" }
+        depends_on:
+            - mysql
+        environment:
+            - PMA_HOST=mysql
+            - MYSQL_USER=tasking
+            - MYSQL_ROOT_PASSWORD=tasking
+            - MYSQL_PASSWORD=tasking
+        networks:
+            tasking:        { ipv4_address: 172.201.0.200, aliases: [ phpmyadmin.tasking.local ] }

@@ -1,0 +1,26 @@
+
+################################################################################
+#
+#  This file is part of SplashSync Project.
+#
+#  Copyright (C) Splash Sync <www.splashsync.com>
+#
+################################################################################
+
+services:
+
+    ################################################################################
+    # Develop Image
+    app:
+        image:          "registry.gitlab.com/badpixxel-projects/php-sdk:php-8.4"
+        container_name: dev.tasking.local
+        hostname:       dev.tasking.local
+        depends_on:
+            - mysql
+        volumes:
+            - ../:/var/www/html
+        environment:
+            SERVER_ROOT:        /var/www/html/tests/public
+            SYMFONY_REQUIRE:    7.4.*
+        networks:
+            tasking: { ipv4_address: 172.201.0.10, aliases: [ dev.tasking.local ] }

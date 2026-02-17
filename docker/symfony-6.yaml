@@ -1,0 +1,32 @@
+
+################################################################################
+#
+#  This file is part of SplashSync Project.
+#
+#  Copyright (C) Splash Sync <www.splashsync.com>
+#
+################################################################################
+
+services:
+
+    ################################################################################
+    # Symfony 6 + PHP 8.2
+    sf6:
+        image:          "registry.gitlab.com/badpixxel-projects/php-sdk:php-8.2"
+        container_name: sf6.tasking.local
+        hostname:       sf6.tasking.local
+        volumes:
+            - ../:/var/www/html
+            - sf6-var:/var/www/html/var
+            - sf6-vendor:/var/www/html/vendor
+        depends_on:
+            - mysql
+        environment:
+            SERVER_ROOT:        /var/www/html/tests/public
+            SYMFONY_REQUIRE:    6.4.*
+        networks:
+            tasking:            { ipv4_address: 172.201.0.64, aliases: [ sf6.tasking.local ] }
+
+volumes:
+    sf6-var:        ~
+    sf6-vendor:     ~
