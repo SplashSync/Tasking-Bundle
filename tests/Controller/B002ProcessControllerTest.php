@@ -261,17 +261,12 @@ class B002ProcessControllerTest extends AbstractTestController
      *
      * @return bool
      */
-    private function doCheckProcessIsAlive(int $pid) : bool
+    private function doCheckProcessIsAlive(int $pid): bool
     {
         //====================================================================//
-        // Init Result Array
-        $list = array();
-        //====================================================================//
-        // Execute Search Command
-        exec("ps ".$pid, $list);
+        // Check if Process is Running (POSIX compatible, works on Alpine/BusyBox)
+        exec("kill -0 ".$pid." 2>/dev/null", $output, $exitCode);
 
-        //====================================================================//
-        // Check Result
-        return count($list) > 1;
+        return 0 === $exitCode;
     }
 }
