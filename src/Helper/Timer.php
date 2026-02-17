@@ -48,7 +48,7 @@ class Timer
     const STANDBY_MAX = 1E3;
 
     /**
-     * Pause Delay When Inactive in Miliseconds
+     * Pause Delay When Inactive in Milliseconds
      *
      * => Default = 50Ms
      *
