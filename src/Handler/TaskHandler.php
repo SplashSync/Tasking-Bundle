@@ -18,12 +18,11 @@ namespace BadPixxel\Tasking\Handler;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
+use Monolog\LogRecord;
 
 /**
  * Buffers all records until task is completed.
- *
- * @phpstan-import-type Level from \Monolog\Logger
- * @phpstan-import-type Record from \Monolog\Logger
+ * Compatible with Monolog 2 and 3.
  */
 class TaskHandler extends AbstractProcessingHandler
 {
@@ -41,7 +40,7 @@ class TaskHandler extends AbstractProcessingHandler
 
     /**
      * If true, the buffer is flushed when the max size has been reached,
-     * by default the oldest entries are discarded
+     * by default the oldest entries are discarded.
      *
      * @var bool
      */
@@ -58,36 +57,12 @@ class TaskHandler extends AbstractProcessingHandler
      */
     public function __construct($level = Logger::INFO, bool $flushOnOverflow = false)
     {
-        /** @phpstan-var Level $level */
+        /** @phpstan-ignore argument.type */
         parent::__construct($level, true);
         $this->flushOnOverflow = $flushOnOverflow;
         $this->setFormatter(
             new LineFormatter(null, null, false, true)
         );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function handle(array $record): bool
-    {
-        if ($record['level'] < $this->level) {
-            return false;
-        }
-
-        if ($this->bufferLimit > 0 && $this->bufferSize === $this->bufferLimit) {
-            if ($this->flushOnOverflow) {
-                $this->flush();
-            } else {
-                array_shift($this->buffer);
-                $this->bufferSize--;
-            }
-        }
-
-        /** @var Record $record */
-        $this->write($record);
-
-        return false === $this->bubble;
     }
 
     /**
@@ -121,7 +96,7 @@ class TaskHandler extends AbstractProcessingHandler
     }
 
     /**
-     * Reset handler Buffer
+     * Reset handler Buffer.
      *
      * @return void
      */
@@ -133,7 +108,7 @@ class TaskHandler extends AbstractProcessingHandler
     }
 
     /**
-     * Reset handler Buffer
+     * Get buffered logs as HTML string.
      *
      * @return string
      */
@@ -147,14 +122,34 @@ class TaskHandler extends AbstractProcessingHandler
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      *
-     * @phpstan-param  Record $record
+     * @param mixed $record
      */
-    protected function write(array $record): void
+    protected function write($record): void
     {
-        /** @phpstan-ignore-next-line  */
-        $this->buffer[] = $this->processRecord($record)["message"] ?? "";
+        //====================================================================//
+        // Ensure Log as Array
+        if (class_exists(LogRecord::class) && ($record instanceof LogRecord)) {
+            $record = $record->toArray();
+        }
+        /** @var array<string, mixed> $record */
+
+        //====================================================================//
+        // Buffer Limit Management
+        if ($this->bufferLimit > 0 && $this->bufferSize === $this->bufferLimit) {
+            if ($this->flushOnOverflow) {
+                $this->flush();
+            } else {
+                array_shift($this->buffer);
+                $this->bufferSize--;
+            }
+        }
+
+        //====================================================================//
+        // Write to Buffer
+        $message = $record["message"] ?? "";
+        $this->buffer[] = is_string($message) ? $message : "";
         $this->bufferSize++;
     }
 }
