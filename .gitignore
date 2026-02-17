@@ -82,15 +82,14 @@
 .phpunit.result.cache
 /phpunit.xml
 ###< symfony/phpunit-bridge ###
-
-###> symfony/webpack-encore-bundle ###
-/node_modules/
-/tests/public/build/
-npm-debug.log
-yarn-error.log
-###< symfony/webpack-encore-bundle ###
 /yarn.lock
 /tests/public/bundles
 /.env.test
 /.env.dev
 /.php-cs-fixer.dist.php
+/tests/config/reference.php
+
+###> symfony/asset-mapper ###
+/tests/public/assets/
+/assets/vendor/
+###< symfony/asset-mapper ###
