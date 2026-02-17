@@ -22,7 +22,6 @@
     </testsuites>
 
     <php>
-        <ini    name="max_execution_time"            value="120" />
         <server name="KERNEL_CLASS"                 value="BadPixxel\Tasking\Tests\Kernel" />
         <server name="KERNEL_DIR"                   value="tests/" />
         <env    name="SYMFONY_DEPRECATIONS_HELPER"  value="disabled" />

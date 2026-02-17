@@ -108,6 +108,9 @@ class B003TasksStatusControllerTest extends AbstractTestController
         Assert::assertNull($statusMonitor->getJobLifetime());
         Assert::assertEquals($config->getWorkerWatchdogDelay(), $statusMonitor->getStatus()["remaining"]);
         Assert::assertEquals($config->getTokenSelfReleaseDelay(), $statusMonitor->getStatus()["expandable"]);
+        //====================================================================//
+        // Reset Time Limit to Infinite (resetWatchdog sets it to a finite value)
+        set_time_limit(0);
     }
 
     /**
@@ -128,6 +131,9 @@ class B003TasksStatusControllerTest extends AbstractTestController
         // Verify Status
         Assert::assertEquals($config->getWorkerWatchdogDelay(), $statusMonitor->getRemainingLifetime());
         Assert::assertEquals($config->getTasksErrorDelay(), $statusMonitor->getExpendableLifetime());
+        //====================================================================//
+        // Reset Time Limit to Infinite (resetWatchdog sets it to a finite value)
+        set_time_limit(0);
     }
 
     /**
