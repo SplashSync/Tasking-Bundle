@@ -34,6 +34,8 @@
 
 name: "badpixxel-tasking"
 
+################################################################################
+# Multi-versions Dev Services
 include:
     - docker/database.yaml
     - docker/develop.yaml
@@ -41,23 +43,9 @@ include:
     - docker/symfony-7.yaml
     - docker/symfony-8.yaml
 
-services:
-
-    ################################################################################
-    # Node JS Container
-    node:
-        image:              'node:18'
-        container_name:     node.tasking.local
-        user:               'node'
-        tty:                true
-        volumes:
-            - ./:/srv
-        working_dir:        '/srv'
-        command:            ['sh', '-c', 'yarn rebuild']
-
+################################################################################
+# Default Private Network
 networks:
-    ################################################################################
-    # Default Private Network
     tasking:
         driver: bridge
         ipam:
