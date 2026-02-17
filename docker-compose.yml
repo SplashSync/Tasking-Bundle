@@ -41,7 +41,7 @@ include:
     - docker/develop.yaml
     - docker/symfony-6.yaml
     - docker/symfony-7.yaml
-    - docker/symfony-8.yaml
+#    - docker/symfony-8.yaml
 
 ################################################################################
 # Default Private Network

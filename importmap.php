@@ -1,21 +1,23 @@
 <?php
 
-/**
- * Returns the importmap for this application.
+/*
+ *  This file is part of SplashSync Project.
  *
- * - "path" is a path inside the asset mapper system. Use the
- *     "debug:asset-map" command to see the full list of paths.
+ *  Copyright (C) Splash Sync  <www.splashsync.com>
  *
- * - "entrypoint" (JavaScript only) set to true for any module that will
- *     be used as an "entrypoint" (and passed to the importmap() Twig function).
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * The "importmap:require" command can be used to add new entries to this file.
+ *  For the full copyright and license information, please view the LICENSE
+ *  file that was distributed with this source code.
  */
-return [
-    'app' => [
+
+return array(
+    'app' => array(
         'path' => './assets/app.js',
         'entrypoint' => true,
-    ],
+    ),
     '@symfony/stimulus-bundle' => array(
         'path' => '@symfony/stimulus-bundle/loader.js',
     ),
@@ -25,4 +27,4 @@ return [
     '@hotwired/stimulus' => array(
         'version' => '3.2.2',
     ),
-];
+);

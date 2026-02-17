@@ -37,7 +37,7 @@ test: 	## Execute Functional Test in All Containers
 
 .PHONY: all
 all: # Execute a Command in All Containers
-	@$(foreach service,$(shell docker compose config --services | sort), \
+	@$(foreach service,$(shell docker compose config --services | sort | grep -v mysql | grep -v phpmyadmin), \
 		set -e; \
 		echo "$(COLOR_CYAN) >> Executing '$(COMMAND)' in container: $(service) $(COLOR_RESET)"; \
 		docker compose exec $(service) bash -c "$(COMMAND)"; \
