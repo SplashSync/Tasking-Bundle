@@ -50,7 +50,7 @@ class CheckCommand extends Command
      *
      * @SuppressWarnings(UnusedFormalParameter)
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         //====================================================================//
         // Check Local Supervisor is Running
