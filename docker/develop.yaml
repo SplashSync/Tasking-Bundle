@@ -13,6 +13,7 @@ services:
     # Develop Image
     app:
         image:          "registry.gitlab.com/badpixxel-projects/php-sdk:php-8.3"
+        init:           true
         container_name: dev.tasking.local
         hostname:       dev.tasking.local
         depends_on:

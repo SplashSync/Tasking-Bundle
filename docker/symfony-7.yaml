@@ -13,6 +13,7 @@ services:
     # Symfony 7 + PHP 8.3
     sf7:
         image:          "registry.gitlab.com/badpixxel-projects/php-sdk:php-8.3"
+        init:           true
         container_name: sf7.tasking.local
         hostname:       sf7.tasking.local
         volumes:

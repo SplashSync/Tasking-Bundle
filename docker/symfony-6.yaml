@@ -13,6 +13,7 @@ services:
     # Symfony 6 + PHP 8.2
     sf6:
         image:          "registry.gitlab.com/badpixxel-projects/php-sdk:php-8.2"
+        init:           true
         container_name: sf6.tasking.local
         hostname:       sf6.tasking.local
         volumes:
