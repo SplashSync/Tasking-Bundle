@@ -47,8 +47,8 @@
     },
     
     "require-dev": {
-        "badpixxel/php-sdk":                            "~2.0",
-        "badpixxel/paddock-core":                       "dev-main",
+        "badpixxel/php-sdk":                            "^2.0",
+        "badpixxel/paddock-core":                       "^4.0",
 
         "symfony/http-kernel":                          "^5.4 || ^6.0",
         "symfony/console":                              "^5.4 || ^6.0",
