@@ -5,6 +5,7 @@
     "keywords":     ["Symfony", "Bundle", "Task", "PHP", "Tasking"],
     "homepage":     "http://www.splashsync.com",
     "license":      "MIT",
+    "minimum-stability":    "dev",
     "prefer-stable": true,
     
     "authors": [
@@ -63,9 +64,11 @@
     "config": {
         "preferred-install":                        "dist",
         "allow-plugins": {
-            "phpro/grumphp": true,
-            "php-http/discovery": true,
-            "symfony/runtime": true
+            "phpro/grumphp":                true,
+            "phpro/grumphp-shim":           true,
+            "php-http/discovery":           true,
+            "symfony/runtime":              true,
+            "symfony/flex":                 true
         }
     },
 
