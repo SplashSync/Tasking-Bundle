@@ -121,6 +121,8 @@ class TaskProgress
             // Get Number of Waiting Steps
             $total = $state[RepeatableJobState::COUNT] ?? 0;
             $progress = $state[RepeatableJobState::EXECUTED] ?? 0;
+            Assert::integer($total);
+            Assert::integer($progress);
 
             return (int) max(0, $total - $progress);
         }

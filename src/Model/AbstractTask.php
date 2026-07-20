@@ -346,7 +346,7 @@ abstract class AbstractTask
      */
     public function getJobPriority(): int
     {
-        return $this->jobPriority ?? 5;
+        return $this->jobPriority;
     }
 
     /**
@@ -500,7 +500,7 @@ abstract class AbstractTask
      */
     public function getTry(): int
     {
-        return $this->try ?? 0;
+        return $this->try;
     }
 
     /**

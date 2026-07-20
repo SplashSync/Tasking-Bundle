@@ -383,6 +383,6 @@ class Worker
      */
     public function isEnabled(): bool
     {
-        return $this->enabled ?? false;
+        return $this->enabled;
     }
 }

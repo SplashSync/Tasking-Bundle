@@ -37,9 +37,6 @@
             ".php-cs-fixer.dist.php"
         ]
     },
-    "knplabs/knp-gaufrette-bundle": {
-        "version": "v0.7.3"
-    },
     "knplabs/knp-menu-bundle": {
         "version": "v3.4.2"
     },
