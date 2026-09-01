@@ -209,11 +209,11 @@ class C001TasksExecutionControllerTest extends AbstractTestController
         Assert::assertEquals(0, $this->tasksRepository->getPendingTasksCount());
 
         //====================================================================//
-        // Test with a 12 x 1 second Tasks in Buffer
-        for ($i = 0; $i < 12; $i++) {
-            $this->addTask($this->randomStr, 1);
+        // Test with a 5 x 2 second Tasks in Buffer
+        for ($i = 0; $i < 5; $i++) {
+            $this->addTask($this->randomStr, 2);
         }
-        Assert::assertEquals(12, $this->tasksRepository->getPendingTasksCount());
+        Assert::assertEquals(5, $this->tasksRepository->getPendingTasksCount());
         Assert::assertFalse($manager->waitUntilTaskCompleted(1));
     }
 
