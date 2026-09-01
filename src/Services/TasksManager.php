@@ -197,7 +197,10 @@ class TasksManager implements EventSubscriberInterface
     /**
      * Wait Until All Tasks are Completed
      *
-     * @param int         $timeout TimeOut in Seconds
+     * @param int         $timeout Stagnation watchdog in seconds: max time without any
+     *                             change in the pending tasks count. It is reset on every
+     *                             change, so it does not bound the total wait. An absolute
+     *                             cap of 10 x timeout also applies.
      * @param null|string $token   Filter on a specific token Name
      * @param null|string $md5     Filter on a specific Discriminator
      * @param null|string $key1    Your Custom Index Key 1
@@ -207,7 +210,8 @@ class TasksManager implements EventSubscriberInterface
      * @throws NoResultException
      * @throws NonUniqueResultException
      *
-     * @return bool True if Ok, False if Exited on Timout
+     * @return bool True if All Tasks Completed, False if the Watchdog
+     *              or the Absolute Cap was Reached
      */
     public function waitUntilTaskCompleted(
         int $timeout = 10,

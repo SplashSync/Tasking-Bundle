@@ -18,6 +18,7 @@ namespace BadPixxel\Tasking\Repository;
 use BadPixxel\Tasking\Entity\Token;
 use BadPixxel\Tasking\Helper\Timer;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\OptimisticLockException;
@@ -47,6 +48,13 @@ class TokenRepository extends EntityRepository
      * @var string
      */
     const MODE_OPTIMISTIC = "Optimist";
+
+    /**
+     * How Many Times we Try to Read or Create a Token before Giving Up
+     *
+     * @var int
+     */
+    private const CREATE_ATTEMPTS = 3;
 
     /**
      * Token Acquire Mode
@@ -96,20 +104,7 @@ class TokenRepository extends EntityRepository
      */
     public function validate(string $tokenName) : bool
     {
-        //==============================================================================
-        // Check If Token Exists
-        /** @var null|Token $token */
-        $token = $this->findOneBy(array("name" => $tokenName));
-
-        //==============================================================================
-        // Create token if necessary
-        if (!$token) {
-            $token = new Token($tokenName);
-            $this->getEntityManager()->persist($token);
-            $this->getEntityManager()->flush();
-        }
-
-        return ($token->getId() > 0);
+        return ($this->ensureExists($tokenName)->getId() > 0);
     }
 
     /**
@@ -171,6 +166,74 @@ class TokenRepository extends EntityRepository
     }
 
     /**
+     * Ensure a Token Row Exists in Database => Concurrency Safe
+     *
+     * Losing the insert race is a success: the row we wanted now exists,
+     * created by the winner. Exclusivity is NOT arbitrated here, it remains
+     * the sole responsibility of acquire().
+     *
+     * @param string $tokenName Token Name to Create if Missing
+     *
+     * @throws Exception When the Token can Neither be Read nor Created
+     *
+     * @return Token
+     */
+    private function ensureExists(string $tokenName): Token
+    {
+        //==============================================================================
+        // Tokens are Also Deleted Concurrently, so Winning or Losing the Insert Race
+        // Guarantees Nothing on the Next Read => Give it More than One Round
+        for ($attempt = 0; $attempt < self::CREATE_ATTEMPTS; $attempt++) {
+            //==============================================================================
+            // Token Already Exists => Nothing to Create
+            /** @var null|Token $token */
+            $token = $this->findOneBy(array("name" => $tokenName));
+            if ($token) {
+                return $token;
+            }
+
+            try {
+                $this->insertToken($tokenName);
+            } catch (UniqueConstraintViolationException) {
+                //==============================================================================
+                // Race Lost => Another Process Inserted it Between our Select & Insert
+                // => This is Exactly the State we Wanted, Read it Back
+            }
+        }
+
+        throw new Exception("Unable to Create Tasking Token: ".$tokenName);
+    }
+
+    /**
+     * Insert a Token Row through the Dbal Connection, NOT through an Orm Flush
+     *
+     * Going through the connection is what makes a lost race harmless: a constraint
+     * violation raised here never closes the shared Entity Manager.
+     *
+     * @param string $tokenName Token Name to Insert
+     *
+     * @throws UniqueConstraintViolationException When the Token was Created Concurrently
+     *
+     * @return void
+     */
+    private function insertToken(string $tokenName): void
+    {
+        $metadata = $this->getClassMetadata();
+
+        $this->getEntityManager()->getConnection()->executeStatement(
+            sprintf(
+                "INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
+                $metadata->getTableName(),
+                $metadata->getColumnName("name"),
+                $metadata->getColumnName("locked"),
+                $metadata->getColumnName("createdAt"),
+                $metadata->getColumnName("version")
+            ),
+            array($tokenName, 0, (new DateTime())->format("Y-m-d H:i:s"), 1)
+        );
+    }
+
+    /**
      * Verify this token is free and Acquire it
      * No Locking Mode
      *
@@ -181,17 +244,8 @@ class TokenRepository extends EntityRepository
     private function acquireNormal(string $tokenName): ?Token
     {
         //==============================================================================
-        // Check If this token Exists Token Key Name
-        /** @var null|Token $token */
-        $token = $this->findOneBy(array("name" => $tokenName));
-
-        //==============================================================================
-        // Create token if necessary
-        if (!$token) {
-            $token = new Token($tokenName);
-            $this->getEntityManager()->persist($token);
-            $this->getEntityManager()->flush();
-        }
+        // Check If this token Exists, Create it if Necessary
+        $token = $this->ensureExists($tokenName);
         //==============================================================================
         // Token is already locked => Exit
         if ($token->isLocked()) {
@@ -249,16 +303,8 @@ class TokenRepository extends EntityRepository
     private function acquireOptimistic(string $tokenName): ?Token
     {
         //==============================================================================
-        // Check If this token Exists Token Key Name
-        /** @var null|Token $token */
-        $token = $this->findOneBy(array("name" => $tokenName));
-        //==============================================================================
-        // Create token if necessary
-        if (!$token) {
-            $token = new Token($tokenName);
-            $this->getEntityManager()->persist($token);
-            $this->getEntityManager()->flush();
-        }
+        // Check If this token Exists, Create it if Necessary
+        $token = $this->ensureExists($tokenName);
 
         try {
             $this->getEntityManager()->refresh($token);
