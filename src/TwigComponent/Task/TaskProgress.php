@@ -127,7 +127,7 @@ class TaskProgress
 
         //====================================================================//
         // Task is Not a Batch
-        return ($this->status["waiting"] ?? 0) + ($this->status["running"] ?? 0);
+        return $this->status["waiting"] + $this->status["running"];
     }
 
     /**
@@ -148,7 +148,7 @@ class TaskProgress
 
         //====================================================================//
         // Task is Not a Batchs
-        return ($this->status["total"] ?? 0);
+        return $this->status["total"];
     }
 
     /**
