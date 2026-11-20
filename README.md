@@ -9,8 +9,8 @@ Key features
 - Multi-server compatible: tokens are stored in a central SQL Table.
 - Optimized memory footprint: create a dedicated Symfony environnement to reduce memory impacts.
 
-[![Total Downloads](https://poser.pugx.org/splash/tasking-bundle/downloads.png)](https://packagist.org/packages/splash/tasking-bundle) 
-[![Latest Stable Version](https://poser.pugx.org/splash/tasking-bundle/v/stable.png)](https://packagist.org/packages/splash/tasking-bundle)
+[![Total Downloads](https://poser.pugx.org/badpixxel/tasking-bundle/downloads.png)](https://packagist.org/packages/badpixxel/tasking-bundle) 
+[![Latest Stable Version](https://poser.pugx.org/badpixxel/tasking-bundle/v/stable.png)](https://packagist.org/packages/badpixxel/tasking-bundle)
 
 ## Installation
 
@@ -19,7 +19,7 @@ The first step is to tell composer that you want to download Tasking-Bundle whic
 be achieved by typing the following at the command prompt:
 
 ```bash
-composer require splash/tasking-bundle
+composer require badpixxel/tasking-bundle
 ```
 
 #### Step 2 - Enable the bundle in your kernel
@@ -43,7 +43,7 @@ public function registerBundles()
 
 ## Create Your First Job
 
-Background jobs must extend [Splash\Tasking\Model\AbstractJob](https://github.com/SplashSync/Tasking-Bundle/blob/master/src/Model/AbstractJob.php).
+Background jobs must extend [BadPixxel\Tasking\Model\AbstractJob](src/Model/AbstractJob.php).
 
 ```php
 use BadPixxel\Tasking\Model\AbstractJob;
@@ -88,10 +88,10 @@ class MyJob extends AbstractJob
 ## Available Job Types
 
 There are few predefined abstract job types, for different kinds of tasks: 
-- Splash\Tasking\Model\AbstractJob: a single simple task, executed once by job class.
-- Splash\Tasking\Model\AbstractServiceJob: execute a Symfony service action with given parameters
-- Splash\Tasking\Model\AbstractStaticJob: a simple task, executed & repeated every XX minutes.
-- Splash\Tasking\Model\AbstractBatch: step-by-step, execute multiple tasks inside a single job. 
+- BadPixxel\Tasking\Model\AbstractJob: a single simple task, executed once by job class.
+- BadPixxel\Tasking\Model\AbstractServiceJob: execute a Symfony service action with given parameters
+- BadPixxel\Tasking\Model\AbstractStaticJob: a simple task, executed & repeated every XX minutes.
+- BadPixxel\Tasking\Model\AbstractBatchJob: step-by-step, execute multiple tasks inside a single job. 
 
 ## Symfony Commands
 
@@ -109,10 +109,10 @@ tasking:worker      Run a Tasking Worker Process
 
 ## Configuration reference
 
-Bundle configuration are stored under **splash_tasking**:
+Bundle configuration are stored under **badpixxel_tasking**:
 
 ```yaml
-splash_tasking:
+badpixxel_tasking:
     entity_manager: default     // Name of Doctrine Entity Manager to use for Tasks & Token Storage
     environement: prod          // Symfony Environnement to use for workers
     refresh_delay: 3            // Delay for workers status refresh
