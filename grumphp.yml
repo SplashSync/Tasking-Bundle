@@ -18,9 +18,7 @@
 #############################################
 # Override Default Config.
 parameters:
-    mode:           "splashsync"
-    # Php Stan
-    stan_config:    "./tests/grumphp/phpstan.neon"
+    mode:           "badpixxel"
 
 #############################################
 # Import Generic + Splash Console Configs
