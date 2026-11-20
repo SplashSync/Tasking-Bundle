@@ -57,40 +57,43 @@ stages:
     ################################################################################
     # Run Test Script
     script:
-        # Execute Grumphp Testsuite
-        - curl -s https://raw.githubusercontent.com/BadPixxel/Php-Sdk/main/ci/grumphp.sh  | sh
+        # Code Linters (composer, phplint, jsonlint, yamllint...)
+        - make lint
+        # Code Standards (phpcpd, phpcs, phpmd, php-cs-fixer)
+        - make style
+        # Static Analysis
+        - make stan
         # Execute PhpUnit Tests
         - vendor/bin/phpunit --log-junit $CI_PROJECT_DIR/test-report.xml
 
     ################################################################################
     # Run After Script
     after_script:
-      - curl -s https://raw.githubusercontent.com/BadPixxel/Php-Sdk/main/ci/after.sh | sh
+        # Project Statistics (sources, git, composer & security)
+        - make stats
 
 ################################################################
 # Symfony 8
 ################################################################
 
+# Symfony 8 requires PHP 8.4+. Allowed to fail until badpixxel/paddock-core supports
+# amphp v3: it requires amphp/parallel ~1.4 (amphp/amp v2), symfony/http-client 8 conflicts
+# with amphp/amp < 3 (see #4).
+sf8:php-8.5:
+    <<: *core_tests
+    stage:            Symfony-8
+    image:            registry.gitlab.com/badpixxel-projects/php-sdk:php-8.5
+    allow_failure:    true
+    variables:
+        SYMFONY_REQUIRE: 8.*
+
 sf8:php-8.4:
     <<: *core_tests
     stage:            Symfony-8
     image:            registry.gitlab.com/badpixxel-projects/php-sdk:php-8.4
+    allow_failure:    true
     variables:
-        SYMFONY_REQUIRE: 8.0.*
-
-sf8:php-8.3:
-    <<: *core_tests
-    stage:            Symfony-8
-    image:            registry.gitlab.com/badpixxel-projects/php-sdk:php-8.3
-    variables:
-      SYMFONY_REQUIRE: 8.0.*
-
-sf8:php-8.2:
-    <<: *core_tests
-    stage:            Symfony-8
-    image:            registry.gitlab.com/badpixxel-projects/php-sdk:php-8.2
-    variables:
-      SYMFONY_REQUIRE: 8.0.*
+        SYMFONY_REQUIRE: 8.*
 
 ################################################################
 # Symfony 7

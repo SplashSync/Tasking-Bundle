@@ -5,8 +5,8 @@
 include vendor/badpixxel/php-sdk/make/sdk.mk
 
 COMMAND ?= echo "Aucune commande spécifiée"
-COLOR_CYAN := $(shell tput setaf 6)
-COLOR_RESET := $(shell tput sgr0)
+COLOR_CYAN := $(shell tput setaf 6 2>/dev/null)
+COLOR_RESET := $(shell tput sgr0 2>/dev/null)
 
 .PHONY: serve
 serve: 	## Start Local Symfony Server

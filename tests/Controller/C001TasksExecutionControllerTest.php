@@ -53,7 +53,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
         );
         //====================================================================//
         // Wait Until All Tasks are Completed
-        $this->waitUntilCompleted(2);
+        $this->waitUntilCompleted(15);
 
         //====================================================================//
         // Load a Task
@@ -98,7 +98,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
         );
         //====================================================================//
         // Wait Until All Tasks are Completed
-        $this->waitUntilCompleted(2);
+        $this->waitUntilCompleted(15);
 
         //====================================================================//
         // Load a Task
@@ -143,7 +143,7 @@ class C001TasksExecutionControllerTest extends AbstractTestController
         );
         //====================================================================//
         // Wait Until All Tasks are Completed
-        $this->waitUntilCompleted(2);
+        $this->waitUntilCompleted(15);
         //====================================================================//
         // Load a Task
         $this->entityManager->clear();
@@ -285,7 +285,10 @@ class C001TasksExecutionControllerTest extends AbstractTestController
     /**
      * Wait Until Tasks Queue Completed
      *
-     * @param int $limit
+     * Returns as soon as the queue is empty: the limit is only a cap, keep it
+     * large enough for a worker to start on a busy CI runner.
+     *
+     * @param int $limit Max Delay in Seconds
      */
     private function waitUntilCompleted(int $limit): void
     {
