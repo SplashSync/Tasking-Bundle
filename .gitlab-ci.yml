@@ -23,10 +23,9 @@ variables:
 ################################################################
 # Defined Pipeline Stages
 stages:
-#  - Symfony-5
   - Symfony-6
   - Symfony-7
-#  - Symfony-8
+  - Symfony-8
 
 
 ################################################################
@@ -67,6 +66,31 @@ stages:
     # Run After Script
     after_script:
       - curl -s https://raw.githubusercontent.com/BadPixxel/Php-Sdk/main/ci/after.sh | sh
+
+################################################################
+# Symfony 8
+################################################################
+
+sf8:php-8.4:
+    <<: *core_tests
+    stage:            Symfony-8
+    image:            registry.gitlab.com/badpixxel-projects/php-sdk:php-8.4
+    variables:
+        SYMFONY_REQUIRE: 8.0.*
+
+sf8:php-8.3:
+    <<: *core_tests
+    stage:            Symfony-8
+    image:            registry.gitlab.com/badpixxel-projects/php-sdk:php-8.3
+    variables:
+      SYMFONY_REQUIRE: 8.0.*
+
+sf8:php-8.2:
+    <<: *core_tests
+    stage:            Symfony-8
+    image:            registry.gitlab.com/badpixxel-projects/php-sdk:php-8.2
+    variables:
+      SYMFONY_REQUIRE: 8.0.*
 
 ################################################################
 # Symfony 7
@@ -117,21 +141,3 @@ sf6:php-8.1:
     image:            registry.gitlab.com/badpixxel-projects/php-sdk:php-8.1
     variables:
         SYMFONY_REQUIRE: 6.4.*
-
-################################################################
-# Symfony 5
-################################################################
-
-#sf5:php-8.2:
-#    <<: *core_tests
-#    stage:            Symfony-5
-#    image:            registry.gitlab.com/badpixxel-projects/php-sdk:php-8.2
-#    variables:
-#        SYMFONY_REQUIRE: 5.4.*
-#
-#sf5:php-8.1:
-#    <<: *core_tests
-#    stage:            Symfony-5
-#    image:            registry.gitlab.com/badpixxel-projects/php-sdk:php-8.1
-#    variables:
-#        SYMFONY_REQUIRE: 5.4.*
