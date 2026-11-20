@@ -500,7 +500,7 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
     }
 
     /**
-     * Add a New Test Simple Task & Run
+     * Add a New Test Simple Task (Do Not Start Workers)
      */
     public function addTask(string $token): ?Task
     {
@@ -509,8 +509,8 @@ class A003TasksRepositoryControllerTest extends AbstractTestController
         $options = SimpleJob::toOptions(delay: 1, token: $token);
 
         //====================================================================//
-        // Start Task
-        return $this->getTasksManager()->start(SimpleJob::class, $options);
+        // Insert Task, Do Not Start Workers: a Worker would Acquire the Token Under Test
+        return $this->getTasksManager()->start(SimpleJob::class, $options, false);
     }
 
     /**

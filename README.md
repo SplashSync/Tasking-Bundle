@@ -93,6 +93,31 @@ There are few predefined abstract job types, for different kinds of tasks:
 - BadPixxel\Tasking\Model\AbstractStaticJob: a simple task, executed & repeated every XX minutes.
 - BadPixxel\Tasking\Model\AbstractBatchJob: step-by-step, execute multiple tasks inside a single job. 
 
+## Long Running Tasks
+
+A running task is considered as faulty, and replayed, when it was not seen alive for longer than the
+tasks error delay. Its worker is considered as dead when it stays silent longer than
+`watchdog_delay` + `refresh_delay`.
+
+Any code running inside a task (job, service, listener) can signal the task is still working by
+dispatching a `TaskKeepAliveEvent`, without depending on the tasking services:
+
+```php
+use BadPixxel\Tasking\Events\TaskKeepAliveEvent;
+
+// Request at least 60 more seconds (defaults to watchdog_delay)
+$event = $dispatcher->dispatch(new TaskKeepAliveEvent(60));
+if (!$event->isAccepted()) {
+    // Task token is about to expire: stop working & let the task be replayed
+}
+```
+
+Each signal resets the PHP time limit and marks the task & its worker as alive in database
+(throttled to one write per `refresh_delay`). Lifetime is capped by the task token lifetime.
+Outside a running task, dispatching this event is a no-op.
+
+**Note: this feature adds a `LastAliveAtTimeStamp` column to the tasks table, update your database schema.**
+
 ## Symfony Commands
 
 The bundle comes with management commands to pilot workers from command line.

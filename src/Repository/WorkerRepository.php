@@ -14,6 +14,7 @@
 namespace BadPixxel\Tasking\Repository;
 
 use BadPixxel\Tasking\Entity\Worker;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Throwable;
 
@@ -160,5 +161,31 @@ class WorkerRepository extends EntityRepository
         }
 
         return $status;
+    }
+
+    /**
+     * Refresh Worker Last Seen Date
+     *
+     * Written through the Dbal connection: called while a task is running, the
+     * entity manager must not be flushed or cleared from here.
+     *
+     * @param int      $workerId Worker Entity ID
+     * @param DateTime $lastSeen Last Seen Date
+     *
+     * @return void
+     */
+    public function touchLastSeen(int $workerId, DateTime $lastSeen): void
+    {
+        $metadata = $this->getClassMetadata();
+
+        $this->getEntityManager()->getConnection()->executeStatement(
+            sprintf(
+                "UPDATE %s SET %s = ? WHERE %s = ?",
+                $metadata->getTableName(),
+                $metadata->getColumnName("lastSeen"),
+                $metadata->getColumnName("id")
+            ),
+            array($lastSeen->format("Y-m-d H:i:s"), $workerId)
+        );
     }
 }

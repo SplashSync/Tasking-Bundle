@@ -59,6 +59,21 @@ class StatusMonitor
      */
     private ?DateTime $jobExpireAt = null;
 
+    /**
+     * Last Time Current Job was Marked as Alive in Database
+     */
+    private ?DateTime $jobAliveAt = null;
+
+    /**
+     * Current Task Entity ID
+     */
+    private ?int $taskId = null;
+
+    /**
+     * Current Worker Entity ID
+     */
+    private ?int $workerId = null;
+
     public function __construct(
         private readonly LoggerInterface $logger,
         private readonly Configuration $configuration,
@@ -171,18 +186,68 @@ class StatusMonitor
         return (PHP_INT_MAX == $min) ? null : (int) $min;
     }
 
+    /**
+     * Keep Current Job Alive for at least $nbSeconds.
+     *
+     * Same rules as requireLifetime(): the job & token lifetimes cap the request.
+     * When granted, watchdog (PHP Time Limit) is reset for the longest of the
+     * requested delay and the watchdog delay, never beyond the expendable lifetime.
+     *
+     * @param int $nbSeconds Requested Lifetime in Seconds
+     *
+     * @return bool True if this delay is Allowed
+     */
+    public function keepAlive(int $nbSeconds): bool
+    {
+        //==============================================================================
+        // No Running Job => Nothing to Keep Alive
+        if (!$this->isJobRunning()) {
+            return false;
+        }
+        $nbSeconds = max(1, $nbSeconds);
+        $extendable = $this->getExpendableLifetime();
+        //==============================================================================
+        // Requested Delay Exceed Job or Token Lifetime
+        if (!is_null($extendable) && ($nbSeconds > $extendable)) {
+            return false;
+        }
+        //==============================================================================
+        // Reset Watchdog
+        $delay = max($nbSeconds, $this->configuration->getWorkerWatchdogDelay());
+        $this->setWatchdog(is_null($extendable) ? $delay : min($delay, $extendable));
+        $this->logger->debug(sprintf("Status Manager: Job kept alive for %d Seconds", $nbSeconds));
+
+        return true;
+    }
+
     //==============================================================================
     // JOB DELAYS MANAGEMENT
     //==============================================================================
 
     /**
      * Notify Status controller a job was Started
+     *
+     * @param null|int $taskId Started Task Entity ID
      */
-    public function setJobStarted(): void
+    public function setJobStarted(?int $taskId = null): void
     {
         //==============================================================================
         // Store Job Time Limits
+        $this->taskId = $taskId;
         $this->jobStartedAt = new DateTime();
+        //==============================================================================
+        // A Job is Alive when it Starts
+        $this->setJobAlive();
+    }
+
+    /**
+     * Notify Status controller current job was Marked as Alive in Database
+     *
+     * Job lifetime slides with alive marks, exactly like the replay rule of running tasks.
+     */
+    public function setJobAlive(): void
+    {
+        $this->jobAliveAt = new DateTime();
 
         try {
             $this->jobExpireAt = new DateTime("+".$this->configuration->getTasksErrorDelay()." Seconds");
@@ -192,14 +257,50 @@ class StatusMonitor
     }
 
     /**
+     * Check if Current Job Alive Mark is Outdated in Database
+     *
+     * Database writes are throttled to one per worker refresh delay.
+     */
+    public function isJobAliveRefreshNeeded(): bool
+    {
+        if (!$this->isJobRunning()) {
+            return false;
+        }
+        if (null === $this->jobAliveAt) {
+            return true;
+        }
+        $refreshDelay = $this->configuration->getWorkerRefreshDelay();
+
+        return ((new DateTime())->getTimestamp() - $this->jobAliveAt->getTimestamp()) >= $refreshDelay;
+    }
+
+    /**
      * Notify Status controller a job was Finished
      */
     public function setJobFinished(): void
     {
         //==============================================================================
         // Store Job Time Limits
+        $this->taskId = null;
         $this->jobStartedAt = null;
         $this->jobExpireAt = null;
+        $this->jobAliveAt = null;
+    }
+
+    /**
+     * Check if a Job is Currently Running
+     */
+    public function isJobRunning(): bool
+    {
+        return null !== $this->jobStartedAt;
+    }
+
+    /**
+     * Get Current Task Entity ID
+     */
+    public function getTaskId(): ?int
+    {
+        return $this->taskId;
     }
 
     /**
@@ -242,16 +343,7 @@ class StatusMonitor
         $watchdogDelay = $this->configuration->getWorkerWatchdogDelay();
         //==============================================================================
         // Store New Process Execution Time Limit
-        $this->watchdogResetAt = new DateTime();
-
-        try {
-            $this->watchdogExpireAt = new DateTime("+".$watchdogDelay." Seconds");
-        } catch (Exception) {
-            $this->watchdogExpireAt = new DateTime("+30 Seconds");
-        }
-        //==============================================================================
-        // Set Script Execution Time
-        set_time_limit($watchdogDelay);
+        $this->setWatchdog($watchdogDelay);
         //==============================================================================
         // Add Log Message
         $this->logger->warning(sprintf("Status Manager: Watchdog reset for %d Seconds", $watchdogDelay));
@@ -275,6 +367,28 @@ class StatusMonitor
     public function getWatchdogResetAt(): ?DateTime
     {
         return $this->watchdogResetAt;
+    }
+
+    //==============================================================================
+    // WORKER MANAGEMENT
+    //==============================================================================
+
+    /**
+     * Notify Status controller of Current Worker
+     *
+     * @param null|int $workerId Current Worker Entity ID
+     */
+    public function setWorkerId(?int $workerId): void
+    {
+        $this->workerId = $workerId;
+    }
+
+    /**
+     * Get Current Worker Entity ID
+     */
+    public function getWorkerId(): ?int
+    {
+        return $this->workerId;
     }
 
     //==============================================================================
@@ -348,5 +462,32 @@ class StatusMonitor
     public function getTokenAcquiredAt(): ?DateTime
     {
         return $this->tokenAcquiredAt;
+    }
+
+    //==============================================================================
+    // PRIVATE METHODS
+    //==============================================================================
+
+    /**
+     * Set Process Execution Time Limit
+     *
+     * @param int $nbSeconds Delay in Seconds
+     *
+     * @return void
+     */
+    private function setWatchdog(int $nbSeconds): void
+    {
+        //==============================================================================
+        // Store New Process Execution Time Limit
+        $this->watchdogResetAt = new DateTime();
+
+        try {
+            $this->watchdogExpireAt = new DateTime("+".$nbSeconds." Seconds");
+        } catch (Exception) {
+            $this->watchdogExpireAt = new DateTime("+30 Seconds");
+        }
+        //==============================================================================
+        // Set Script Execution Time
+        set_time_limit($nbSeconds);
     }
 }

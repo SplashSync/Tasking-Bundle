@@ -14,6 +14,7 @@
 namespace BadPixxel\Tasking\Services;
 
 use BadPixxel\Paddock\Core\Models\Tracks\AbstractTrack;
+use BadPixxel\Tasking\Entity\Worker;
 use BadPixxel\Tasking\Model\Configuration as ConfigurationTraits;
 use BadPixxel\Tasking\Paddock\Tracks\WorkersCheckerTrack;
 use Doctrine\Persistence\ManagerRegistry as Registry;
@@ -91,6 +92,8 @@ class Configuration
         $this->config = self::completeConfiguration($configuration);
         //====================================================================//
         // Setup Static Parameters
+        // A Worker may stay silent for a whole watchdog period, plus one refresh delay
+        Worker::setLivenessDelay($this->getWorkerWatchdogDelay() + $this->getWorkerRefreshDelay());
         if (class_exists(AbstractTrack::class)) {
             WorkersCheckerTrack::setSupervisorMaxWorkers($this->getSupervisorMaxWorkers());
         }

@@ -10,7 +10,6 @@ doctrine:
         charset:        UTF8
 
     orm:
-        auto_generate_proxy_classes: "%kernel.debug%"
         entity_managers:
             default:
                 connection:     default
@@ -25,8 +24,6 @@ doctrine:
 when@prod:
     doctrine:
         orm:
-            auto_generate_proxy_classes: false
-            proxy_dir: '%kernel.build_dir%/doctrine/orm/Proxies'
             query_cache_driver:
                 type: pool
                 pool: doctrine.system_cache_pool

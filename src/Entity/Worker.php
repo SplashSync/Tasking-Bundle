@@ -92,6 +92,13 @@ class Worker
     #[ORM\Column(name: "Task", type: Types::STRING, length: 250, nullable: true)]
     private string $task;
 
+    /**
+     * Max Silence Delay in Seconds: a Worker not Seen for Longer is Considered as Dead
+     *
+     * Derived from bundle configuration on boot, see Configuration::loadConfiguration().
+     */
+    private static int $livenessDelay = 30;
+
     //==============================================================================
     //      Getters & Setters
     //==============================================================================
@@ -137,6 +144,28 @@ class Worker
     }
 
     /**
+     * Set Max Silence Delay before a Worker is Considered as Dead
+     *
+     * @param int $seconds Delay in Seconds
+     *
+     * @return void
+     */
+    public static function setLivenessDelay(int $seconds): void
+    {
+        self::$livenessDelay = max(1, $seconds);
+    }
+
+    /**
+     * Get Max Silence Delay before a Worker is Considered as Dead
+     *
+     * @return int
+     */
+    public static function getLivenessDelay(): int
+    {
+        return self::$livenessDelay;
+    }
+
+    /**
      * Get running
      *
      * @return bool
@@ -150,7 +179,7 @@ class Worker
         }
         //==============================================================================
         // Check if Worker WatchDog is Ok
-        $limit = new DateTime("-30 Seconds");
+        $limit = new DateTime("-".self::$livenessDelay." Seconds");
         if ($this->getLastSeen() < $limit) {
             return false;
         }

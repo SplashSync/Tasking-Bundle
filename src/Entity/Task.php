@@ -293,6 +293,9 @@ class Task extends AbstractTask
         // Store date as TimeStamp
         $this->startedAtTimeStamp = $startedAt->getTimestamp();
         //====================================================================//
+        // A Task is Alive when it Starts
+        $this->lastAliveAtTimeStamp = $this->startedAtTimeStamp;
+        //====================================================================//
         // Store date as MicroTime
         $this->startedAtMicroTime = microtime(true);
 
