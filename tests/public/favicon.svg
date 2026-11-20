@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-labelledby="title">
+    <title id="title">BadPixxel Tasking Bundle</title>
+    <!-- Supervisor heartbeat -->
+    <path d="M48 160 L152 160 L192 80 L256 232 L304 112 L336 160 L464 160" fill="none" stroke="#455A64" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Task waiting -->
+    <rect x="32" y="288" width="128" height="192" rx="40" fill="#BAC4C9"/>
+    <!-- Task running -->
+    <rect x="192" y="288" width="128" height="192" rx="40" fill="#F48B2C"/>
+    <path d="M240 352 L240 416 L288 384 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="14" stroke-linejoin="round"/>
+    <!-- Task done -->
+    <rect x="352" y="288" width="128" height="192" rx="40" fill="#14B886"/>
+    <path d="M386 386 L408 408 L448 364" fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
