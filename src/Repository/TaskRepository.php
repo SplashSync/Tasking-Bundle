@@ -419,7 +419,7 @@ class TaskRepository extends EntityRepository
             ->delete()
             ->where("t.running = 1")
             ->where("t.finished = 0")
-            ->andWhere("t.startedAtTimeStamp < :maxage")
+            ->andWhere(self::getLastAliveDql("t")." < :maxage")
             ->andWhere("t.jobIsStatic != 1")
             ->setParameter(":maxage", $maxErrorDate)
             ->getQuery()
@@ -446,6 +446,33 @@ class TaskRepository extends EntityRepository
     }
 
     /**
+     * Mark a Running Task as Alive
+     *
+     * Written through the Dbal connection: the running task entity is owned by the
+     * runner, its unit of work must not be flushed or altered from here.
+     *
+     * @param int $taskId    Task Entity ID
+     * @param int $timestamp Last Alive TimeStamp
+     *
+     * @return void
+     */
+    public function touchAlive(int $taskId, int $timestamp): void
+    {
+        $metadata = $this->getClassMetadata();
+
+        $this->getEntityManager()->getConnection()->executeStatement(
+            sprintf(
+                "UPDATE %s SET %s = ? WHERE %s = ? AND %s = 1",
+                $metadata->getTableName(),
+                $metadata->getColumnName("lastAliveAtTimeStamp"),
+                $metadata->getColumnName("id"),
+                $metadata->getColumnName("running")
+            ),
+            array($timestamp, $taskId)
+        );
+    }
+
+    /**
      * Flushes Entity Manager.
      */
     public function flush(): void
@@ -466,6 +493,20 @@ class TaskRepository extends EntityRepository
     //  Low Level Functions
     // *******************************************************************//
     //====================================================================//
+
+    /**
+     * Get Dql Expression for the Last Time a Running Task was Seen Alive
+     *
+     * Tasks started before keep-alive signals existed have no value: fallback on start time.
+     *
+     * @param string $alias Task Entity Alias in Query
+     *
+     * @return string
+     */
+    private static function getLastAliveDql(string $alias = "task"): string
+    {
+        return sprintf("COALESCE(%s.lastAliveAtTimeStamp, %s.startedAtTimeStamp)", $alias, $alias);
+    }
 
     /**
      * Generate Active Tokens Query DQL.
@@ -519,8 +560,8 @@ class TaskRepository extends EntityRepository
                 'task.try = 0 AND task.running = 0',
                 // If Task has Already been tried, but failed
                 "task.try > 0 AND task.try < :MaxTry AND task.running = 0 AND task.startedAtTimeStamp <  :MaxDate",
-                // If Task Timeout Exceeded
-                "task.try < :MaxTry AND task.running = 1 AND task.startedAtTimeStamp < :ErrorDate"
+                // If Task Timeout Exceeded (Last Keep-Alive Signal is too Old)
+                "task.try < :MaxTry AND task.running = 1 AND ".self::getLastAliveDql()." < :ErrorDate"
             ))
             //====================================================================//
             // Select Tasks That Are Not Static
@@ -550,7 +591,7 @@ class TaskRepository extends EntityRepository
                 "task.try > 0 AND task.try < :MaxTry AND task.running = 0
                  AND task.finished = 0 AND task.startedAtTimeStamp <  :MaxDate",
                 // If Task Timeout Exeeded
-                "task.try < :MaxTry AND task.running = 1 AND task.startedAtTimeStamp < :ErrorDate",
+                "task.try < :MaxTry AND task.running = 1 AND ".self::getLastAliveDql()." < :ErrorDate",
                 // If Task Need Restart
                 "task.running = 0 AND task.finished = 1 AND task.plannedAtTimeStamp <  :Now"
             ))

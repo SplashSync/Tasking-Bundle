@@ -304,7 +304,7 @@ class Runner
         }
         //====================================================================//
         // Init Task Status Manager
-        $this->statusMonitor->setJobStarted();
+        $this->statusMonitor->setJobStarted($task->getId());
         //====================================================================//
         // Init User Job
         $this->job->setInputs($task->getJobInputs());

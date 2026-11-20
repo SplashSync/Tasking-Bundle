@@ -61,6 +61,15 @@ abstract class AbstractTask
     protected float $startedAtMicroTime;
 
     /**
+     * TimeStamp when Running Task was Last Seen Alive
+     *
+     * Initialized when the task starts, then refreshed by keep-alive signals.
+     * Used instead of the start time to detect running tasks in error.
+     */
+    #[ORM\Column(name: "LastAliveAtTimeStamp", type: Types::INTEGER, nullable: true)]
+    protected ?int $lastAliveAtTimeStamp = null;
+
+    /**
      * Date when Task Finished
      */
     #[ORM\Column(name: "FinishedAt", type: Types::DATETIME_MUTABLE, nullable: true)]
@@ -557,6 +566,16 @@ abstract class AbstractTask
     public function getStartedAt(): ?DateTime
     {
         return $this->startedAt ?? null;
+    }
+
+    /**
+     * Get TimeStamp when Running Task was Last Seen Alive
+     *
+     * @return null|int
+     */
+    public function getLastAliveAtTimeStamp(): ?int
+    {
+        return $this->lastAliveAtTimeStamp;
     }
 
     /**

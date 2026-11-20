@@ -133,6 +133,7 @@ class WorkersManager
             throw new Exception("Unable to reload Worker from Database");
         }
         $this->worker = $worker;
+        $this->statusMonitor->setWorkerId($worker->getId());
 
         //==============================================================================
         // Refresh Worker Status
