@@ -13,10 +13,15 @@
 
 namespace BadPixxel\Tasking\Admin;
 
+use BadPixxel\Tasking\Dictionary\TaskStatusPresets;
 use BadPixxel\Tasking\Entity\Task;
+use Knp\Menu\ItemInterface;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
+use Sonata\AdminBundle\Admin\AdminInterface;
+use Sonata\AdminBundle\Datagrid\DatagridInterface;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
+use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Show\ShowMapper;
 use Sonata\Form\Type\DateTimePickerType;
@@ -37,6 +42,39 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 ))]
 class TaskAdmin extends AbstractAdmin
 {
+    /**
+     * {@inheritdoc}
+     */
+    protected function configureDefaultSortValues(array &$sortValues): void
+    {
+        //====================================================================//
+        // Most Recent Tasks First
+        $sortValues[DatagridInterface::SORT_BY] = 'id';
+        $sortValues[DatagridInterface::SORT_ORDER] = 'DESC';
+    }
+
+    /**
+     * Add Predefined Filters Tabs on Top of Tasks List
+     *
+     * {@inheritdoc}
+     */
+    protected function configureTabMenu(ItemInterface $menu, string $action, ?AdminInterface $childAdmin = null): void
+    {
+        if ($childAdmin || ('list' !== $action)) {
+            return;
+        }
+        $menu->addChild("All", array(
+            'uri' => $this->generateUrl('list', array('filters' => 'reset')),
+            'attributes' => array('icon' => 'fa fa-list'),
+        ));
+        foreach (TaskStatusPresets::ALL as $preset) {
+            $menu->addChild($preset["label"], array(
+                'uri' => $this->generateUrl('list', array('filter' => $preset["filter"])),
+                'attributes' => array('icon' => $preset["icon"]),
+            ));
+        }
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -71,6 +109,9 @@ class TaskAdmin extends AbstractAdmin
             ->add('createdBy')
             ->add('startedAt')
             ->add('startedBy')
+            ->add('lastAliveAtTimeStamp', FieldDescriptionInterface::TYPE_DATETIME, array(
+                'label' => 'Last Seen',
+            ))
             ->add('finishedAt')
             ->add('duration')
             ->end()
@@ -90,6 +131,9 @@ class TaskAdmin extends AbstractAdmin
             ->addIdentifier('name', null, array('route' => array('name' => 'show')))
             ->add('jobToken')
             ->add('duration')
+            ->add('lastAliveAtTimeStamp', FieldDescriptionInterface::TYPE_DATETIME, array(
+                'label' => 'Last Seen',
+            ))
             ->add('running', null, array('editable' => true))
             ->add('finished', null, array('editable' => true))
             ->add('staticJob', 'boolean')
@@ -104,9 +148,9 @@ class TaskAdmin extends AbstractAdmin
     protected function configureDatagridFilters(DatagridMapper $filter): void
     {
         $filter
-//            ->add('user')
             ->add('running')
             ->add('finished')
+            ->add('try')
             ->add('jobClass')
             ->add('jobToken')
             ->add('jobIsStatic')
